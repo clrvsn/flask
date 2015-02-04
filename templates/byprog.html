@@ -32,10 +32,17 @@
         stroke-width: 2;
         stroke-linejoin: round;
     }
+    g.prog text {
+        font-family: sans-serif;
+        font-weight: bold;
+        font-size: 13px;
+        color: gray;
+        --text-anchor: middle;
+        pointer-events: none;
+    }
 
     g.init rect {
         fill: white;
-        stroke: black;
         stroke-width: 2;
         stroke-linejoin: round;
     }
@@ -55,7 +62,7 @@
 </style>
 {% endblock %}
 {% block content %}
-    <p>Initiatives displayed by the Program they belong to. This is an SVG generated 
+    <p>Initiatives displayed by the Program they belong to. This is an SVG generated
     on-the-fly in the browser by JavaScript using data retrieved from the server by
     AJAX requests.</p>
     <div id="tooltip" class="hidden">
@@ -77,6 +84,13 @@
                 {col: 2, row: 4, cols: 3, rows: 12, color: "#D7E3F4", name: "MHS Transformation"},
                 {col: 5, row: 4, cols: 1, rows: 6,  color: "#FFEEAA", name: "Planned Business"},
             ];
+
+        var state_color = {
+            "NOT STARTED": "#808000",
+            "RUNNING":     "#0000FF",
+            "ROLL-OUT":    "#008080",
+            "CLOSED":      "#008000",
+        };
 
         var svg = d3.select("body")
                     .append("svg")
@@ -100,6 +114,14 @@
                 ry: 10,
             });
 
+        progs.append("text")
+            .text(function(d) { return d.name; })
+            .attr({
+                x: function(d) { return d.col * colw + 25; },
+                y: function(d) { return d.row * rowh + 10 + 12; },
+                //text: function(d) { return ; },
+            });
+
         d3.csv("/static/init.csv", function(data) {
             //console.log(data);
             init_data = data;
@@ -117,8 +139,9 @@
                     width: colw - 50,
                     height: rowh - 20,
                     "stroke-dasharray": function(d) {return d.type === "PRE-STUDY" ? "6,2" : ""; },
-                    rx: function(d) { return d.type === "PROJECT" ? 5 : 0; },
-                    ry: function(d) { return d.type === "PROJECT" ? 5 : 0; },
+                    rx: function(d) { return d.type === "PROJECT" ? 5 : (d.type === "ACTIVITY" ? (rowh-20)/2 : 0); },
+                    ry: function(d) { return d.type === "PROJECT" ? 5 : (d.type === "ACTIVITY" ? (rowh-20)/2 : 0); },
+                    stroke: function(d) { return state_color[d.state]; },
                 });
 
             gs.selectAll("text")
