@@ -1,0 +1,139 @@
+﻿{% extends "base.html" %}
+{% block head %}
+<style>
+    #tooltip {
+        position: absolute;
+        width: 200px;
+        height: auto;
+        padding: 10px;
+        background-color: white;
+        -webkit-border-radius: 10px;
+        -moz-border-radius: 10px;
+        border-radius: 10px;
+        -webkit-box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.4);
+        -moz-box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.4);
+        box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.4);
+        pointer-events: none;
+    }
+
+    #tooltip.hidden {
+        display: none;
+    }
+
+    #tooltip p {
+        margin: 0;
+        font-family: sans-serif;
+        font-size: 14px;
+        line-height: 16px;
+    }
+
+    g.prog rect {
+        stroke: grey;
+        stroke-width: 2;
+        stroke-linejoin: round;
+    }
+
+    g.init rect {
+        fill: white;
+        stroke: black;
+        stroke-width: 2;
+        stroke-linejoin: round;
+    }
+    g.init rect:hover {
+        fill: orange;
+    }
+    g.init text {
+        font-family: sans-serif;
+        font-size: 11px;
+        text-anchor: middle;
+        pointer-events: none;
+    }
+    p {
+        font-family: sans-serif;
+        -font-size: 1px;
+    }
+</style>
+{% endblock %}
+{% block content %}
+    <p>Initiatives displayed by the Program they belong to. This is an SVG generated 
+    on-the-fly in the browser by JavaScript using data retrieved from the server by
+    AJAX requests.</p>
+    <div id="tooltip" class="hidden">
+        <p><strong>Important Label Heading</strong></p>
+        <p><span id="value">100</span>%</p>
+    </div>
+    <script type="text/javascript">
+        var cols = 6,
+            rows = 16,
+            colw = 170,
+            rowh = 65,
+            w = cols * colw,
+            h = rows * rowh + rowh/2,
+            init_data = [];
+
+        var prog_data = [
+                {col: 2, row: 0, cols: 3, rows: 3,  color: "#EEFFAA", name: "eCommerce"},
+                {col: 0, row: 4, cols: 2, rows: 8,  color: "#FFEEAA", name: "Planned Business"},
+                {col: 2, row: 4, cols: 3, rows: 12, color: "#D7E3F4", name: "MHS Transformation"},
+                {col: 5, row: 4, cols: 1, rows: 6,  color: "#FFEEAA", name: "Planned Business"},
+            ];
+
+        var svg = d3.select("body")
+                    .append("svg")
+                    .attr("width", w)
+                    .attr("height", h);
+
+        var progs = svg.selectAll("g.prog")
+                        .data(prog_data)
+                        .enter()
+                        .append("g")
+                        .classed("prog", true);
+
+        progs.append("rect")
+            .attr({
+                x: function(d) { return d.col * colw + 15; },
+                y: function(d) { return d.row * rowh + 0; },
+                width: function(d) { return d.cols * colw - 30; },
+                height: function(d) { return d.rows * rowh - 0 + rowh/2; },
+                fill: function(d) { return d.color; },
+                rx: 10,
+                ry: 10,
+            });
+
+        d3.csv("/static/init.csv", function(data) {
+            //console.log(data);
+            init_data = data;
+
+            var gs = svg.selectAll("g.init")
+                     .data(init_data)
+                     .enter()
+                     .append("g")
+                     .classed("init", true);
+
+            gs.append("rect")
+                .attr({
+                    x: function(d) { return d.col * colw + 25; },
+                    y: function(d) { return d.row * rowh + 10 + rowh/2; },
+                    width: colw - 50,
+                    height: rowh - 20,
+                    "stroke-dasharray": function(d) {return d.type === "PRE-STUDY" ? "6,2" : ""; },
+                    rx: function(d) { return d.type === "PROJECT" ? 5 : 0; },
+                    ry: function(d) { return d.type === "PROJECT" ? 5 : 0; },
+                });
+
+            gs.selectAll("text")
+                .data(function(d) {
+                    var ns = d.name.split("|");
+                    return ns.map(function(n) {return {col: d.col, row: d.row, n: ns.length, name: n}; });
+                })
+                .enter()
+                .append("text")
+                .text(function(d) {return d.name})
+                .attr({
+                    x: function(d) { return d.col * colw + colw/2; },
+                    y: function(d, i) { return d.row * rowh + rowh/2 + (9 - d.n*6 + i*12) + rowh/2; },
+                });
+        });
+
+    </script>
+{% endblock %}
