@@ -27,6 +27,26 @@
         line-height: 16px;
     }
 
+    line.soft {
+        stroke: grey;
+        stroke-width: 8;
+        opacity: 0.5;
+    }
+    line.soft:hover {
+        stroke: orange;
+        opacity: 1;
+    }
+
+    line.hard {
+        stroke: grey;
+        stroke-width: 3;
+        -opacity: 0.5;
+    }
+    line.hard:hover {
+        stroke: orange;
+        -opacity: 1;
+    }
+
     g.prog rect {
         stroke: grey;
         stroke-width: 2;
@@ -42,8 +62,7 @@
     }
 
     g.init rect {
-        fill: white;
-        stroke-width: 2;
+        stroke-width: 3;
         stroke-linejoin: round;
     }
     g.init rect:hover {
@@ -70,19 +89,37 @@
         <p><span id="value">100</span>%</p>
     </div>
     <script type="text/javascript">
+        if (!Array.prototype.forEach)
+        {
+          Array.prototype.forEach = function(fun /*, thisp*/)
+          {
+            var len = this.length;
+            if (typeof fun != "function")
+              throw new TypeError();
+
+            var thisp = arguments[1];
+            for (var i = 0; i < len; i++)
+            {
+              if (i in this)
+                fun.call(thisp, this[i], i, this);
+            }
+          };
+        }
+
         var cols = 6,
-            rows = 16,
+            rows = 12,
             colw = 170,
             rowh = 65,
             w = cols * colw,
             h = rows * rowh + rowh/2,
-            init_data = [];
+            init_data = [],
+            init_indx = {};
 
         var prog_data = [
-                {col: 2, row: 0, cols: 3, rows: 3,  color: "#EEFFAA", name: "eCommerce"},
-                {col: 0, row: 4, cols: 2, rows: 8,  color: "#FFEEAA", name: "Planned Business"},
-                {col: 2, row: 4, cols: 3, rows: 12, color: "#D7E3F4", name: "MHS Transformation"},
-                {col: 5, row: 4, cols: 1, rows: 6,  color: "#FFEEAA", name: "Planned Business"},
+                {col: 0, row: 0, cols: 2, rows: 3,  color: "#EEFFAA", name: "eCommerce"},
+                {col: 0, row: 4, cols: 2, rows: 7,  color: "#FFEEAA", name: "Planned Business"},
+                {col: 2, row: 0, cols: 3, rows: 12, color: "#FFFFAA", name: "MHS Transformation"},
+                {col: 5, row: 0, cols: 1, rows: 6,  color: "#FFEEAA", name: "Planned Business"},
             ];
 
         var state_color = {
@@ -119,43 +156,89 @@
             .attr({
                 x: function(d) { return d.col * colw + 25; },
                 y: function(d) { return d.row * rowh + 10 + 12; },
-                //text: function(d) { return ; },
             });
 
+        function soft_line(d) {
+            var d1 = init_indx[d.foo],
+                d2 = init_indx[d.bar];
+            console.log(d)
+            d3.select(this)
+                .attr({
+                    x1: d1.col * colw + colw/2,
+                    y1: d1.row * rowh + rowh,
+                    x2: d2.col * colw + colw/2,
+                    y2: d2.row * rowh + rowh,
+                });
+        }
+        function hard_line(d) {
+            var d1 = init_indx[d.from],
+                d2 = init_indx[d.to];
+            console.log(d)
+            d3.select(this)
+                .attr({
+                    x1: d1.col * colw + colw/2,
+                    y1: d1.row * rowh + rowh,
+                    x2: d2.col * colw + colw/2,
+                    y2: d2.row * rowh + rowh,
+                });
+        }
+
         d3.csv("/static/init.csv", function(data) {
-            //console.log(data);
             init_data = data;
 
-            var gs = svg.selectAll("g.init")
-                     .data(init_data)
-                     .enter()
-                     .append("g")
-                     .classed("init", true);
+            init_data.forEach(function(ini) {
+                init_indx[ini.id] = ini;
+            });
 
-            gs.append("rect")
-                .attr({
-                    x: function(d) { return d.col * colw + 25; },
-                    y: function(d) { return d.row * rowh + 10 + rowh/2; },
-                    width: colw - 50,
-                    height: rowh - 20,
-                    "stroke-dasharray": function(d) {return d.type === "PRE-STUDY" ? "6,2" : ""; },
-                    rx: function(d) { return d.type === "PROJECT" ? 5 : (d.type === "ACTIVITY" ? (rowh-20)/2 : 0); },
-                    ry: function(d) { return d.type === "PROJECT" ? 5 : (d.type === "ACTIVITY" ? (rowh-20)/2 : 0); },
-                    stroke: function(d) { return state_color[d.state]; },
-                });
+            d3.csv("/static/soft.csv", function(data) {
+                svg.selectAll("line.soft")
+                    .data(data)
+                    .enter()
+                    .append("line")
+                    .classed("soft", true)
+                    .each(soft_line);
 
-            gs.selectAll("text")
-                .data(function(d) {
-                    var ns = d.name.split("|");
-                    return ns.map(function(n) {return {col: d.col, row: d.row, n: ns.length, name: n}; });
-                })
-                .enter()
-                .append("text")
-                .text(function(d) {return d.name})
-                .attr({
-                    x: function(d) { return d.col * colw + colw/2; },
-                    y: function(d, i) { return d.row * rowh + rowh/2 + (9 - d.n*6 + i*12) + rowh/2; },
+                d3.csv("/static/hard.csv", function(data) {
+                    svg.selectAll("line.hard")
+                        .data(data)
+                        .enter()
+                        .append("line")
+                        .classed("hard", true)
+                        .each(hard_line);
+
+                    var gs = svg.selectAll("g.init")
+                             .data(init_data)
+                             .enter()
+                             .append("g")
+                             .classed("init", true);
+
+                    gs.append("rect")
+                        .attr({
+                            x: function(d) { return d.col * colw + 25; },
+                            y: function(d) { return d.row * rowh + 10 + rowh/2; },
+                            width: colw - 50,
+                            height: rowh - 20,
+                            "stroke-dasharray": function(d) {return d.type === "PRE-STUDY" ? "6,2" : ""; },
+                            rx: function(d) { return d.type === "PROJECT" ? 5 : (d.type === "ACTIVITY" ? (rowh-20)/2 : 0); },
+                            ry: function(d) { return d.type === "PROJECT" ? 5 : (d.type === "ACTIVITY" ? (rowh-20)/2 : 0); },
+                            stroke: function(d) { return state_color[d.state]; },
+                            fill: function(d) { return d.cat === "IMPACTING" ? "white" : (d.cat === "DEPENDENCY" ? "#EEEEEE" : "#AACCFF"); },
+                        });
+
+                    gs.selectAll("text")
+                        .data(function(d) {
+                            var ns = d.name.split("|");
+                            return ns.map(function(n) {return {col: d.col, row: d.row, n: ns.length, name: n}; });
+                        })
+                        .enter()
+                        .append("text")
+                        .text(function(d) {return d.name})
+                        .attr({
+                            x: function(d) { return d.col * colw + colw/2; },
+                            y: function(d, i) { return d.row * rowh + rowh/2 + (9 - d.n*6 + i*12) + rowh/2; },
+                        });
                 });
+            });
         });
 
     </script>
