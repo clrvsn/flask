@@ -38,7 +38,7 @@
     }
 
     line.hard {
-        stroke: grey;
+        stroke: black;
         stroke-width: 3;
         -opacity: 0.5;
     }
@@ -106,6 +106,61 @@
           };
         }
 
+        var ACCY = 10e-6;
+
+        // Find intersection of line segments KL and MN
+        function intersect_linesegs(xk,yk, xl,yl, xm,ym, xn,yn) {
+            var xlk = xl - xk,
+                ylk = yl - yk,
+                xnm = xn - xm,
+                ynm = yn - ym,
+                xmk = xm - xk,
+                ymk = ym - yk,
+                det = xnm * ylk - ynm * xlk;
+
+            if (Math.abs(det) < ACCY) {
+                // The two line segments are parallel
+                return undefined;
+            }
+            var detinv = 1.0 / det,
+                s = (xnm * ymk - ynm * xmk) * detinv,
+                t = (xlk * ymk - ylk * xmk) * detinv;
+
+            if (s < 0 || s > 1 || t < 0 || t > 1) {
+                // Intersection not within line segments
+                return undefined;
+            }
+            return {
+                x: xk + xlk * s,
+                y: yk + ylk * s,
+            };
+        }
+
+        // Find intersection of line segment KL and rectangle MNPQ
+        function intersect_lineseg_rect(xk,yk, xl,yl, xm,ym, xn,yn, xp,yp, xq,yq) {
+            var seg_pairs = [
+                    [xk,yk, xl,yl, xm,ym, xn,yn],
+                    [xk,yk, xl,yl, xn,yn, xp,yp],
+                    [xk,yk, xl,yl, xp,yp, xq,yq],
+                    [xk,yk, xl,yl, xq,yq, xm,ym],
+                ],
+                i = 0,
+                n = seg_pairs.length;
+
+            for (; i < n; i++) {
+                var pair = seg_pairs[i],
+                    xy = intersect_linesegs.apply(this, pair);
+
+                if (xy) {
+                    return xy;
+                }
+            }
+
+            return undefined;
+        }
+    </script>
+
+    <script type="text/javascript">
         var cols = 6,
             rows = 12,
             colw = 170,
@@ -117,7 +172,7 @@
 
         var prog_data = [
                 {col: 0, row: 0, cols: 2, rows: 3,  color: "#EEFFAA", name: "eCommerce"},
-                {col: 0, row: 4, cols: 2, rows: 7,  color: "#FFEEAA", name: "Planned Business"},
+                {col: 0, row: 4, cols: 2, rows: 8,  color: "#FFEEAA", name: "Planned Business"},
                 {col: 2, row: 0, cols: 3, rows: 12, color: "#FFFFAA", name: "MHS Transformation"},
                 {col: 5, row: 0, cols: 1, rows: 6,  color: "#FFEEAA", name: "Planned Business"},
             ];
@@ -133,6 +188,26 @@
                     .append("svg")
                     .attr("width", w)
                     .attr("height", h);
+
+        svg.append("defs")
+            .append("marker")
+            .attr({
+                id: "arrow",
+                viewBox: "-20 -10 20 20",
+                markerWidth: 12,
+                markerHeight: 12,
+                refx: 0,
+                refy: 0,
+                orient: "auto",
+                markerUnits: "userSpaceOnUse"
+            })
+            .append("path")
+            .attr({
+                //d: "M2,2 L2,13 L8,7 L2,2",
+                //d: "M0,0 L-13,7 L-13,-7 L0,0",
+                d: "M-20,-8L0,0L-20,8",
+                fill: "black",
+            });
 
         var progs = svg.selectAll("g.prog")
                         .data(prog_data)
@@ -161,7 +236,7 @@
         function soft_line(d) {
             var d1 = init_indx[d.foo],
                 d2 = init_indx[d.bar];
-            console.log(d)
+            //console.log(d)
             d3.select(this)
                 .attr({
                     x1: d1.col * colw + colw/2,
@@ -172,14 +247,57 @@
         }
         function hard_line(d) {
             var d1 = init_indx[d.from],
-                d2 = init_indx[d.to];
-            console.log(d)
+                d2 = init_indx[d.to],
+                r1 = mk_init_rect(d1),
+                xk = r1.cx, yk = r1.cy,
+                r2 = mk_init_rect(d2),
+                xl = r2.cx, yl = r2.cy,
+                xm = r2.l, ym = r2.t,
+                xn = r2.r, yn = r2.t,
+                xp = r2.r, yp = r2.b,
+                xq = r2.l, yq = r2.b,
+                p = intersect_lineseg_rect(xk,yk, xl,yl, xm,ym, xn,yn, xp,yp, xq,yq);
+            //console.log(d)
+            if (!p) {
+                p = {x: xl, y: yl};
+            }
             d3.select(this)
                 .attr({
-                    x1: d1.col * colw + colw/2,
-                    y1: d1.row * rowh + rowh,
-                    x2: d2.col * colw + colw/2,
-                    y2: d2.row * rowh + rowh,
+                    x1: xk, // d1.col * colw + colw/2,
+                    y1: yk, // d1.row * rowh + rowh,
+                    x2: p.x, // d2.col * colw + colw/2,
+                    y2: p.y, // d2.row * rowh + rowh,
+                    "marker-end": "url(#arrow)",
+                });
+        }
+
+        function mk_init_rect(d) {
+            var x = d.col * colw + 25,
+                y = d.row * rowh + 10 + rowh/2,
+                w = colw - 50,
+                h = rowh - 20;
+            return {
+                l: x,
+                t: y,
+                r: x + w,
+                b: y + h,
+                w: w,
+                h: h,
+                cx: x + w/2,
+                cy: y + h/2,
+            };
+        }
+
+        function init_rect(d) {
+            r = mk_init_rect(d);
+            d3.select(this)
+                .attr({
+                    x: r.l,  y: r.t,  width: r.w,  height: r.h,
+                    "stroke-dasharray": d.type === "PRE-STUDY" ? "6,2" : "",
+                    rx: d.type === "PROJECT" ? 5 : (d.type === "ACTIVITY" ? (rowh-20)/2 : 0),
+                    ry: d.type === "PROJECT" ? 5 : (d.type === "ACTIVITY" ? (rowh-20)/2 : 0),
+                    stroke: state_color[d.state],
+                    fill: d.cat === "IMPACTING" ? "white" : (d.cat === "DEPENDENCY" ? "#DDDDDD" : "#AACCFF"),
                 });
         }
 
@@ -190,7 +308,8 @@
                 init_indx[ini.id] = ini;
             });
 
-            d3.csv("/static/soft.csv", function(data) {
+            d3.csv("/static/soft.csv", function(data)
+            {
                 svg.selectAll("line.soft")
                     .data(data)
                     .enter()
@@ -198,14 +317,15 @@
                     .classed("soft", true)
                     .each(soft_line);
 
-                d3.csv("/static/hard.csv", function(data) {
+                d3.csv("/static/hard.csv", function(data)
+                {
+
                     svg.selectAll("line.hard")
                         .data(data)
                         .enter()
                         .append("line")
                         .classed("hard", true)
                         .each(hard_line);
-
                     var gs = svg.selectAll("g.init")
                              .data(init_data)
                              .enter()
@@ -213,17 +333,7 @@
                              .classed("init", true);
 
                     gs.append("rect")
-                        .attr({
-                            x: function(d) { return d.col * colw + 25; },
-                            y: function(d) { return d.row * rowh + 10 + rowh/2; },
-                            width: colw - 50,
-                            height: rowh - 20,
-                            "stroke-dasharray": function(d) {return d.type === "PRE-STUDY" ? "6,2" : ""; },
-                            rx: function(d) { return d.type === "PROJECT" ? 5 : (d.type === "ACTIVITY" ? (rowh-20)/2 : 0); },
-                            ry: function(d) { return d.type === "PROJECT" ? 5 : (d.type === "ACTIVITY" ? (rowh-20)/2 : 0); },
-                            stroke: function(d) { return state_color[d.state]; },
-                            fill: function(d) { return d.cat === "IMPACTING" ? "white" : (d.cat === "DEPENDENCY" ? "#EEEEEE" : "#AACCFF"); },
-                        });
+                        .each(init_rect);
 
                     gs.selectAll("text")
                         .data(function(d) {
