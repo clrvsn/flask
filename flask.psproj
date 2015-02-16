@@ -11,44 +11,80 @@ ClassName=TProjectFilesNode
 
 [Project\ChildNodes\Node0\ChildNodes\Node0]
 ClassName=TProjectFolderNode
-Name=static
-
-[Project\ChildNodes\Node0\ChildNodes\Node0\ChildNodes\Node0]
-ClassName=TProjectFileNode
-FileName=$[Project-Path]static\init.csv
-
-[Project\ChildNodes\Node0\ChildNodes\Node0\ChildNodes]
-Count=1
+Name=import
 
 [Project\ChildNodes\Node0\ChildNodes\Node1]
 ClassName=TProjectFolderNode
-Name=templates
+Name=static
 
 [Project\ChildNodes\Node0\ChildNodes\Node1\ChildNodes\Node0]
 ClassName=TProjectFileNode
+FileName=$[Project-Path]static\init.csv
+
+[Project\ChildNodes\Node0\ChildNodes\Node1\ChildNodes]
+Count=1
+
+[Project\ChildNodes\Node0\ChildNodes\Node2]
+ClassName=TProjectFolderNode
+Name=templates
+
+[Project\ChildNodes\Node0\ChildNodes\Node2\ChildNodes\Node0]
+ClassName=TProjectFileNode
 FileName=$[Project-Path]templates\base.html
 
-[Project\ChildNodes\Node0\ChildNodes\Node1\ChildNodes\Node1]
+[Project\ChildNodes\Node0\ChildNodes\Node2\ChildNodes\Node1]
 ClassName=TProjectFileNode
 FileName=$[Project-Path]templates\byprog.html
 
-[Project\ChildNodes\Node0\ChildNodes\Node1\ChildNodes]
+[Project\ChildNodes\Node0\ChildNodes\Node2\ChildNodes]
 Count=2
-
-[Project\ChildNodes\Node0\ChildNodes\Node2]
-ClassName=TProjectFileNode
-FileName=$[Project-Path].gitignore
 
 [Project\ChildNodes\Node0\ChildNodes\Node3]
 ClassName=TProjectFileNode
-FileName=$[Project-Path]app.py
+FileName=$[Project-Path].gitignore
 
 [Project\ChildNodes\Node0\ChildNodes\Node4]
 ClassName=TProjectFileNode
+FileName=$[Project-Path]app.py
+
+[Project\ChildNodes\Node0\ChildNodes\Node5]
+ClassName=TProjectFileNode
+FileName=$[Project-Path]db_create.py
+
+[Project\ChildNodes\Node0\ChildNodes\Node6]
+ClassName=TProjectFileNode
+FileName=$[Project-Path]db_downgrade.py
+
+[Project\ChildNodes\Node0\ChildNodes\Node7]
+ClassName=TProjectFileNode
+FileName=$[Project-Path]db_migrate.py
+
+[Project\ChildNodes\Node0\ChildNodes\Node8]
+ClassName=TProjectFileNode
+FileName=$[Project-Path]db_upgrade.py
+
+[Project\ChildNodes\Node0\ChildNodes\Node9]
+ClassName=TProjectFileNode
+FileName=$[Project-Path]import.py
+
+[Project\ChildNodes\Node0\ChildNodes\Node10]
+ClassName=TProjectFileNode
+FileName=$[Project-Path]models.py
+
+[Project\ChildNodes\Node0\ChildNodes\Node11]
+ClassName=TProjectFileNode
 FileName=$[Project-Path]run.py
 
+[Project\ChildNodes\Node0\ChildNodes\Node12]
+ClassName=TProjectFileNode
+FileName=$[Project-Path]serve.py
+
+[Project\ChildNodes\Node0\ChildNodes\Node13]
+ClassName=TProjectFileNode
+FileName=$[Project-Path]views.py
+
 [Project\ChildNodes\Node0\ChildNodes]
-Count=5
+Count=14
 
 [Project\ChildNodes\Node1]
 ClassName=TProjectRunConfiguationsNode
