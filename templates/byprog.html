@@ -1,6 +1,10 @@
 ﻿{% extends "base.html" %}
 {% block head %}
 <style>
+    body {
+        font-family: sans-serif;
+    }
+
     #tooltip {
         position: absolute;
         width: 200px;
@@ -20,7 +24,7 @@
         display: none;
     }
 
-    #tooltip p {
+    #tooltip p, #tooltip td {
         margin: 0;
         font-family: sans-serif;
         font-size: 14px;
@@ -85,9 +89,20 @@
     on-the-fly in the browser by JavaScript using data retrieved from the server by
     AJAX requests.</p>
     <div id="tooltip" class="hidden">
-        <p><strong>Important Label Heading</strong></p>
-        <p><span id="value">100</span>%</p>
+        <p><strong id="tt_name">Important Label Heading</strong></p>
+        <table>
+            <tr><td>Status:</td> <td id="tt_stat"></td></tr>
+            <tr><td>Type:</td> <td id="tt_type"></td></tr>
+            <tr><td>Category:</td> <td id="tt_cat"></td></tr>
+            <tr><td>Program:</td> <td id="tt_prog"></td></tr>
+            <tr><td>Function:</td> <td id="tt_func"></td></tr>
+            <tr><td>Start:</td> <td id="tt_start"></td></tr>
+            <tr><td>End:</td> <td id="tt_end"></td></tr>
+        </table>
     </div>
+    <div id="diagram"></div>
+    <p>Legend:</p>
+    <img src="/static/byprog.legend.svg">
     <script type="text/javascript">
         if (!Array.prototype.forEach)
         {
@@ -178,13 +193,13 @@
             ];
 
         var state_color = {
-            "NOT STARTED": "#808000",
-            "RUNNING":     "#0000FF",
-            "ROLL-OUT":    "#008080",
-            "CLOSED":      "#008000",
+            "notstarted": "#808000",
+            "running":    "#0000FF",
+            "rollout":    "#008080",
+            "closed":     "#008000",
         };
 
-        var svg = d3.select("body")
+        var svg = d3.select("#diagram")
                     .append("svg")
                     .attr("width", w)
                     .attr("height", h);
@@ -239,10 +254,10 @@
             //console.log(d)
             d3.select(this)
                 .attr({
-                    x1: d1.col * colw + colw/2,
-                    y1: d1.row * rowh + rowh,
-                    x2: d2.col * colw + colw/2,
-                    y2: d2.row * rowh + rowh,
+                    x1: d1.byprog_col * colw + colw/2,
+                    y1: d1.byprog_row * rowh + rowh,
+                    x2: d2.byprog_col * colw + colw/2,
+                    y2: d2.byprog_row * rowh + rowh,
                 });
         }
         function hard_line(d) {
@@ -272,8 +287,8 @@
         }
 
         function mk_init_rect(d) {
-            var x = d.col * colw + 25,
-                y = d.row * rowh + 10 + rowh/2,
+            var x = d.byprog_col * colw + 25,
+                y = d.byprog_row * rowh + 10 + rowh/2,
                 w = colw - 50,
                 h = rowh - 20;
             return {
@@ -289,19 +304,43 @@
         }
 
         function init_rect(d) {
-            r = mk_init_rect(d);
+            var r = mk_init_rect(d),
+                typ = d.type.toLowerCase().replace(/ /g, "").replace(/-/g, ""),
+                cat = d.category.toLowerCase().replace(/ /g, "").replace(/-/g, ""),
+                state = d.state.toLowerCase().replace(/ /g, "").replace(/-/g, "");
             d3.select(this)
                 .attr({
                     x: r.l,  y: r.t,  width: r.w,  height: r.h,
-                    "stroke-dasharray": d.type === "PRE-STUDY" ? "6,2" : "",
-                    rx: d.type === "PROJECT" ? 5 : (d.type === "ACTIVITY" ? (rowh-20)/2 : 0),
-                    ry: d.type === "PROJECT" ? 5 : (d.type === "ACTIVITY" ? (rowh-20)/2 : 0),
-                    stroke: state_color[d.state],
-                    fill: d.cat === "IMPACTING" ? "white" : (d.cat === "DEPENDENCY" ? "#DDDDDD" : "#AACCFF"),
+                    "stroke-dasharray": typ === "prestudy" ? "6,2" : "",
+                    rx: typ === "project" ? 5 : (typ === "activity" ? (rowh-20)/2 : 0),
+                    ry: typ === "project" ? 5 : (typ === "activity" ? (rowh-20)/2 : 0),
+                    stroke: state_color[state],
+                    fill: cat === "impacting" ? "white" : (cat === "dependency" ? "#DDDDDD" : "#AACCFF"),
+                })
+                .on("mouseover", function(d) {
+                    //Update the tooltip position and value
+                    var tt = d3.select("#tooltip")
+                                .style("left", r.cx + "px")
+                                .style("top", r.cy + "px");
+                    tt.select("#tt_name").text(d.name);
+                    tt.select("#tt_stat").text(d.state);
+                    tt.select("#tt_type").text(d.type);
+                    tt.select("#tt_cat").text(d.category);
+                    tt.select("#tt_prog").text(d.program);
+                    tt.select("#tt_func").text(d['function']);
+                    tt.select("#tt_start").text(d.start);
+                    tt.select("#tt_end").text(d.end);
+
+                    //Show the tooltip
+                    d3.select("#tooltip").classed("hidden", false);
+                })
+                .on("mouseout", function() {
+                    //Hide the tooltip
+                    d3.select("#tooltip").classed("hidden", true);
                 });
         }
 
-        d3.csv("/static/init.csv", function(data) {
+        d3.csv("/byprog/init.csv", function(data) {
             init_data = data;
 
             init_data.forEach(function(ini) {
@@ -337,8 +376,8 @@
 
                     gs.selectAll("text")
                         .data(function(d) {
-                            var ns = d.name.split("|");
-                            return ns.map(function(n) {return {col: d.col, row: d.row, n: ns.length, name: n}; });
+                            var ns = d.byprog_txt.split("|");
+                            return ns.map(function(n) {return {col: d.byprog_col, row: d.byprog_row, n: ns.length, name: n}; });
                         })
                         .enter()
                         .append("text")
