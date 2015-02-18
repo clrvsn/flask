@@ -10,10 +10,33 @@
     {% endif %}
     <script src="http://d3js.org/d3.v3.js" charset="utf-8"></script>
     {% block head %}{% endblock %}
+    <style>
+    #banner {
+        background: #0063AD;
+        color: white;
+        font-size: 2em;
+        -padding: 10px;
+        height: 80px;
+        margin-bottom: 1em;
+    }
+    #title {
+        padding: 1em;
+        margin-left: 200px;
+    }
+    #content {
+        margin: 10px;
+    }
+    </style>
   </head>
   <body>
+    <div id="banner">
+        <img src="/static/program-logo.png" style="float: left;" />
+        <div id="title">{{ title }}</div>
+    </div>
     <!--div>MHS-TP: <a href="/index">Home</a> <a href="/d3">D3</a></div>
     <hr-->
+    <div id="content">
     {% block content %}{% endblock %}
+    </div>
   </body>
 </html>

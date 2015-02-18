@@ -14,9 +14,9 @@ from app import app
 import models
 
 @app.route('/')
-#def hello_world():
-#    return 'Hello from Flask!'
-#
+def hello_world():
+    return render_template("front.html")
+
 @app.route('/byprog')
 def byprog():
     return render_template("byprog.html",

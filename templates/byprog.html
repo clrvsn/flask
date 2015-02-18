@@ -2,18 +2,19 @@
 {% block head %}
 <style>
     body {
-        font-family: sans-serif;
+        font-family: Verdana;
+        margin: 0;
     }
 
     #tooltip {
         position: absolute;
-        width: 200px;
+        width: 250px;
         height: auto;
-        padding: 10px;
+        padding: 5px;
         background-color: white;
-        -webkit-border-radius: 10px;
-        -moz-border-radius: 10px;
-        border-radius: 10px;
+        -webkit-border-radius: 5px;
+        -moz-border-radius: 5px;
+        border-radius: 5px;
         -webkit-box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.4);
         -moz-box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.4);
         box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.4);
@@ -24,11 +25,31 @@
         display: none;
     }
 
-    #tooltip p, #tooltip td {
+    #tooltip p, #tooltip td, #tooltip th {
         margin: 0;
-        font-family: sans-serif;
+        -font-family: sans-serif;
+        font-size: 13px;
+        line-height: 15px;
+    }
+    #tooltip table {
+        border-collapse: collapse;
+        width: 100%;
+    }
+    #tooltip td, #tooltip th {
+        vertical-align: top;
+        border: 1px solid #0063AD;
+        padding: 4px;
+    }
+    #tooltip th {
+        text-align: right;
+    }
+    #tooltip caption {
+        caption-side: top;
+        background: #0063AD;
+        color: white;
+        padding: 4px;
         font-size: 14px;
-        line-height: 16px;
+        font-weight: bold;
     }
 
     line.soft {
@@ -52,7 +73,7 @@
     }
 
     g.prog rect {
-        stroke: grey;
+        stroke: #BBB;
         stroke-width: 2;
         stroke-linejoin: round;
     }
@@ -73,7 +94,7 @@
         fill: orange;
     }
     g.init text {
-        font-family: sans-serif;
+        -font-family: sans-serif;
         font-size: 11px;
         text-anchor: middle;
         pointer-events: none;
@@ -85,19 +106,17 @@
 </style>
 {% endblock %}
 {% block content %}
-    <p>Initiatives displayed by the Program they belong to. This is an SVG generated
-    on-the-fly in the browser by JavaScript using data retrieved from the server by
-    AJAX requests.</p>
+    <p>Initiatives displayed by the Program they belong to.</p>
     <div id="tooltip" class="hidden">
-        <p><strong id="tt_name">Important Label Heading</strong></p>
         <table>
-            <tr><td>Status:</td> <td id="tt_stat"></td></tr>
-            <tr><td>Type:</td> <td id="tt_type"></td></tr>
-            <tr><td>Category:</td> <td id="tt_cat"></td></tr>
-            <tr><td>Program:</td> <td id="tt_prog"></td></tr>
-            <tr><td>Function:</td> <td id="tt_func"></td></tr>
-            <tr><td>Start:</td> <td id="tt_start"></td></tr>
-            <tr><td>End:</td> <td id="tt_end"></td></tr>
+            <caption id="tt_name">Important Label Heading</caption>
+            <tr><th>Status:</th> <td id="tt_stat"></td></tr>
+            <tr><th>Type:</th> <td id="tt_type"></td></tr>
+            <tr><th>Category:</th> <td id="tt_cat"></td></tr>
+            <tr><th>Program:</th> <td id="tt_prog"></td></tr>
+            <tr><th>Function:</th> <td id="tt_func"></td></tr>
+            <tr><th>Start:</th> <td id="tt_start"></td></tr>
+            <tr><th>End:</th> <td id="tt_end"></td></tr>
         </table>
     </div>
     <div id="diagram"></div>
@@ -186,10 +205,10 @@
             init_indx = {};
 
         var prog_data = [
-                {col: 0, row: 0, cols: 2, rows: 3,  color: "#EEFFAA", name: "eCommerce"},
-                {col: 0, row: 4, cols: 2, rows: 8,  color: "#FFEEAA", name: "Planned Business"},
-                {col: 2, row: 0, cols: 3, rows: 12, color: "#FFFFAA", name: "MHS Transformation"},
-                {col: 5, row: 0, cols: 1, rows: 6,  color: "#FFEEAA", name: "Planned Business"},
+                {col: 0, row: 0, cols: 2, rows: 3,  color: "#f7ffd4", name: "eCommerce"},
+                {col: 0, row: 4, cols: 2, rows: 8,  color: "#fff6d4", name: "Planned Business"},
+                {col: 2, row: 0, cols: 3, rows: 12, color: "#ffffd4", name: "MHS Transformation"},
+                {col: 5, row: 0, cols: 1, rows: 6,  color: "#fff6d4", name: "Planned Business"},
             ];
 
         var state_color = {
@@ -232,9 +251,9 @@
 
         progs.append("rect")
             .attr({
-                x: function(d) { return d.col * colw + 15; },
+                x: function(d) { return d.col * colw + 10; },
                 y: function(d) { return d.row * rowh + 0; },
-                width: function(d) { return d.cols * colw - 30; },
+                width: function(d) { return d.cols * colw - 20; },
                 height: function(d) { return d.rows * rowh - 0 + rowh/2; },
                 fill: function(d) { return d.color; },
                 rx: 10,
@@ -244,7 +263,7 @@
         progs.append("text")
             .text(function(d) { return d.name; })
             .attr({
-                x: function(d) { return d.col * colw + 25; },
+                x: function(d) { return d.col * colw + 20; },
                 y: function(d) { return d.row * rowh + 10 + 12; },
             });
 
@@ -287,9 +306,9 @@
         }
 
         function mk_init_rect(d) {
-            var x = d.byprog_col * colw + 25,
+            var x = d.byprog_col * colw + 20,
                 y = d.byprog_row * rowh + 10 + rowh/2,
-                w = colw - 50,
+                w = colw - 40,
                 h = rowh - 20;
             return {
                 l: x,
@@ -315,7 +334,7 @@
                     rx: typ === "project" ? 5 : (typ === "activity" ? (rowh-20)/2 : 0),
                     ry: typ === "project" ? 5 : (typ === "activity" ? (rowh-20)/2 : 0),
                     stroke: state_color[state],
-                    fill: cat === "impacting" ? "white" : (cat === "dependency" ? "#DDDDDD" : "#AACCFF"),
+                    fill: cat === "impacting" ? "white" : (cat === "dependency" ? "#DDDDDD" : "#C5E6FF"),
                 })
                 .on("mouseover", function(d) {
                     //Update the tooltip position and value
