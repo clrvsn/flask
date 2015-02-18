@@ -9,8 +9,11 @@
     <title>Welcome to MHS-TP</title>
     {% endif %}
     <script src="http://d3js.org/d3.v3.js" charset="utf-8"></script>
-    {% block head %}{% endblock %}
     <style>
+    body {
+        font-family: Verdana;
+        margin: 0;
+    }
     #banner {
         background: #0063AD;
         color: white;
@@ -27,10 +30,11 @@
         margin: 10px;
     }
     </style>
+    {% block head %}{% endblock %}
   </head>
   <body>
     <div id="banner">
-        <img src="/static/program-logo.png" style="float: left;" />
+        <a href="/"><img src="/static/program-logo.png" style="float: left;" /></a>
         <div id="title">{{ title }}</div>
     </div>
     <!--div>MHS-TP: <a href="/index">Home</a> <a href="/d3">D3</a></div>

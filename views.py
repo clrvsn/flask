@@ -30,6 +30,18 @@ def byprog_init_csv():
     csv += '\n'.join([','.join([str(getattr(init,name) or '') for name in fields]) for init in inits])
     return csv
 
+@app.route('/bytime')
+def bytime():
+    return render_template("bytime.html",
+                           title='Initiatives Timeline')
+
+@app.route('/bytime/init.csv')
+def bytime_init_csv():
+    inits = models.Initiative.query.all()
+    fields = ['id','name','state','start','end','type','category','program','function']
+    csv = ','.join(fields) + '\n'
+    csv += '\n'.join([','.join([str(getattr(init,name) or '') for name in fields]) for init in inits])
+    return csv
 
 if __name__ == '__main__':
     pass

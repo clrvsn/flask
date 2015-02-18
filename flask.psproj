@@ -13,16 +13,35 @@ ClassName=TProjectFilesNode
 ClassName=TProjectFolderNode
 Name=import
 
+[Project\ChildNodes\Node0\ChildNodes\Node0\ChildNodes\Node0]
+ClassName=TProjectFileNode
+FileName=$[Project-Path]import\hub.csv
+
+[Project\ChildNodes\Node0\ChildNodes\Node0\ChildNodes\Node1]
+ClassName=TProjectFileNode
+FileName=$[Project-Path]import\init.csv
+
+[Project\ChildNodes\Node0\ChildNodes\Node0\ChildNodes\Node2]
+ClassName=TProjectFileNode
+FileName=$[Project-Path]import\meta.csv
+
+[Project\ChildNodes\Node0\ChildNodes\Node0\ChildNodes]
+Count=3
+
 [Project\ChildNodes\Node0\ChildNodes\Node1]
 ClassName=TProjectFolderNode
 Name=static
 
 [Project\ChildNodes\Node0\ChildNodes\Node1\ChildNodes\Node0]
 ClassName=TProjectFileNode
-FileName=$[Project-Path]static\init.csv
+FileName=$[Project-Path]static\hard.csv
+
+[Project\ChildNodes\Node0\ChildNodes\Node1\ChildNodes\Node1]
+ClassName=TProjectFileNode
+FileName=$[Project-Path]static\soft.csv
 
 [Project\ChildNodes\Node0\ChildNodes\Node1\ChildNodes]
-Count=1
+Count=2
 
 [Project\ChildNodes\Node0\ChildNodes\Node2]
 ClassName=TProjectFolderNode
@@ -36,8 +55,12 @@ FileName=$[Project-Path]templates\base.html
 ClassName=TProjectFileNode
 FileName=$[Project-Path]templates\byprog.html
 
+[Project\ChildNodes\Node0\ChildNodes\Node2\ChildNodes\Node2]
+ClassName=TProjectFileNode
+FileName=$[Project-Path]templates\front.html
+
 [Project\ChildNodes\Node0\ChildNodes\Node2\ChildNodes]
-Count=2
+Count=3
 
 [Project\ChildNodes\Node0\ChildNodes\Node3]
 ClassName=TProjectFileNode
