@@ -41,6 +41,7 @@ def bytime_init_csv():
     fields = ['id','name','state','start','end','type','category','program','function']
     csv = ','.join(fields) + '\n'
     csv += '\n'.join([','.join([str(getattr(init,name) or '') for name in fields]) for init in inits])
+    #print csv
     return csv
 
 if __name__ == '__main__':

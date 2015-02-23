@@ -75,24 +75,28 @@ function intersect_lineseg_rect(xk,yk, xl,yl, xm,ym, xn,yn, xp,yp, xq,yq) {
 //==============================================================================
 // Fiscal Dates
 
-var FiscalDate = function (fy, t) {
+var FiscalDate = function (fy, t, end) {
     this.fy = fy;
     this.t = t;
+    this.end = end;
 }
 
+FiscalDate.prototype.fiscal_str = function () {
+    return 'FY' + this.fy + '-T' + (this.t + 1);
+};
 
 
-function mk_fyt(s) {
+function mk_fyt(s, end) {
     var re = /FY(\d+)[ -]*(T(\d))?/i,
         m = re.exec(s);
 
     if (m && m[0]) {
-        return new FiscalDate(Number(m[1]), Number(m[3] || '1') - 1);
+        return new FiscalDate(Number(m[1]), Number(m[3] || '1') - 1, end);
     }
     return null;
 }
 function fyt_col(fyt, fst) {
-    return fyt ? Math.max(0, (fyt.fy - fst + fyt.t)) : 0;
+    return fyt ? Math.max(0, (fyt.fy - fst + (fyt.t + (fyt.end ? 1 : 0))/3)) : 0;
 }
 
 

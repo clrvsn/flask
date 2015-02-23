@@ -36,6 +36,7 @@
     <p>Initiatives displayed on Gannt-like timeline.</p>
     <div id="tooltip" class="hidden">
         <table>
+            <tr><th>Status:</th> <td id="tt_state"></td></tr>
             <tr><th>Start:</th> <td id="tt_start"></td></tr>
             <tr><th>End:</th> <td id="tt_end"></td></tr>
         </table>
@@ -60,8 +61,8 @@
 
         for (; i < n; i++) {
             var d = data[i]
-                s = mk_fyt(d.start),
-                e = mk_fyt(d.end);
+                s = mk_fyt(d.start, false),
+                e = mk_fyt(d.end, true);
             inits.push(d);
             cols = Math.max(cols, fyt_col(e,fst_yr));
             if (d['function'] !== f) {
@@ -90,8 +91,8 @@
                 });
         }
         function init_bar(d, i) {
-            var s = mk_fyt(d.start),
-                e = mk_fyt(d.end),
+            var s = mk_fyt(d.start, false),
+                e = mk_fyt(d.end, true),
                 c = fyt_col(s,fst_yr),
                 w = fyt_col(e,fst_yr) - c;
             d3.select(this)
@@ -201,9 +202,12 @@
                 },
                 text: function() {
                     var d = this.context.__data__,
+                        s = mk_fyt(d.start, false),
+                        e = mk_fyt(d.end, true),
                         tt = d3.select("#tooltip");
-                    tt.select("#tt_start").text(d.start);
-                    tt.select("#tt_end").text(d.end);
+                    tt.select("#tt_state").text(d.state);
+                    tt.select("#tt_start").text(s ? s.fiscal_str() : '');
+                    tt.select("#tt_end").text(e ? e.fiscal_str() : '');
                     return tt.html();
                 },
             },
