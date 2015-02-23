@@ -3,13 +3,13 @@
 <style>
     #tooltip {
         position: absolute;
-        width: 200px;
+        width: 250px;
         height: auto;
-        padding: 10px;
+        padding: 5px;
         background-color: white;
-        -webkit-border-radius: 10px;
-        -moz-border-radius: 10px;
-        border-radius: 10px;
+        -webkit-border-radius: 5px;
+        -moz-border-radius: 5px;
+        border-radius: 5px;
         -webkit-box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.4);
         -moz-box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.4);
         box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.4);
@@ -20,11 +20,31 @@
         display: none;
     }
 
-    #tooltip p {
+    #tooltip p, #tooltip td, #tooltip th {
         margin: 0;
-        font-family: sans-serif;
+        -font-family: sans-serif;
+        font-size: 13px;
+        line-height: 15px;
+    }
+    #tooltip table {
+        border-collapse: collapse;
+        width: 100%;
+    }
+    #tooltip td, #tooltip th {
+        vertical-align: top;
+        border: 1px solid #0063AD;
+        padding: 4px;
+    }
+    #tooltip th {
+        text-align: right;
+    }
+    #tooltip caption {
+        caption-side: top;
+        background: #0063AD;
+        color: white;
+        padding: 4px;
         font-size: 14px;
-        line-height: 16px;
+        font-weight: bold;
     }
 
     line.soft {
@@ -48,7 +68,7 @@
     }
 
     g.prog rect {
-        stroke: grey;
+        stroke: #BBB;
         stroke-width: 2;
         stroke-linejoin: round;
     }
@@ -69,7 +89,7 @@
         fill: orange;
     }
     g.init text {
-        font-family: sans-serif;
+        -font-family: sans-serif;
         font-size: 11px;
         text-anchor: middle;
         pointer-events: none;
@@ -81,85 +101,23 @@
 </style>
 {% endblock %}
 {% block content %}
-    <p>Initiatives displayed by the Program they belong to. This is an SVG generated
-    on-the-fly in the browser by JavaScript using data retrieved from the server by
-    AJAX requests.</p>
+    <p>Initiatives displayed by the Programme they belong to.</p>
     <div id="tooltip" class="hidden">
-        <p><strong>Important Label Heading</strong></p>
-        <p><span id="value">100</span>%</p>
+        <table>
+            <tr><th>Status:</th> <td id="tt_stat"></td></tr>
+            <tr><th>Type:</th> <td id="tt_type"></td></tr>
+            <tr><th>Category:</th> <td id="tt_cat"></td></tr>
+            <tr><th>Program:</th> <td id="tt_prog"></td></tr>
+            <tr><th>Function:</th> <td id="tt_func"></td></tr>
+            <tr><th>Start:</th> <td id="tt_start"></td></tr>
+            <tr><th>End:</th> <td id="tt_end"></td></tr>
+        </table>
     </div>
-    <script type="text/javascript">
-        if (!Array.prototype.forEach)
-        {
-          Array.prototype.forEach = function(fun /*, thisp*/)
-          {
-            var len = this.length;
-            if (typeof fun != "function")
-              throw new TypeError();
-
-            var thisp = arguments[1];
-            for (var i = 0; i < len; i++)
-            {
-              if (i in this)
-                fun.call(thisp, this[i], i, this);
-            }
-          };
-        }
-
-        var ACCY = 10e-6;
-
-        // Find intersection of line segments KL and MN
-        function intersect_linesegs(xk,yk, xl,yl, xm,ym, xn,yn) {
-            var xlk = xl - xk,
-                ylk = yl - yk,
-                xnm = xn - xm,
-                ynm = yn - ym,
-                xmk = xm - xk,
-                ymk = ym - yk,
-                det = xnm * ylk - ynm * xlk;
-
-            if (Math.abs(det) < ACCY) {
-                // The two line segments are parallel
-                return undefined;
-            }
-            var detinv = 1.0 / det,
-                s = (xnm * ymk - ynm * xmk) * detinv,
-                t = (xlk * ymk - ylk * xmk) * detinv;
-
-            if (s < 0 || s > 1 || t < 0 || t > 1) {
-                // Intersection not within line segments
-                return undefined;
-            }
-            return {
-                x: xk + xlk * s,
-                y: yk + ylk * s,
-            };
-        }
-
-        // Find intersection of line segment KL and rectangle MNPQ
-        function intersect_lineseg_rect(xk,yk, xl,yl, xm,ym, xn,yn, xp,yp, xq,yq) {
-            var seg_pairs = [
-                    [xk,yk, xl,yl, xm,ym, xn,yn],
-                    [xk,yk, xl,yl, xn,yn, xp,yp],
-                    [xk,yk, xl,yl, xp,yp, xq,yq],
-                    [xk,yk, xl,yl, xq,yq, xm,ym],
-                ],
-                i = 0,
-                n = seg_pairs.length;
-
-            for (; i < n; i++) {
-                var pair = seg_pairs[i],
-                    xy = intersect_linesegs.apply(this, pair);
-
-                if (xy) {
-                    return xy;
-                }
-            }
-
-            return undefined;
-        }
-    </script>
-
+    <div id="diagram"></div>
+    <p>Legend:</p>
+    <img src="/static/byprog.legend.svg">
+{% endblock %}
+{% block foot %}
     <script type="text/javascript">
         var cols = 6,
             rows = 12,
@@ -171,20 +129,13 @@
             init_indx = {};
 
         var prog_data = [
-                {col: 0, row: 0, cols: 2, rows: 3,  color: "#EEFFAA", name: "eCommerce"},
-                {col: 0, row: 4, cols: 2, rows: 8,  color: "#FFEEAA", name: "Planned Business"},
-                {col: 2, row: 0, cols: 3, rows: 12, color: "#FFFFAA", name: "MHS Transformation"},
-                {col: 5, row: 0, cols: 1, rows: 6,  color: "#FFEEAA", name: "Planned Business"},
+                {col: 0, row: 0, cols: 2, rows: 3,  color: "#f7ffd4", name: "eCommerce"},
+                {col: 0, row: 4, cols: 2, rows: 8,  color: "#fff6d4", name: "Planned Business"},
+                {col: 2, row: 0, cols: 3, rows: 12, color: "#ffffd4", name: "MHS Transformation"},
+                {col: 5, row: 0, cols: 1, rows: 6,  color: "#fff6d4", name: "Planned Business"},
             ];
 
-        var state_color = {
-            "NOT STARTED": "#808000",
-            "RUNNING":     "#0000FF",
-            "ROLL-OUT":    "#008080",
-            "CLOSED":      "#008000",
-        };
-
-        var svg = d3.select("body")
+        var svg = d3.select("#diagram")
                     .append("svg")
                     .attr("width", w)
                     .attr("height", h);
@@ -217,9 +168,9 @@
 
         progs.append("rect")
             .attr({
-                x: function(d) { return d.col * colw + 15; },
+                x: function(d) { return d.col * colw + 10; },
                 y: function(d) { return d.row * rowh + 0; },
-                width: function(d) { return d.cols * colw - 30; },
+                width: function(d) { return d.cols * colw - 20; },
                 height: function(d) { return d.rows * rowh - 0 + rowh/2; },
                 fill: function(d) { return d.color; },
                 rx: 10,
@@ -229,7 +180,7 @@
         progs.append("text")
             .text(function(d) { return d.name; })
             .attr({
-                x: function(d) { return d.col * colw + 25; },
+                x: function(d) { return d.col * colw + 20; },
                 y: function(d) { return d.row * rowh + 10 + 12; },
             });
 
@@ -239,10 +190,10 @@
             //console.log(d)
             d3.select(this)
                 .attr({
-                    x1: d1.col * colw + colw/2,
-                    y1: d1.row * rowh + rowh,
-                    x2: d2.col * colw + colw/2,
-                    y2: d2.row * rowh + rowh,
+                    x1: d1.byprog_col * colw + colw/2,
+                    y1: d1.byprog_row * rowh + rowh,
+                    x2: d2.byprog_col * colw + colw/2,
+                    y2: d2.byprog_row * rowh + rowh,
                 });
         }
         function hard_line(d) {
@@ -272,9 +223,9 @@
         }
 
         function mk_init_rect(d) {
-            var x = d.col * colw + 25,
-                y = d.row * rowh + 10 + rowh/2,
-                w = colw - 50,
+            var x = d.byprog_col * colw + 20,
+                y = d.byprog_row * rowh + 10 + rowh/2,
+                w = colw - 40,
                 h = rowh - 20;
             return {
                 l: x,
@@ -289,19 +240,20 @@
         }
 
         function init_rect(d) {
-            r = mk_init_rect(d);
+            var r = mk_init_rect(d),
+                typ = mk_class(d.type);
             d3.select(this)
+                .classed(typ, true)
+                .classed(mk_class(d.category), true)
+                .classed(mk_class(d.state), true)
                 .attr({
                     x: r.l,  y: r.t,  width: r.w,  height: r.h,
-                    "stroke-dasharray": d.type === "PRE-STUDY" ? "6,2" : "",
-                    rx: d.type === "PROJECT" ? 5 : (d.type === "ACTIVITY" ? (rowh-20)/2 : 0),
-                    ry: d.type === "PROJECT" ? 5 : (d.type === "ACTIVITY" ? (rowh-20)/2 : 0),
-                    stroke: state_color[d.state],
-                    fill: d.cat === "IMPACTING" ? "white" : (d.cat === "DEPENDENCY" ? "#DDDDDD" : "#AACCFF"),
-                });
+                    rx: typ === "project" ? 5 : (typ === "activity" ? (rowh-20)/2 : 0),
+                    ry: typ === "project" ? 5 : (typ === "activity" ? (rowh-20)/2 : 0),
+                })
         }
 
-        d3.csv("/static/init.csv", function(data) {
+        d3.csv("/byprog/init.csv", function(data) {
             init_data = data;
 
             init_data.forEach(function(ini) {
@@ -337,8 +289,8 @@
 
                     gs.selectAll("text")
                         .data(function(d) {
-                            var ns = d.name.split("|");
-                            return ns.map(function(n) {return {col: d.col, row: d.row, n: ns.length, name: n}; });
+                            var ns = d.byprog_txt.split("|");
+                            return ns.map(function(n) {return {col: d.byprog_col, row: d.byprog_row, n: ns.length, name: n}; });
                         })
                         .enter()
                         .append("text")
@@ -347,6 +299,40 @@
                             x: function(d) { return d.col * colw + colw/2; },
                             y: function(d, i) { return d.row * rowh + rowh/2 + (9 - d.n*6 + i*12) + rowh/2; },
                         });
+
+                    $('.init').qtip({
+                        content: {
+                            title: function() {
+                                var d = this.context.__data__;
+                                return d.name;
+                            },
+                            text: function() {
+                                var d = this.context.__data__,
+                                    tt = d3.select("#tooltip");
+                                //tt.select("#tt_name").text(d.name);
+                                tt.select("#tt_stat").text(d.state);
+                                tt.select("#tt_type").text(d.type);
+                                tt.select("#tt_cat").text(d.category);
+                                tt.select("#tt_prog").text(d.program);
+                                tt.select("#tt_func").text(d['function']);
+                                tt.select("#tt_start").text(d.start);
+                                tt.select("#tt_end").text(d.end);
+                                return tt.html();
+                            },
+                        },
+                        style: {
+                            classes: 'qtip-cluetip qtip-shadow'
+                        },
+                        position: {
+                            my: 'left center',
+                            at: 'center right',
+                            viewport: $(window),
+                            adjust: {
+                                method: 'shift shift'
+                            },
+                        }
+                    });
+
                 });
             });
         });

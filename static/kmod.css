@@ -1,0 +1,62 @@
+﻿body {
+    font-family: Verdana;
+    margin: 0;
+}
+#banner {
+    background: #0063AD;
+    color: white;
+    font-size: 2em;
+    height: 80px;
+    margin-bottom: 1em;
+}
+#title {
+    padding: 1em;
+    margin-left: 200px;
+}
+#content {
+    margin: 10px;
+}
+
+.hidden {
+    display: none;
+}
+
+
+rect.impacting {
+    fill: white;
+}
+
+rect.dependency {
+    fill: #DDD;
+}
+
+rect.mhstp {
+    fill: #C5E6FF;
+}
+
+rect.prestudy {
+    stroke-dasharray: 6,2;
+}
+
+rect.project {
+    rx: 5;
+    ry: 5;
+}
+
+rect.activity {
+    rx: 22.5;
+    ry: 22.5;
+}
+
+rect.notstarted {
+    stroke: #808000;
+}
+rect.running {
+    stroke: #0000FF;
+}
+rect.rollout {
+    stroke: #008080;
+}
+rect.closed {
+    stroke: #008000;
+}

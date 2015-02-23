@@ -11,12 +11,37 @@
 
 from flask import render_template
 from app import app
+import models
 
 @app.route('/')
 def hello_world():
-    return 'Hello from Flask!'
+    return render_template("front.html")
 
 @app.route('/byprog')
 def byprog():
     return render_template("byprog.html",
-                           title='Initiatives by Program')
+                           title='Initiatives by Programme')
+
+@app.route('/byprog/init.csv')
+def byprog_init_csv():
+    inits = models.Initiative.query.all()
+    fields = ['id','name','state','start','end','type','category','program','function','byprog_col','byprog_row','byprog_txt']
+    csv = ','.join(fields) + '\n'
+    csv += '\n'.join([','.join([str(getattr(init,name) or '') for name in fields]) for init in inits])
+    return csv
+
+@app.route('/bytime')
+def bytime():
+    return render_template("bytime.html",
+                           title='Initiatives Timeline')
+
+@app.route('/bytime/init.csv')
+def bytime_init_csv():
+    inits = models.Initiative.query.order_by('function').all()
+    fields = ['id','name','state','start','end','type','category','program','function']
+    csv = ','.join(fields) + '\n'
+    csv += '\n'.join([','.join([str(getattr(init,name) or '') for name in fields]) for init in inits])
+    return csv
+
+if __name__ == '__main__':
+    pass

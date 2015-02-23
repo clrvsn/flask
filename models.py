@@ -15,6 +15,9 @@ class Person(db.Model): # PSN
     id = db.Column(db.String(8), primary_key=True)
     name = db.Column(db.String(64))
 
+    def __str__(self):
+        return self.name
+
 
 class Process(db.Model): # PCS
     id = db.Column(db.String(8), primary_key=True)
@@ -26,11 +29,16 @@ class Process(db.Model): # PCS
     owner = db.relationship('Person', backref='owns_procs', foreign_keys=[owner_id])#, lazy='dynamic')
     leader = db.relationship('Person', backref='leads_procs', foreign_keys=[leader_id])#, lazy='dynamic')
 
+    def __str__(self):
+        return self.title
+
 
 class Program(db.Model): # PGM
     id = db.Column(db.String(8), primary_key=True)
     name = db.Column(db.String(64), nullable=False)
 
+    def __str__(self):
+        return self.name
 
 class Initiative(db.Model): # NTV
     id = db.Column(db.String(8), primary_key=True)
@@ -120,6 +128,9 @@ class Initiative(db.Model): # NTV
     byprog_col = db.Column(db.Float)
     byprog_row = db.Column(db.Float)
     byprog_txt = db.Column(db.String(64))
+
+    def __str__(self):
+        return self.name
 
 
 
