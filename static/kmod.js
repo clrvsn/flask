@@ -92,7 +92,7 @@ function mk_fyt(s) {
     return null;
 }
 function fyt_col(fyt, fst) {
-    return fyt ? Math.max(0, (fyt.fy - fst + fyt.t)3)) : 0;
+    return fyt ? Math.max(0, (fyt.fy - fst + fyt.t)) : 0;
 }
 
 
