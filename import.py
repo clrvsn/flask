@@ -136,13 +136,25 @@ def load_hub():
     db.session.commit()
     #return inits.values()
 
+def load_deps():
+    for row in load_csv('deps.csv', ','):
+        id,frm,to,typ = row
+        d = models.Dependency.query.get(id)
+        if d is None:
+            d = models.Dependency(**{'id': id, 'from_init_id': frm, 'to_init_id': to, 'type': typ})
+            print d.id
+            db.session.add(d)
+    db.session.commit()
+
+
 def main():
     #print load_csv('init.csv', ',')
     #print load_meta()
     #print col_num('CJ')
-    load_hub()
+    #load_hub()
     #for init in hub: print init
     #    print init['id'], init['process']
+    load_deps()
 
 
 if __name__ == '__main__':

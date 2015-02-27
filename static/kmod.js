@@ -15,6 +15,22 @@
   };
 }
 
+function fmt() {
+    // The string containing the format items (e.g. "{0}")
+    // will and always has to be the first argument.
+    var theString = arguments[0];
+
+    // start with the second argument (i = 1)
+    for (var i = 1; i < arguments.length; i++) {
+        // "gm" = RegEx options for Global search (more than one instance)
+        // and for Multiline search
+        var regEx = new RegExp("\\{" + (i - 1) + "\\}", "gm");
+        theString = theString.replace(regEx, arguments[i]);
+    }
+
+    return theString;
+}
+
 //==============================================================================
 // Geometry
 
@@ -97,6 +113,7 @@ function mk_fyt(s, end) {
 }
 function fyt_col(fyt, fst) {
     return fyt ? Math.max(0, (fyt.fy - fst + (fyt.t + (fyt.end ? 1 : 0))/3)) : 0;
+    //return fyt ? Math.max(0, (fyt.fy - fst + fyt.t/3)) : 0;
 }
 
 

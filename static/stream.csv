@@ -1,0 +1,53 @@
+Payments & Returns,Cash & Credit Mgmt,,,,,,,,,,,,,
+,Finance Management,,,,,,,,,,,,,
+,Return Management,,,,,,,,,,,,,
+Finance & Reporting,Reporting,,,,,,,,,,,,,
+,Local Solutions,,,,,,,,,,,,,
+,Tax Information & Calculation,,,,,,,,,,,,,
+Sales Order Management,Sales Order Management & Reservations,,,,,,,,,,,,,
+,SGF,,,,,,,,,,,,,
+Range & Pricing,Range & Pricing,,,,,,,,,,,,,
+SCP,Forecast & Safety Stock,,,,,,,,,,,,,
+SLM,SLM/SGF,,,,,,,,,,,,,
+Store Logistics,SLM/SGF,,,,,,,,,,,,,
+Core & IT,Infrastructure,,,,,,,,,,,,,
+,Integration,,,,,,,,,,,,,
+,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,
+,Arch Investigations,,,,,,,,,,,,,
+,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,
+Payments & Returns,Customer Financing Re-design Prestudy,,,Owner: Johanna Donner,42005,42247,#NAME?,,,,,GREEN,GREEN,GREEN
+,Customer Financing Re-design Project,,,Owner: Johanna Donner,42248,42369,#NAME?,,,,,GREEN,GREEN,GREEN
+,Business Credit Management,,,Owner: Eva Alfredsson,42005,42339,#NAME?,,,,,GREEN,GREEN,GREEN
+,Cash Management Prestudy,,,Owner: Johanna Donner,42248,42369,#NAME?,,,,,GREEN,GREEN,GREEN
+,POS Upgrade,,,Owner: Johanna Donner,42005,42247,#NAME?,,,,,GREEN,GREEN,GREEN
+,Sarec+ RollOut,,,Business PM: Johan Green,42005,42369,#NAME?,,,,,GREEN,GREEN,GREEN
+,Arch Investigations,,,MHS TP,42005,42094,#NAME?,,,,,GREEN,AMBER,AMBER
+,Returns Management,,,?: Monica Holmvik,42248,42369,#NAME?,,,,,GREEN,AMBER,AMBER
+,,,,,,,,,,,,,,
+Finance & Reporting,Secure Reporting,,,Business PM: Catarina Dehn,42005,42247,#NAME?,,,,,GREEN,GREEN,GREEN
+,Secure Local Solutions,,,Owner: Marc Peeters,42005,42248,#NAME?,,,,,GREEN,AMBER,AMBER
+,Static Retail Tax Information,,,Owner: Eva Alfredsson,42217,42369,#NAME?,,,,,GREEN,GREEN,GREEN
+,Remove SG 87,,,,42005,42369,#NAME?,,,,,,,
+,,,,,,,,,,,,,,
+Sales Order Management,Customer Order Management Cleanup,,,,42088,42369,#NAME?,,,,,GREEN,GREEN,GREEN
+,Sales Order Management,,,,42005,42369,#NAME?,,,,,GREEN,GREEN,GREEN
+,PinS RollOut,,,,42005,42155,#NAME?,,,,,GREEN,GREEN,GREEN
+,eCommerce Global RollOut,,,,42005,42369,#NAME?,,,,,GREEN,GREEN,GREEN
+,,,,,,,,,,,,,,
+Range & Pricing,Local Pricing Management Prestudy,,,,42005,42078,#NAME?,,,,,GREEN,GREEN,GREEN
+,Local Pricing Project,,,,42079,42350,#NAME?,,,,,GREEN,GREEN,GREEN
+,,,,,,,,,,,,,,
+SCP,One Common Replenishment,,,,42248,42350,#NAME?,,,,,,,
+,,,,,,,,,,,,,,
+SLM,Prestudy SGF/SLM,,,,42005,42124,#NAME?,42020,42083,,,AMBER,RED,GREEN
+,,,,,,,,,,,,,,
+Store Logistics,Prestudy SGF/SLM,,,,42005,42124,#NAME?,42020,42083,,,AMBER,RED,GREEN
+,,,,,,,,,,,,,,
+Core & IT,Cleanup of MHS,,,,42005,42247,#NAME?,,,,,GREEN,GREEN,GREEN
+,Standardize & Prepare,,,,42125,42339,#NAME?,,,,,GREEN,GREEN,GREEN
+,POC,,,,42005,42124,#NAME?,,,,,GREEN,GREEN,GREEN
+,Local Integration Platform Prestudy,,,,42005,42124,#NAME?,,,,,GREEN,GREEN,AMBER
+,Local Integration Platform Project,,,,42248,42369,#NAME?,,,,,GREEN,GREEN,AMBER

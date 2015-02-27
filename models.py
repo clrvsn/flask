@@ -40,6 +40,17 @@ class Program(db.Model): # PGM
     def __str__(self):
         return self.name
 
+
+class Dependency(db.Model): # DPN
+    id = db.Column(db.String(8), primary_key=True)
+    from_init_id = db.Column(db.String(8), db.ForeignKey('initiative.id'))
+    to_init_id = db.Column(db.String(8), db.ForeignKey('initiative.id'))
+    type = db.Column(db.Enum('HARD','SOFT'))
+
+    from_init = db.relationship('Initiative', backref='deps_from', foreign_keys=[from_init_id])
+    to_init = db.relationship('Initiative', backref='deps_to', foreign_keys=[to_init_id])
+
+
 class Initiative(db.Model): # NTV
     id = db.Column(db.String(8), primary_key=True)
     name = db.Column(db.String(64), nullable=False)

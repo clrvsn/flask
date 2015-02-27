@@ -38,11 +38,11 @@ FileName=$[Project-Path]static\hard.csv
 
 [Project\ChildNodes\Node0\ChildNodes\Node1\ChildNodes\Node1]
 ClassName=TProjectFileNode
-FileName=$[Project-Path]static\kmod.css
+FileName=$[Project-Path]static\kmod.js
 
 [Project\ChildNodes\Node0\ChildNodes\Node1\ChildNodes\Node2]
 ClassName=TProjectFileNode
-FileName=$[Project-Path]static\kmod.js
+FileName=$[Project-Path]static\kmod.css
 
 [Project\ChildNodes\Node0\ChildNodes\Node1\ChildNodes\Node3]
 ClassName=TProjectFileNode
@@ -65,10 +65,14 @@ FileName=$[Project-Path]templates\byprog.html
 
 [Project\ChildNodes\Node0\ChildNodes\Node2\ChildNodes\Node2]
 ClassName=TProjectFileNode
+FileName=$[Project-Path]templates\bytime.html
+
+[Project\ChildNodes\Node0\ChildNodes\Node2\ChildNodes\Node3]
+ClassName=TProjectFileNode
 FileName=$[Project-Path]templates\front.html
 
 [Project\ChildNodes\Node0\ChildNodes\Node2\ChildNodes]
-Count=3
+Count=4
 
 [Project\ChildNodes\Node0\ChildNodes\Node3]
 ClassName=TProjectFileNode

@@ -25,15 +25,15 @@ a img {
 }
 
 
-rect.impacting {
+rect.impacting, path.impacting {
     fill: white;
 }
 
-rect.dependency {
+rect.dependency, path.dependency {
     fill: #DDD;
 }
 
-rect.mhstp {
+rect.mhstp, path.mhstp {
     fill: #C5E6FF;
 }
 
