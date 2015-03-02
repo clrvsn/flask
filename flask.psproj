@@ -38,11 +38,11 @@ FileName=$[Project-Path]static\hard.csv
 
 [Project\ChildNodes\Node0\ChildNodes\Node1\ChildNodes\Node1]
 ClassName=TProjectFileNode
-FileName=$[Project-Path]static\kmod.js
+FileName=$[Project-Path]static\kmod.css
 
 [Project\ChildNodes\Node0\ChildNodes\Node1\ChildNodes\Node2]
 ClassName=TProjectFileNode
-FileName=$[Project-Path]static\kmod.css
+FileName=$[Project-Path]static\kmod.js
 
 [Project\ChildNodes\Node0\ChildNodes\Node1\ChildNodes\Node3]
 ClassName=TProjectFileNode
@@ -71,8 +71,12 @@ FileName=$[Project-Path]templates\bytime.html
 ClassName=TProjectFileNode
 FileName=$[Project-Path]templates\front.html
 
+[Project\ChildNodes\Node0\ChildNodes\Node2\ChildNodes\Node4]
+ClassName=TProjectFileNode
+FileName=$[Project-Path]templates\init_list.html
+
 [Project\ChildNodes\Node0\ChildNodes\Node2\ChildNodes]
-Count=4
+Count=5
 
 [Project\ChildNodes\Node0\ChildNodes\Node3]
 ClassName=TProjectFileNode

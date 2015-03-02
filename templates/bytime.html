@@ -186,6 +186,18 @@
                     .on("mouseout", function() {
                         d3.select('#row'+i).classed('hilite', false);
                     });
+            } else if (d.start) {
+                r = off + cols * colw;
+                d3.select(this)
+                    .classed("bar", true)
+                    .classed(mk_class(d.category), true)
+                    .attr('d', fmt("M {0} {2} {1} {2} {1} {3} {0} {3}", r, l, t, b))
+                    .on("mouseover", function() {
+                        d3.select('#row'+i).classed('hilite', true);
+                    })
+                    .on("mouseout", function() {
+                        d3.select('#row'+i).classed('hilite', false);
+                    });
             }
         }
         function dep_line(d) {
@@ -193,17 +205,20 @@
                 e = mk_fyt(d.d2.start, false),
                 sc = fyt_col(s,fst_yr),
                 ec = fyt_col(e,fst_yr);
-            d3.select(this)
-                .classed("dep", true)
-                //.classed("backward", sc > ec + .34)
-                .attr({
-                    x1: off + sc * colw - colw/6,
-                    y1: (d.d1.ix+1) * rowh + rowh/2,
-                    x2: off + ec * colw + colw/6,
-                    y2: (d.d2.ix+1) * rowh + rowh/2,
-                    "marker-start": "url(#circle)",
-                    "marker-end": "url(#arrow)",
-                });
+
+            if (sc) {
+                d3.select(this)
+                    .classed("dep", true)
+                    //.classed("backward", sc > ec + .34)
+                    .attr({
+                        x1: off + sc * colw - colw/6,
+                        y1: (d.d1.ix+1) * rowh + rowh/2,
+                        x2: off + ec * colw + colw/6,
+                        y2: (d.d2.ix+1) * rowh + rowh/2,
+                        "marker-start": "url(#circle)",
+                        "marker-end": "url(#arrow)",
+                    });
+            }
         }
         function init_text(d, i) {
             d3.select(this)

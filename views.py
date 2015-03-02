@@ -62,5 +62,16 @@ def bytime_json():
     #print jsn
     return jsonify({'inits': inits})
 
+@app.route('/inits.json')
+def inits_json():
+    fields = ['id','name','state','start','end','type','category','program','function']
+    inits = [{name: str(getattr(init,name) or '') for name in fields} for init in models.Initiative.query.all()]
+    return jsonify(inits=inits)
+
+@app.route('/inits')
+def init_list():
+    return render_template("init_list.html",
+                           title='Initiatives List')
+
 if __name__ == '__main__':
     pass
