@@ -11,7 +11,7 @@
 
 from app import db
 
-class Person(db.Model): # PSN
+class Actor(db.Model): # ACT
     id = db.Column(db.String(8), primary_key=True)
     name = db.Column(db.String(64))
 
@@ -23,35 +23,68 @@ class Process(db.Model): # PCS
     id = db.Column(db.String(8), primary_key=True)
     title = db.Column(db.Text, nullable=False)
     level = db.Column(db.Integer, nullable=False)
-    owner_id = db.Column(db.String(8), db.ForeignKey('person.id'))
-    leader_id = db.Column(db.String(8), db.ForeignKey('person.id'))
+    owner_id = db.Column(db.String(8), db.ForeignKey('actor.id'))
+    leader_id = db.Column(db.String(8), db.ForeignKey('actor.id'))
+    descr  = db.Column(db.Text)
+    notes  = db.Column(db.Text)
 
-    owner = db.relationship('Person', backref='owns_procs', foreign_keys=[owner_id])#, lazy='dynamic')
-    leader = db.relationship('Person', backref='leads_procs', foreign_keys=[leader_id])#, lazy='dynamic')
+    owner = db.relationship('Actor', backref='owns_procs', foreign_keys=[owner_id])#, lazy='dynamic')
+    leader = db.relationship('Actor', backref='leads_procs', foreign_keys=[leader_id])#, lazy='dynamic')
 
     def __str__(self):
         return self.title
 
 
-class Program(db.Model): # PGM
+class Programme(db.Model): # PGM
     id = db.Column(db.String(8), primary_key=True)
     name = db.Column(db.String(64), nullable=False)
+    descr  = db.Column(db.Text)
+    notes  = db.Column(db.Text)
 
     def __str__(self):
         return self.name
 
 
-class Dependency(db.Model): # DPN
+class Function(db.Model): # FUN
+    id = db.Column(db.String(8), primary_key=True)
+    name = db.Column(db.String(64), nullable=False)
+    abbr = db.Column(db.String(16))
+    descr  = db.Column(db.Text)
+    notes  = db.Column(db.Text)
+
+    def __str__(self):
+        return self.name
+
+
+class Capability(db.Model): # CAP
+    id = db.Column(db.String(8), primary_key=True)
+    name = db.Column(db.String(64), nullable=False)
+    platform = db.Column(db.String(64), nullable=False)
+    ident = db.Column(db.String(8), primary_key=True)
+    ibcm = db.Column(db.String(64), nullable=False)
+    function_id = db.Column(db.String(8), db.ForeignKey('function.id'))
+    init_id = db.Column(db.String(8), db.ForeignKey('initiative.id'))
+    descr  = db.Column(db.Text)
+    notes  = db.Column(db.Text)
+
+    def __str__(self):
+        return "%s - %s" % (self.ident, self.name)
+
+
+
+class Dependency(db.Model): # DEP
     id = db.Column(db.String(8), primary_key=True)
     from_init_id = db.Column(db.String(8), db.ForeignKey('initiative.id'))
     to_init_id = db.Column(db.String(8), db.ForeignKey('initiative.id'))
     type = db.Column(db.Enum('HARD','SOFT'))
+    descr  = db.Column(db.Text)
+    notes  = db.Column(db.Text)
 
     from_init = db.relationship('Initiative', backref='deps_from', foreign_keys=[from_init_id])
     to_init = db.relationship('Initiative', backref='deps_to', foreign_keys=[to_init_id])
 
 
-class Initiative(db.Model): # NTV
+class Initiative(db.Model): # INI
     id = db.Column(db.String(8), primary_key=True)
     name = db.Column(db.String(64), nullable=False)
     state = db.Column(db.String(64), nullable=False)
@@ -59,8 +92,8 @@ class Initiative(db.Model): # NTV
     end = db.Column(db.String(24))
     type = db.Column(db.String(24), nullable=False)
     category = db.Column(db.String(24), nullable=False)
-    program_id = db.Column(db.String(8), db.ForeignKey('program.id'))#, nullable=False)
-    program = db.relationship('Program', backref='initiatives')
+    program_id = db.Column(db.String(8), db.ForeignKey('programme.id'))#, nullable=False)
+    program = db.relationship('Programme', backref='initiatives')
     function = db.Column(db.String(64))
     objective  = db.Column(db.Text)
     tp_objective = db.Column(db.Text)
@@ -71,24 +104,24 @@ class Initiative(db.Model): # NTV
     process = db.relationship('Process', backref='initiatives') #, lazy='dynamic')
     demand = db.Column(db.String(64))
     solution = db.Column(db.String(64))
-    biz_arch_man_id = db.Column(db.String(8), db.ForeignKey('person.id'))
-    it_arch_man_id = db.Column(db.String(8), db.ForeignKey('person.id'))
-    sg_chair_id = db.Column(db.String(8), db.ForeignKey('person.id'))
-    sg_sponsor_id = db.Column(db.String(8), db.ForeignKey('person.id'))
-    sg_tp_rep_id = db.Column(db.String(8), db.ForeignKey('person.id'))
-    orderer_id = db.Column(db.String(8), db.ForeignKey('person.id'))
-    owner_id = db.Column(db.String(8), db.ForeignKey('person.id'))
-    biz_proj_man_id = db.Column(db.String(8), db.ForeignKey('person.id'))
-    it_proj_man_id = db.Column(db.String(8), db.ForeignKey('person.id'))
-    biz_arch_man = db.relationship('Person', backref='biz_arch_man_of', foreign_keys=[biz_arch_man_id])#, lazy='dynamic')
-    it_arch_man = db.relationship('Person', backref='it_arch_man_of', foreign_keys=[it_arch_man_id])#, lazy='dynamic')
-    sg_chair = db.relationship('Person', backref='sg_chair_of', foreign_keys=[sg_chair_id])#, lazy='dynamic')
-    sg_sponsor = db.relationship('Person', backref='sg_sponsor_of', foreign_keys=[sg_sponsor_id])#, lazy='dynamic')
-    sg_tp_rep = db.relationship('Person', backref='sg_tp_rep_of', foreign_keys=[sg_tp_rep_id])#, lazy='dynamic')
-    orderer = db.relationship('Person', backref='orderer_of', foreign_keys=[orderer_id])#, lazy='dynamic')
-    owner = db.relationship('Person', backref='owns_inits', foreign_keys=[owner_id])#, lazy='dynamic')
-    biz_proj_man = db.relationship('Person', backref='biz_proj_man_of', foreign_keys=[biz_proj_man_id])#, lazy='dynamic')
-    it_proj_man = db.relationship('Person', backref='it_proj_man_of', foreign_keys=[it_proj_man_id])#, lazy='dynamic')
+    biz_arch_man_id = db.Column(db.String(8), db.ForeignKey('actor.id'))
+    it_arch_man_id = db.Column(db.String(8), db.ForeignKey('actor.id'))
+    sg_chair_id = db.Column(db.String(8), db.ForeignKey('actor.id'))
+    sg_sponsor_id = db.Column(db.String(8), db.ForeignKey('actor.id'))
+    sg_tp_rep_id = db.Column(db.String(8), db.ForeignKey('actor.id'))
+    orderer_id = db.Column(db.String(8), db.ForeignKey('actor.id'))
+    owner_id = db.Column(db.String(8), db.ForeignKey('actor.id'))
+    biz_proj_man_id = db.Column(db.String(8), db.ForeignKey('actor.id'))
+    it_proj_man_id = db.Column(db.String(8), db.ForeignKey('actor.id'))
+    biz_arch_man = db.relationship('Actor', backref='biz_arch_man_of', foreign_keys=[biz_arch_man_id])#, lazy='dynamic')
+    it_arch_man = db.relationship('Actor', backref='it_arch_man_of', foreign_keys=[it_arch_man_id])#, lazy='dynamic')
+    sg_chair = db.relationship('Actor', backref='sg_chair_of', foreign_keys=[sg_chair_id])#, lazy='dynamic')
+    sg_sponsor = db.relationship('Actor', backref='sg_sponsor_of', foreign_keys=[sg_sponsor_id])#, lazy='dynamic')
+    sg_tp_rep = db.relationship('Actor', backref='sg_tp_rep_of', foreign_keys=[sg_tp_rep_id])#, lazy='dynamic')
+    orderer = db.relationship('Actor', backref='orderer_of', foreign_keys=[orderer_id])#, lazy='dynamic')
+    owner = db.relationship('Actor', backref='owns_inits', foreign_keys=[owner_id])#, lazy='dynamic')
+    biz_proj_man = db.relationship('Actor', backref='biz_proj_man_of', foreign_keys=[biz_proj_man_id])#, lazy='dynamic')
+    it_proj_man = db.relationship('Actor', backref='it_proj_man_of', foreign_keys=[it_proj_man_id])#, lazy='dynamic')
     forums_anchored = db.Column(db.Boolean)
     forums = db.Column(db.String(64))
     budget_secured = db.Column(db.Boolean)
@@ -132,6 +165,8 @@ class Initiative(db.Model): # NTV
     dp8_planned = db.Column(db.String(32))
     dp8_actual = db.Column(db.String(32))
     dp8_critical = db.Column(db.String(32))
+    descr  = db.Column(db.Text)
+    notes  = db.Column(db.Text)
     #comments = db.Column(db.Text)
     #status = db.Column(db.String(64))
     #responsible

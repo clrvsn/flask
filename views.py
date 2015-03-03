@@ -73,5 +73,10 @@ def init_list():
     return render_template("init_list.html",
                            title='Initiatives List')
 
+@app.route('/funcs')
+def func_areas():
+    return render_template("func_area.html",
+                           title='Functional Areas Status')
+
 if __name__ == '__main__':
     pass

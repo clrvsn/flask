@@ -1,0 +1,81 @@
+﻿{% extends "base.html" %}
+{% block head %}
+<style>
+#diagram table {
+    width: 100%;
+}
+#diagram td {
+    text-align: center;
+    vertical-align: middle;
+    background: #0063AD;
+    min-height: 3em;
+}
+#diagram .name {
+    padding: 1em;
+    color: white;
+}
+#diagram .caps, #diagram .no-caps {
+    float: right;
+    padding: .1em;
+    margin: .1em;
+    font-size: 85%;
+    background: #C5E6FF;
+}
+#diagram .no-caps {
+    background: #FAA;
+}
+
+</style>
+{% endblock %}
+{% block content %}
+    <p>The main Functional Areas showing the number of Capabilities that need to
+    be transformed (where known).</p>
+    <div id="diagram">
+        <table cellspacing="10px">
+            <tr>
+                <td id="FUN0001" colspan="4"></td>
+            </tr>
+            <tr>
+                <td id="FUN0002" colspan="2"></td>
+                <td id="FUN0003" colspan="2"></td>
+            </tr>
+            <tr>
+                <td id="FUN0004" width="25%" rowspan="3"></td>
+                <td id="FUN0005" width="25%" rowspan="3"></td>
+                <td id="FUN0006" width="25%"></td>
+                <td id="FUN0009" width="25%" rowspan="3"></td>
+            </tr>
+            <tr>
+                <td id="FUN0007"></td>
+            </tr>
+            <tr>
+                <td id="FUN0008"></td>
+            </tr>
+            <tr>
+                <td id="FUN0010" colspan="2"></td>
+                <td id="FUN0011" colspan="2"></td>
+            </tr>
+            <tr>
+                <td id="FUN0012"></td>
+                <td id="FUN0013"></td>
+                <td id="FUN0014"></td>
+                <td id="FUN0015"></td>
+            </tr>
+        </table>
+    </div>
+{% endblock %}
+{% block foot %}
+<script type="text/javascript">
+    d3.csv("/static/func.csv", function (data) {
+        _.each(data, function (d) {
+            var td = d3.select('#'+d.id);
+            if (d.n) {
+                td.append('div').classed('caps', true).text(d.n);
+            } else {
+                td.append('div').classed('no-caps', true).text('?');
+            }
+            td.append('div').classed('name', true).text(d.abbr ? d.abbr : d.name);
+        });
+    });
+</script>
+{% endblock %}
