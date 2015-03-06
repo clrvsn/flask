@@ -10,7 +10,7 @@
 #-------------------------------------------------------------------------------
 
 from app import db, models
-import codecs
+#import codecs, csv
 
 def col_num(ltrs):
     i = 0
@@ -147,6 +147,44 @@ def load_deps():
     db.session.commit()
 
 
+def load_csv_1st(name, sep=','):
+    import codecs, csv
+    with codecs.open('data/'+name, encoding='utf-8') as csvfile:
+        rows = list(csv.reader(csvfile))
+        #rows = [[x.strip(' \r\n') for x in line.split(sep)] for line in csv.readlines()]
+        data = []
+        fields = rows[0]
+        for row in rows[1:]:
+            obj = {fields[i]: row[i] for i in range(len(fields)) if row[i]}
+            data.append(obj)
+        return data
+
+def try_mongo():
+    from pymongo import MongoClient
+    mongo = MongoClient()
+    db = mongo.kmod
+    #stuff = db.stuff
+    #foo = stuff.insert({'_id': 42, 'foo': 23})
+    #bar = stuff.insert({'_id': 43, 'bar': 19})
+    #print stuff.find_one(42)
+    print list(db.capability.find())
+
+def csvs_to_mongo(csvs):
+    import csv
+    from pymongo import MongoClient
+    mongo = MongoClient()
+    kmod = mongo.kmod
+    for name in csvs:
+        with open('data/'+name+'.csv', 'rb') as csvfile:
+            rows = list(csv.DictReader(csvfile))
+            data = []
+            for row in rows:
+                obj = {k: v for k,v in row.iteritems() if v}
+                data.append(obj)
+            coll = kmod[name]
+            coll.insert(data)
+            print name
+
 def main():
     #print load_csv('init.csv', ',')
     #print load_meta()
@@ -154,8 +192,12 @@ def main():
     #load_hub()
     #for init in hub: print init
     #    print init['id'], init['process']
-    load_deps()
-
+    #load_deps()
+    try_mongo()
+    import pprint
+    pp = pprint.PrettyPrinter(indent=2)
+    #pp.pprint(load_csv_1st('capability.csv'))
+    #csvs_to_mongo(['actor','capability','dependency','function','initiative','process','programme'])
 
 if __name__ == '__main__':
     main()

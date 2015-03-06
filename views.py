@@ -10,8 +10,10 @@
 #-------------------------------------------------------------------------------
 
 from flask import render_template, jsonify
-from app import app
+from app import app, mongo
 import models
+from flask.ext.pymongo import ASCENDING
+
 
 @app.route('/')
 def hello_world():
@@ -62,6 +64,53 @@ def bytime_json():
     #print jsn
     return jsonify({'inits': inits})
 
+
+@app.route('/api/byprog')
+def byprog_api():
+    fields = ['_id','name','state','start','end','type','category','program_id','function_ids','byprog_col','byprog_row','byprog_txt']
+    inits = []
+    for init in mongo.db.initiative.find():
+        ini = {name: init.get(name, '') for name in fields}
+        prog = mongo.db.programme.find_one(ini['program_id'])
+        ini['program'] = prog['name'] if prog else ''
+        del ini['program_id']
+        if ini['function_ids'] == 'ALL':
+            ini['function'] = 'ALL'
+        else:
+            funcs = [mongo.db.function.find_one(fid) for fid in ini['function_ids'].split()]
+            ini['function'] =  ' / '.join(f.get('abbr', f['name']) if f else '?' for f in funcs)
+        del ini['function_ids']
+        inits.append(ini)
+    return jsonify({'inits': inits})
+
+
+
+
+@app.route('/api/bytime')
+def bytime_api():
+    hards = {}
+    for dpn in mongo.db.dependency.find({'type': 'HARD'}):
+        if not dpn['from_init_id'] in hards.keys():
+            hards[dpn['from_init_id']] = []
+        hards[dpn['from_init_id']].append(dpn['to_init_id'])
+    fields = ['_id','name','state','start','end','type','category','program_id','function_ids']
+    inits = []
+    for init in mongo.db.initiative.find().sort('function_ids', ASCENDING):
+        ini = {name: init.get(name, '') for name in fields}
+        ini['to'] = hards.get(ini['_id'], [])
+        prog = mongo.db.programme.find_one(ini['program_id'])
+        ini['program'] = prog['name'] if prog else ''
+        del ini['program_id']
+        if ini['function_ids'] == 'ALL':
+            ini['function'] = 'ALL'
+        else:
+            funcs = [mongo.db.function.find_one(fid) for fid in ini['function_ids'].split()]
+            ini['function'] =  ' / '.join(f.get('abbr', f['name']) if f else '?' for f in funcs)
+        del ini['function_ids']
+        inits.append(ini)
+    return jsonify({'inits': inits})
+
+
 @app.route('/inits.json')
 def inits_json():
     fields = ['id','name','state','start','end','type','category','program','function']
@@ -77,6 +126,50 @@ def init_list():
 def func_areas():
     return render_template("func_area.html",
                            title='Functional Areas Status')
+
+def mk_lookup(cursor, fields=('_id','name')):
+    lookup = {}
+    for row in cursor:
+        lookup[row['_id']] = {k:v for k,v in row.iteritems() if not fields or k in fields}
+    return lookup
+
+def mk_options(cursor, field='name'):
+    return [(row[field], row['_id']) for row in cursor]
+
+@app.route('/api/caps')
+@app.route('/api/caps/<id>')
+def caps_api(id=None):
+    print id
+    if id:
+        if id[0:3] == 'FUN':
+            fun = mongo.db.function.find_one(id)
+            caps = list(mongo.db.capability.find({'function_id': id}))
+            inis = list(mongo.db.initiative.find())
+            return jsonify(caps=caps, fun=fun, inis=mk_options(inis))
+        elif id[0:3] == 'INI':
+            ini = mongo.db.initiative.find_one(id)
+            caps = list(mongo.db.capability.find({'init_id': id}))
+            funs = list(mongo.db.function.find())
+            return jsonify(caps=caps, funs=mk_options(funs), ini=ini)
+    else:
+        caps = list(mongo.db.capability.find())
+        funs = list(mongo.db.function.find())
+        inis = list(mongo.db.initiative.find())
+        return jsonify(caps=caps, funs=mk_options(funs), inis=mk_options(inis))
+
+@app.route('/caps')
+@app.route('/caps/<id>')
+def caps_page(id=''):
+    title = 'Capabilities'
+    if id:
+        if id[0:3] == 'FUN':
+            fun = mongo.db.function.find_one(id)
+            print fun
+            title += ' (' + fun['name'] + ")"
+        elif id[0:3] == 'INI':
+            ini = mongo.db.initiative.find_one(id)
+            title += ' (' + ini['name'] + ")"
+    return render_template("caps.html", title=title, id=id)
 
 if __name__ == '__main__':
     pass

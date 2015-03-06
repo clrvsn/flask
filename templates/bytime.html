@@ -91,7 +91,8 @@
             fill: "black",
         });
 
-    d3.json("/bytime.json", function(data) {
+    //d3.json("/bytime.json", function(data) {
+    d3.json("/api/bytime", function(data) {
         var cols = 0,
             rows = data.inits.length,
             i = 0,
@@ -108,7 +109,7 @@
                 s = mk_fyt(d.start, false),
                 e = mk_fyt(d.end, true);
             d.ix = i;
-            inits_by_id[d.id] = d;
+            inits_by_id[d._id] = d;
             cols = Math.max(cols, fyt_col(e,fst_yr));
             if (d['function'] !== f) {
                 f = d['function'];

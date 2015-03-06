@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+{% block head %}
+<style>
+    table.backgrid {
+        font-family: dejavu_sanscondensed, Ariel, sans;
+        font-size: 82%;
+    }
+    .backgrid th {
+        text-align: left;
+    }
+    .backgrid .select-cell {
+        text-align: left;
+    }
+</style>
+{% endblock %}
+{% block content %}
+    <div id="grid" class="backgrid-container" style="height: 100%"></div>
+{% endblock %}
+{% block foot %}
+<script type="text/javascript">
+    var Capability = Backbone.Model.extend({}),
+        Capabilities = Backbone.Collection.extend({
+            model: Capability,
+        }),
+        api = '/api/caps',
+        id = '{{ id if id else '' }}';
+
+    if (id !== '') {
+        api = api + '/' + id;
+    }
+
+    d3.json(api, function (data) {
+        var caps = new Capabilities(),
+            cols = [
+                //{name: "_id", label: "ID",  editable: false, cell: "string" },
+                {name: "name", label: "Name", cell: "string" },
+                {name: "area", label: "TL2020 Platform Area", cell: "string"},
+                {name: "ident", label: "ID", cell: "string"},
+                {name: "ibcm", label: "IBCM", cell: "string"},
+                //{name: "notes", label: "Notes", cell: "string"},
+            ];
+
+        if (id === '' || id.substr(0,3) !== 'FUN') {
+            cols.push(
+                {name: "function_id", label: "Functional Area",
+                 cell: Backgrid.SelectCell.extend({ optionValues: data.funs }),
+                 sortValue:
+                    function (model, field) {
+                        var value = model.attributes[field];
+                        if (value) {
+                            return _.find(data.funs, function (fun) {
+                                return fun[1] === value;
+                            })[0];
+                        } else {
+                            return '';
+                        }
+                   }
+                }
+            );
+        }
+        if (id === '' || id.substr(0,3) !== 'INI') {
+            cols.push(
+                {name: "init_id", label: "Reponsible Project",
+                 cell: Backgrid.SelectCell.extend({ optionValues: data.inis }),
+                 sortValue:
+                    function (model, field) {
+                        var value = model.attributes[field];
+                        if (value) {
+                            return _.find(data.inis, function (ini) {
+                                return ini[1] === value;
+                            })[0];
+                        } else {
+                            return '';
+                        }
+                   }
+                }
+            );
+        }
+
+        var grid = new Backgrid.Grid({
+                columns: cols,
+                collection: caps
+            });
+
+        $("#grid").append(grid.render().el);
+        caps.reset(data.caps);
+    });
+</script>
+{% endblock %}

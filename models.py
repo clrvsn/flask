@@ -59,13 +59,16 @@ class Function(db.Model): # FUN
 class Capability(db.Model): # CAP
     id = db.Column(db.String(8), primary_key=True)
     name = db.Column(db.String(64), nullable=False)
-    platform = db.Column(db.String(64), nullable=False)
+    area = db.Column(db.String(64), nullable=False)
     ident = db.Column(db.String(8), primary_key=True)
     ibcm = db.Column(db.String(64), nullable=False)
     function_id = db.Column(db.String(8), db.ForeignKey('function.id'))
     init_id = db.Column(db.String(8), db.ForeignKey('initiative.id'))
     descr  = db.Column(db.Text)
     notes  = db.Column(db.Text)
+
+    function = db.relationship('Initiative', backref='caps', foreign_keys=[function_id])
+    init = db.relationship('Initiative', backref='caps', foreign_keys=[init_id])
 
     def __str__(self):
         return "%s - %s" % (self.ident, self.name)
@@ -94,7 +97,7 @@ class Initiative(db.Model): # INI
     category = db.Column(db.String(24), nullable=False)
     program_id = db.Column(db.String(8), db.ForeignKey('programme.id'))#, nullable=False)
     program = db.relationship('Programme', backref='initiatives')
-    function = db.Column(db.String(64))
+    function_ids = db.Column(db.String(64))
     objective  = db.Column(db.Text)
     tp_objective = db.Column(db.Text)
     tp_pdi_covered = db.Column(db.Boolean)

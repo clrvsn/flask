@@ -1,7 +1,7 @@
-id,title,level,owner_id,leader_id
-PCS0006,Develop a complete and relevant home furnishing offer,0,ACT0069,ACT0070
-PCS0003,Convert visitors to happy customers so they return again,0,ACT0015,ACT0016
-PCS0002,Perform and report financial activities,0,ACT0008,
-PCS0004,Plan Sales and Supply,0,ACT0001,ACT0033
-PCS0001,"Deliver products, services and related information to all customers",0,ACT0001,ACT0002
-PCS0005,Secure IT Solutions,0,ACT0061,ACT0062
+_id,title,level,owner_id,leader_id,descr,notes
+PCS0006,Develop a complete and relevant home furnishing offer,0,ACT0069,ACT0070,,
+PCS0003,Convert visitors to happy customers so they return again,0,ACT0015,ACT0016,,
+PCS0002,Perform and report financial activities,0,ACT0008,,,
+PCS0004,Plan Sales and Supply,0,ACT0001,ACT0033,,
+PCS0001,"Deliver products, services and related information to all customers",0,ACT0001,ACT0002,,
+PCS0005,Secure IT Solutions,0,ACT0061,ACT0062,,

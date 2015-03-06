@@ -24,7 +24,12 @@
 #diagram .no-caps {
     background: #FAA;
 }
-
+#diagram a {
+    text-decoration: none;
+}
+#diagram a div {
+    border: none;
+}
 </style>
 {% endblock %}
 {% block content %}
@@ -68,13 +73,14 @@
 <script type="text/javascript">
     d3.csv("/static/func.csv", function (data) {
         _.each(data, function (d) {
-            var td = d3.select('#'+d.id);
+            var td = d3.select('#'+d.id),
+                a = td.append("a").attr('href', "/caps/" + d.id);
             if (d.n) {
-                td.append('div').classed('caps', true).text(d.n);
+                a.append('div').classed('caps', true).text(d.n);
             } else {
-                td.append('div').classed('no-caps', true).text('?');
+                a.append('div').classed('no-caps', true).text('?');
             }
-            td.append('div').classed('name', true).text(d.abbr ? d.abbr : d.name);
+            a.append('div').classed('name', true).text(d.abbr ? d.abbr : d.name);
         });
     });
 </script>

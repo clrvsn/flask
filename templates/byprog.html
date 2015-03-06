@@ -253,11 +253,12 @@
                 })
         }
 
-        d3.csv("/byprog/init.csv", function(data) {
-            init_data = data;
+        //d3.csv("/byprog/init.csv", function(data) {
+        d3.json("/api/byprog", function(data) {
+            init_data = data.inits;
 
             init_data.forEach(function(ini) {
-                init_indx[ini.id] = ini;
+                init_indx[ini._id] = ini;
             });
 
             d3.csv("/static/soft.csv", function(data)

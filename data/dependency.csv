@@ -1,4 +1,4 @@
-id,from_init_id,to_init_id,type
+_id,from_init_id,to_init_id,type
 DEP0001,INI0001,INI0006,HARD
 DEP0002,INI0001,INI0030,HARD
 DEP0003,INI0002,INI0024,HARD
