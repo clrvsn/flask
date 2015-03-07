@@ -10,13 +10,10 @@
 #-------------------------------------------------------------------------------
 
 from flask import Flask
-from flask.ext.sqlalchemy import SQLAlchemy
 from flask.ext.pymongo import PyMongo
 
-app = Flask('kmod') #__name__)
+app = Flask('kmod')
 app.config.from_object('config')
-db = SQLAlchemy(app)
 mongo = PyMongo(app)
 
-import views, models
-
+import views

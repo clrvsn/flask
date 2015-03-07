@@ -10,9 +10,56 @@
 #-------------------------------------------------------------------------------
 
 from flask import render_template, jsonify
-from app import app, mongo
-import models
 from flask.ext.pymongo import ASCENDING
+from app import app, mongo
+
+
+##@app.route('/byprog/init.csv')
+##def byprog_init_csv():
+##    inits = models.Initiative.query.all()
+##    fields = ['id','name','state','start','end','type','category','program','function','byprog_col','byprog_row','byprog_txt']
+##    csv = ','.join(fields) + '\n'
+##    csv += '\n'.join([','.join([str(getattr(init,name) or '') for name in fields]) for init in inits])
+##    return csv
+
+##@app.route('/bytime/init.csv')
+##def bytime_init_csv():
+##    inits = models.Initiative.query.order_by('function').all()
+##    fields = ['id','name','state','start','end','type','category','program','function']
+##    csv = ','.join(fields) + '\n'
+##    csv += '\n'.join([','.join([str(getattr(init,name) or '') for name in fields]) for init in inits])
+##    #print csv
+##    return csv
+
+##@app.route('/bytime.json')
+##def bytime_json():
+##    inits = models.Initiative.query.order_by('function').all()
+##    hards = {}
+##    for dpn in models.Dependency.query.filter(models.Dependency.type == 'HARD').all():
+##        if not dpn.from_init_id in hards.keys():
+##            hards[dpn.from_init_id] = []
+##        hards[dpn.from_init_id].append(dpn.to_init_id)
+##    fields = ['id','name','state','start','end','type','category','program','function']
+##    jsn = [{name: str(getattr(init,name) or '') for name in fields} for init in inits]
+##    inits = []
+##    for init in models.Initiative.query.order_by('function').all():
+##        ini = {name: str(getattr(init,name) or '') for name in fields}
+##        ini['to'] = hards.get(ini['id'], [])
+##        inits.append(ini)
+##    #print jsn
+##    return jsonify({'inits': inits})
+
+##@app.route('/inits.json')
+##def inits_json():
+##    fields = ['id','name','state','start','end','type','category','program','function']
+##    inits = [{name: str(getattr(init,name) or '') for name in fields} for init in models.Initiative.query.all()]
+##    return jsonify(inits=inits)
+
+##def mk_lookup(cursor, fields=('_id','name')):
+##    lookup = {}
+##    for row in cursor:
+##        lookup[row['_id']] = {k:v for k,v in row.iteritems() if not fields or k in fields}
+##    return lookup
 
 
 @app.route('/')
@@ -23,46 +70,34 @@ def hello_world():
 def byprog():
     return render_template("byprog.html",
                            title='Initiatives by Programme')
-
-@app.route('/byprog/init.csv')
-def byprog_init_csv():
-    inits = models.Initiative.query.all()
-    fields = ['id','name','state','start','end','type','category','program','function','byprog_col','byprog_row','byprog_txt']
-    csv = ','.join(fields) + '\n'
-    csv += '\n'.join([','.join([str(getattr(init,name) or '') for name in fields]) for init in inits])
-    return csv
-
 @app.route('/bytime')
 def bytime():
     return render_template("bytime.html",
                            title='Initiatives Timeline')
 
-@app.route('/bytime/init.csv')
-def bytime_init_csv():
-    inits = models.Initiative.query.order_by('function').all()
-    fields = ['id','name','state','start','end','type','category','program','function']
-    csv = ','.join(fields) + '\n'
-    csv += '\n'.join([','.join([str(getattr(init,name) or '') for name in fields]) for init in inits])
-    #print csv
-    return csv
+@app.route('/inits')
+def init_list():
+    return render_template("inis.html",
+                           title='Initiatives List')
 
-@app.route('/bytime.json')
-def bytime_json():
-    inits = models.Initiative.query.order_by('function').all()
-    hards = {}
-    for dpn in models.Dependency.query.filter(models.Dependency.type == 'HARD').all():
-        if not dpn.from_init_id in hards.keys():
-            hards[dpn.from_init_id] = []
-        hards[dpn.from_init_id].append(dpn.to_init_id)
-    fields = ['id','name','state','start','end','type','category','program','function']
-    jsn = [{name: str(getattr(init,name) or '') for name in fields} for init in inits]
-    inits = []
-    for init in models.Initiative.query.order_by('function').all():
-        ini = {name: str(getattr(init,name) or '') for name in fields}
-        ini['to'] = hards.get(ini['id'], [])
-        inits.append(ini)
-    #print jsn
-    return jsonify({'inits': inits})
+@app.route('/funcs')
+def func_areas():
+    return render_template("funs.html",
+                           title='Functional Areas Status')
+
+@app.route('/caps')
+@app.route('/caps/<id>')
+def caps_page(id=''):
+    title = 'Capabilities'
+    if id:
+        if id[0:3] == 'FUN':
+            fun = mongo.db.function.find_one(id)
+            #print fun
+            title += ' (' + fun['name'] + ")"
+        elif id[0:3] == 'INI':
+            ini = mongo.db.initiative.find_one(id)
+            title += ' (' + ini['name'] + ")"
+    return render_template("caps.html", title=title, id=id)
 
 
 @app.route('/api/byprog')
@@ -81,10 +116,11 @@ def byprog_api():
             ini['function'] =  ' / '.join(f.get('abbr', f['name']) if f else '?' for f in funcs)
         del ini['function_ids']
         inits.append(ini)
-    return jsonify({'inits': inits})
-
-
-
+    return jsonify({
+        'inits': inits,
+        'hards': list(mongo.db.dependency.find({'type': 'HARD'})),
+        'softs': list(mongo.db.dependency.find({'type': 'SOFT'})),
+    })
 
 @app.route('/api/bytime')
 def bytime_api():
@@ -110,36 +146,13 @@ def bytime_api():
         inits.append(ini)
     return jsonify({'inits': inits})
 
-
-@app.route('/inits.json')
-def inits_json():
-    fields = ['id','name','state','start','end','type','category','program','function']
-    inits = [{name: str(getattr(init,name) or '') for name in fields} for init in models.Initiative.query.all()]
-    return jsonify(inits=inits)
-
-@app.route('/inits')
-def init_list():
-    return render_template("init_list.html",
-                           title='Initiatives List')
-
-@app.route('/funcs')
-def func_areas():
-    return render_template("func_area.html",
-                           title='Functional Areas Status')
-
-def mk_lookup(cursor, fields=('_id','name')):
-    lookup = {}
-    for row in cursor:
-        lookup[row['_id']] = {k:v for k,v in row.iteritems() if not fields or k in fields}
-    return lookup
-
 def mk_options(cursor, field='name'):
     return [(row[field], row['_id']) for row in cursor]
 
 @app.route('/api/caps')
 @app.route('/api/caps/<id>')
 def caps_api(id=None):
-    print id
+    #print id
     if id:
         if id[0:3] == 'FUN':
             fun = mongo.db.function.find_one(id)
@@ -157,19 +170,12 @@ def caps_api(id=None):
         inis = list(mongo.db.initiative.find())
         return jsonify(caps=caps, funs=mk_options(funs), inis=mk_options(inis))
 
-@app.route('/caps')
-@app.route('/caps/<id>')
-def caps_page(id=''):
-    title = 'Capabilities'
-    if id:
-        if id[0:3] == 'FUN':
-            fun = mongo.db.function.find_one(id)
-            print fun
-            title += ' (' + fun['name'] + ")"
-        elif id[0:3] == 'INI':
-            ini = mongo.db.initiative.find_one(id)
-            title += ' (' + ini['name'] + ")"
-    return render_template("caps.html", title=title, id=id)
+@app.route('/api/funs')
+def funs_api():
+    funs = list(mongo.db.function.find())
+    for fun in funs:
+        fun['ncap'] = mongo.db.capability.find({'function_id': fun['_id']}).count()
+    return jsonify({'funs': funs})
 
 if __name__ == '__main__':
     pass

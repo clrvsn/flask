@@ -11,123 +11,91 @@ ClassName=TProjectFilesNode
 
 [Project\ChildNodes\Node0\ChildNodes\Node0]
 ClassName=TProjectFolderNode
-Name=import
+Name=static
 
 [Project\ChildNodes\Node0\ChildNodes\Node0\ChildNodes\Node0]
+ClassName=TProjectFolderNode
+Name=fonts
+
+[Project\ChildNodes\Node0\ChildNodes\Node0\ChildNodes\Node0\ChildNodes\Node0]
 ClassName=TProjectFileNode
-FileName=$[Project-Path]import\hub.csv
+FileName=$[Project-Path]static\font\stylesheet.css
+
+[Project\ChildNodes\Node0\ChildNodes\Node0\ChildNodes\Node0\ChildNodes]
+Count=1
 
 [Project\ChildNodes\Node0\ChildNodes\Node0\ChildNodes\Node1]
 ClassName=TProjectFileNode
-FileName=$[Project-Path]import\init.csv
+FileName=$[Project-Path]static\kmod.js
 
 [Project\ChildNodes\Node0\ChildNodes\Node0\ChildNodes\Node2]
 ClassName=TProjectFileNode
-FileName=$[Project-Path]import\meta.csv
+FileName=$[Project-Path]static\kmod.css
 
 [Project\ChildNodes\Node0\ChildNodes\Node0\ChildNodes]
 Count=3
 
 [Project\ChildNodes\Node0\ChildNodes\Node1]
 ClassName=TProjectFolderNode
-Name=static
+Name=templates
 
 [Project\ChildNodes\Node0\ChildNodes\Node1\ChildNodes\Node0]
 ClassName=TProjectFileNode
-FileName=$[Project-Path]static\hard.csv
+FileName=$[Project-Path]templates\base.html
 
 [Project\ChildNodes\Node0\ChildNodes\Node1\ChildNodes\Node1]
 ClassName=TProjectFileNode
-FileName=$[Project-Path]static\kmod.js
+FileName=$[Project-Path]templates\byprog.html
 
 [Project\ChildNodes\Node0\ChildNodes\Node1\ChildNodes\Node2]
 ClassName=TProjectFileNode
-FileName=$[Project-Path]static\kmod.css
+FileName=$[Project-Path]templates\bytime.html
 
 [Project\ChildNodes\Node0\ChildNodes\Node1\ChildNodes\Node3]
 ClassName=TProjectFileNode
-FileName=$[Project-Path]static\soft.csv
+FileName=$[Project-Path]templates\caps.html
 
-[Project\ChildNodes\Node0\ChildNodes\Node1\ChildNodes]
-Count=4
-
-[Project\ChildNodes\Node0\ChildNodes\Node2]
-ClassName=TProjectFolderNode
-Name=templates
-
-[Project\ChildNodes\Node0\ChildNodes\Node2\ChildNodes\Node0]
-ClassName=TProjectFileNode
-FileName=$[Project-Path]templates\base.html
-
-[Project\ChildNodes\Node0\ChildNodes\Node2\ChildNodes\Node1]
-ClassName=TProjectFileNode
-FileName=$[Project-Path]templates\byprog.html
-
-[Project\ChildNodes\Node0\ChildNodes\Node2\ChildNodes\Node2]
-ClassName=TProjectFileNode
-FileName=$[Project-Path]templates\bytime.html
-
-[Project\ChildNodes\Node0\ChildNodes\Node2\ChildNodes\Node3]
+[Project\ChildNodes\Node0\ChildNodes\Node1\ChildNodes\Node4]
 ClassName=TProjectFileNode
 FileName=$[Project-Path]templates\front.html
 
-[Project\ChildNodes\Node0\ChildNodes\Node2\ChildNodes\Node4]
+[Project\ChildNodes\Node0\ChildNodes\Node1\ChildNodes\Node5]
 ClassName=TProjectFileNode
-FileName=$[Project-Path]templates\func_area.html
+FileName=$[Project-Path]templates\funs.html
 
-[Project\ChildNodes\Node0\ChildNodes\Node2\ChildNodes\Node5]
+[Project\ChildNodes\Node0\ChildNodes\Node1\ChildNodes\Node6]
 ClassName=TProjectFileNode
-FileName=$[Project-Path]templates\init_list.html
+FileName=$[Project-Path]templates\inis.html
 
-[Project\ChildNodes\Node0\ChildNodes\Node2\ChildNodes]
-Count=6
+[Project\ChildNodes\Node0\ChildNodes\Node1\ChildNodes]
+Count=7
 
-[Project\ChildNodes\Node0\ChildNodes\Node3]
+[Project\ChildNodes\Node0\ChildNodes\Node2]
 ClassName=TProjectFileNode
 FileName=$[Project-Path].gitignore
 
-[Project\ChildNodes\Node0\ChildNodes\Node4]
+[Project\ChildNodes\Node0\ChildNodes\Node3]
 ClassName=TProjectFileNode
 FileName=$[Project-Path]app.py
 
-[Project\ChildNodes\Node0\ChildNodes\Node5]
-ClassName=TProjectFileNode
-FileName=$[Project-Path]db_create.py
-
-[Project\ChildNodes\Node0\ChildNodes\Node6]
-ClassName=TProjectFileNode
-FileName=$[Project-Path]db_downgrade.py
-
-[Project\ChildNodes\Node0\ChildNodes\Node7]
-ClassName=TProjectFileNode
-FileName=$[Project-Path]db_migrate.py
-
-[Project\ChildNodes\Node0\ChildNodes\Node8]
-ClassName=TProjectFileNode
-FileName=$[Project-Path]db_upgrade.py
-
-[Project\ChildNodes\Node0\ChildNodes\Node9]
-ClassName=TProjectFileNode
-FileName=$[Project-Path]import.py
-
-[Project\ChildNodes\Node0\ChildNodes\Node10]
+[Project\ChildNodes\Node0\ChildNodes\Node4]
 ClassName=TProjectFileNode
 FileName=$[Project-Path]models.py
 
-[Project\ChildNodes\Node0\ChildNodes\Node11]
+[Project\ChildNodes\Node0\ChildNodes\Node5]
 ClassName=TProjectFileNode
 FileName=$[Project-Path]run.py
 
-[Project\ChildNodes\Node0\ChildNodes\Node12]
+[Project\ChildNodes\Node0\ChildNodes\Node6]
 ClassName=TProjectFileNode
 FileName=$[Project-Path]serve.py
 
-[Project\ChildNodes\Node0\ChildNodes\Node13]
+[Project\ChildNodes\Node0\ChildNodes\Node7]
 ClassName=TProjectFileNode
 FileName=$[Project-Path]views.py
 
 [Project\ChildNodes\Node0\ChildNodes]
-Count=14
+Count=8
 
 [Project\ChildNodes\Node1]
 ClassName=TProjectRunConfiguationsNode
