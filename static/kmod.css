@@ -64,3 +64,72 @@ rect.rollout {
 rect.closed {
     stroke: #008000;
 }
+
+
+line.soft {
+    stroke: grey;
+    stroke-width: 8;
+    opacity: 0.5;
+}
+line.soft:hover {
+    stroke: orange;
+    opacity: 1;
+}
+
+line.hard {
+    stroke: black;
+    stroke-width: 3;
+    -opacity: 0.5;
+}
+line.hard:hover {
+    stroke: orange;
+    -opacity: 1;
+}
+
+g.prog rect {
+    stroke: #BBB;
+    stroke-width: 2;
+    stroke-linejoin: round;
+}
+g.prog text {
+    font-family: sans-serif;
+    font-weight: bold;
+    font-size: 13px;
+    color: gray;
+    --text-anchor: middle;
+    pointer-events: none;
+}
+
+g.init rect {
+    stroke-width: 3;
+    stroke-linejoin: round;
+    cursor: pointer;
+}
+g.init rect:hover {
+    fill: orange;
+}
+g.init text {
+    -font-family: sans-serif;
+    font-size: 11px;
+    text-anchor: middle;
+    pointer-events: none;
+}
+g.rag circle {
+    stroke: #666;
+    stroke-width: 1.5;
+}
+g.rag circle.red {
+    fill: #F88;
+}
+g.rag circle.amber {
+    fill: #EE0;
+}
+g.rag circle.green {
+    fill: #6F6;
+}
+g.rag circle.grey {
+    fill: #CCC;
+}
+g.rag text {
+    font-size: 60%;
+}

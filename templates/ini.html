@@ -1,0 +1,218 @@
+﻿{% extends "base.html" %}
+{% block head %}
+<style>
+    .ini th, .ini td {
+        text-align: left;
+        vertical-align: top;
+        padding-bottom: 1em;
+    }
+    .ini th {
+        padding-right: 1em;
+    }
+    #diagram {
+        text-align: center;
+    }
+    .this text {
+        font-weight: bold;
+    }
+</style>
+{% endblock %}
+{% block content %}
+    <table class="ini">
+        <tr>
+            <th>Dependencies:</th>
+            <td id="diagram"></td>
+        </tr>
+        <tr><th>Objective:</th><td id="objective"></td></tr>
+        <tr><th>MHS-TP Objective:</th><td id="tp_objective"></td></tr>
+    </table>
+    <div id="tooltip" class="hidden">
+        <table>
+            <tr><th>Status:</th> <td id="tt_stat"></td></tr>
+            <tr><th>Type:</th> <td id="tt_type"></td></tr>
+            <tr><th>Category:</th> <td id="tt_cat"></td></tr>
+            <tr><th>Programme:</th> <td id="tt_prog"></td></tr>
+            <tr><th>Function:</th> <td id="tt_func"></td></tr>
+            <tr><th>Start:</th> <td id="tt_start"></td></tr>
+            <tr><th>End:</th> <td id="tt_end"></td></tr>
+        </table>
+    </div>
+{% endblock %}
+{% block foot %}
+<script type="text/javascript">
+    var _id = '{{ id }}',
+        api = '/api/ini/' + _id;
+
+    init_grid.cols = 3;
+    init_grid.rows = 1;
+    init_grid.colw = 170;
+    init_grid.rowh = 65;
+
+    var w = init_grid.cols * init_grid.colw,
+        h = init_grid.rows * init_grid.rowh + init_grid.rowh/2,
+        init_indx = {};
+
+
+    function soft_line(d) {
+        var d1 = init_indx[d.from_init_id],
+            d2 = init_indx[d.to_init_id];
+        d3.select(this)
+            .attr({
+                x1: d1.byprog_col * init_grid.colw + init_grid.colw/2,
+                y1: d1.byprog_row * init_grid.rowh + init_grid.rowh,
+                x2: d2.byprog_col * init_grid.colw + init_grid.colw/2,
+                y2: d2.byprog_row * init_grid.rowh + init_grid.rowh,
+            });
+    }
+    function hard_line(d) {
+        var d1 = init_indx[d.from_init_id],
+            d2 = init_indx[d.to_init_id],
+            r1 = mk_init_rect(d1),
+            xk = r1.cx, yk = r1.cy,
+            r2 = mk_init_rect(d2),
+            xl = r2.cx, yl = r2.cy,
+            xm = r2.l, ym = r2.t,
+            xn = r2.r, yn = r2.t,
+            xp = r2.r, yp = r2.b,
+            xq = r2.l, yq = r2.b,
+            p = intersect_lineseg_rect(xk,yk, xl,yl, xm,ym, xn,yn, xp,yp, xq,yq);
+        if (!p) {
+            p = {x: xl, y: yl};
+        }
+        d3.select(this)
+            .attr({
+                x1: xk,
+                y1: yk,
+                x2: p.x,
+                y2: p.y,
+                "marker-end": "url(#arrow)",
+            });
+    }
+
+    d3.json(api, function (data) {
+        init_grid.rows = Math.max(data.softs.length+1, Math.max(data.froms.length, data.tos.length));
+        h = init_grid.rows * init_grid.rowh + init_grid.rowh/2;
+
+        d3.select("#objective").text(data.ini.objective || '');
+        d3.select("#tp_objective").text(data.ini.tp_objective || '');
+
+        var inis = [data.ini],
+            irow = (init_grid.rows-1) / 2,
+            top_soft, bot_soft;
+
+        data.ini.byprog_row = irow - 1/2;
+        data.ini.byprog_col = 1;
+        init_indx[data.ini._id] = data.ini;
+        top_soft = data.ini;
+        bot_soft = data.ini;
+
+        _.each(data.froms, function (e, i) {
+            e.byprog_row = irow - (data.froms.length/2) + i;
+            e.byprog_col = 0;
+            inis.push(e);
+            init_indx[e._id] = e;
+        });
+        _.each(data.tos, function (e, i) {
+            e.byprog_row = irow - (data.tos.length/2) + i;
+            e.byprog_col = 2;
+            inis.push(e);
+            init_indx[e._id] = e;
+        });
+        _.each(data.softs, function (e, i) {
+            e.byprog_row = irow - 1/2 + (i%2 ? -1 : 1) *  Math.floor(1 + i/2);
+            e.byprog_col = 1;
+            inis.push(e);
+            init_indx[e._id] = e;
+            top_soft = top_soft ? (top_soft.byprog_row < e.byprog_row ? top_soft : e) : e;
+            bot_soft = bot_soft ? (bot_soft.byprog_row > e.byprog_row ? bot_soft : e) : e;
+        });
+
+        var svg = d3.select("#diagram")
+                    .append("svg")
+                    .attr("width", w)
+                    .attr("height", h);
+
+        svg.append("defs")
+            .append("marker")
+            .attr({
+                id: "arrow",
+                viewBox: "-20 -10 20 20",
+                markerWidth: 12,
+                markerHeight: 12,
+                refx: 0,
+                refy: 0,
+                orient: "auto",
+                markerUnits: "userSpaceOnUse"
+            })
+            .append("path")
+            .attr({
+                d: "M-20,-8L0,0L-20,8",
+                fill: "black",
+            });
+
+        if (data.softs.length > 0) {
+            svg.selectAll("line.soft")
+                .data([{from_init_id:top_soft._id, to_init_id:bot_soft._id}])
+                .enter()
+                .append("line")
+                .classed("soft", true)
+                .each(soft_line);
+        }
+
+        var froms = _.map(data.froms, function (x) {return {from_init_id:x._id, to_init_id:_id};}),
+            tos = _.map(data.tos, function (x) {return {from_init_id:_id, to_init_id:x._id};});
+
+        svg.selectAll("line.hard")
+            .data(froms.concat(tos))
+            .enter()
+            .append("line")
+            .classed("hard", true)
+            .each(hard_line);
+
+
+        var gs = svg.selectAll("g.init")
+                 .data(inis)
+                 .enter()
+                 .append("g")
+                 .classed("init", true)
+                 .classed("this", function(d){return d._id == _id;});
+
+        gs.each(init_rect);
+        gs.each(init_text);
+        gs.each(init_rag);
+
+        $('.init').qtip({
+            content: {
+                title: function() {
+                    var d = this.context.__data__;
+                    return d.name;
+                },
+                text: function() {
+                    var d = this.context.__data__,
+                        tt = d3.select("#tooltip");
+                    //tt.select("#tt_name").text(d.name);
+                    tt.select("#tt_stat").text(d.state);
+                    tt.select("#tt_type").text(d.type);
+                    tt.select("#tt_cat").text(d.category);
+                    tt.select("#tt_prog").text(d.program.name);
+                    tt.select("#tt_func").text(d['function']);
+                    tt.select("#tt_start").text(d.start);
+                    tt.select("#tt_end").text(d.end);
+                    return tt.html();
+                },
+            },
+            style: {
+                classes: 'qtip-cluetip qtip-shadow'
+            },
+            position: {
+                my: 'left center',
+                at: 'center right',
+                viewport: $(window),
+                adjust: {
+                    method: 'shift shift'
+                },
+            },
+        });
+    });
+</script>
+{% endblock %}

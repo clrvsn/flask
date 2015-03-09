@@ -63,25 +63,32 @@ from app import app, mongo
 
 
 @app.route('/')
-def hello_world():
+def front_page():
     return render_template("front.html")
 
 @app.route('/byprog')
-def byprog():
+def inis_byprog():
     return render_template("byprog.html",
                            title='Initiatives by Programme')
 @app.route('/bytime')
-def bytime():
+def inis_bytime():
     return render_template("bytime.html",
                            title='Initiatives Timeline')
 
 @app.route('/inits')
-def init_list():
+def inis_page():
     return render_template("inis.html",
                            title='Initiatives List')
 
+@app.route('/init/<id>')
+def ini_page(id):
+    ini = mongo.db.initiative.find_one(id)
+    if ini:
+        return render_template("ini.html",
+                           title=ini['name'], id=id)
+
 @app.route('/funcs')
-def func_areas():
+def funs_page():
     return render_template("funs.html",
                            title='Functional Areas Status')
 
@@ -100,27 +107,64 @@ def caps_page(id=''):
     return render_template("caps.html", title=title, id=id)
 
 
-@app.route('/api/byprog')
-def byprog_api():
-    fields = ['_id','name','state','start','end','type','category','program_id','function_ids','byprog_col','byprog_row','byprog_txt']
-    inits = []
-    for init in mongo.db.initiative.find():
-        ini = {name: init.get(name, '') for name in fields}
-        prog = mongo.db.programme.find_one(ini['program_id'])
-        ini['program'] = prog['name'] if prog else ''
-        del ini['program_id']
+def deref(old,fields=None):
+    typs = {
+        'ACT': mongo.db.actor,
+        'CAP': mongo.db.capability,
+        'FUN': mongo.db.function,
+        'INI': mongo.db.initiative,
+        'PCS': mongo.db.process,
+        'PGM': mongo.db.programme,
+    }
+    if fields:
+        for k in fields:
+            if not k in old:
+                old[k] = ''
+    new = {}
+    for k,v in old.iteritems():
+        if not fields or k in fields:
+            if k.endswith('_id') and k != '_id':
+                typ = v[0:3]
+                obj = typs[typ].find_one(v)
+                if obj:
+                    new[k[0:-3]] = deref(obj)
+            else:
+                new[k] = v
+    return new
+
+def deref_ini(old, fields=None):
+    ini = deref(old,fields)
+    if 'function_ids' in ini:
         if ini['function_ids'] == 'ALL':
             ini['function'] = 'ALL'
         else:
             funcs = [mongo.db.function.find_one(fid) for fid in ini['function_ids'].split()]
-            ini['function'] =  ' / '.join(f.get('abbr', f['name']) if f else '?' for f in funcs)
+            ini['function'] =  '/'.join(f.get('abbr', f['name']) if f else '?' for f in funcs)
         del ini['function_ids']
-        inits.append(ini)
-    return jsonify({
-        'inits': inits,
-        'hards': list(mongo.db.dependency.find({'type': 'HARD'})),
-        'softs': list(mongo.db.dependency.find({'type': 'SOFT'})),
-    })
+    return ini
+
+@app.route('/api/ini/<id>')
+def ini_api(id):
+    fields = ['_id','name','state','start','end','type','category',
+              'program_id','function_ids','byprog_txt']
+    def get(id):
+        return deref_ini(mongo.db.initiative.find_one(id), fields)
+    return jsonify(
+        ini   = deref_ini(mongo.db.initiative.find_one(id)),
+        froms = [get(ini['from_init_id']) for ini in mongo.db.dependency.find({'type': 'HARD', 'to_init_id': id})],
+        tos   = [get(ini['to_init_id']) for ini in mongo.db.dependency.find({'type': 'HARD', 'from_init_id': id})],
+        softs = [get(ini['from_init_id']) for ini in mongo.db.dependency.find({'type': 'SOFT', 'to_init_id': id})]
+              + [get(ini['to_init_id']) for ini in mongo.db.dependency.find({'type': 'SOFT', 'from_init_id': id})])
+
+
+@app.route('/api/byprog')
+def byprog_api():
+    fields = ['_id','name','state','start','end','type','category','program_id',
+              'function_ids','byprog_col','byprog_row','byprog_txt']
+    return jsonify(
+        inits = [deref_ini(ini,fields) for ini in mongo.db.initiative.find({'removed': '0'})],
+        hards = list(mongo.db.dependency.find({'type': 'HARD'})),
+        softs = list(mongo.db.dependency.find({'type': 'SOFT'})))
 
 @app.route('/api/bytime')
 def bytime_api():
@@ -131,7 +175,7 @@ def bytime_api():
         hards[dpn['from_init_id']].append(dpn['to_init_id'])
     fields = ['_id','name','state','start','end','type','category','program_id','function_ids']
     inits = []
-    for init in mongo.db.initiative.find().sort('function_ids', ASCENDING):
+    for init in mongo.db.initiative.find({'removed': '0'}).sort('function_ids', ASCENDING):
         ini = {name: init.get(name, '') for name in fields}
         ini['to'] = hards.get(ini['_id'], [])
         prog = mongo.db.programme.find_one(ini['program_id'])

@@ -38,6 +38,7 @@
     g.init rect {
         stroke-width: 3;
         stroke-linejoin: round;
+        cursor: pointer;
     }
     g.init rect:hover {
         fill: orange;
@@ -47,6 +48,25 @@
         font-size: 11px;
         text-anchor: middle;
         pointer-events: none;
+    }
+    g.rag circle {
+        stroke: #666;
+        stroke-width: 1.5;
+    }
+    g.rag circle.red {
+        fill: #F88;
+    }
+    g.rag circle.amber {
+        fill: #EE0;
+    }
+    g.rag circle.green {
+        fill: #6F6;
+    }
+    g.rag circle.grey {
+        fill: #CCC;
+    }
+    g.rag text {
+        font-size: 60%;
     }
     p {
         font-family: sans-serif;
@@ -61,7 +81,7 @@
             <tr><th>Status:</th> <td id="tt_stat"></td></tr>
             <tr><th>Type:</th> <td id="tt_type"></td></tr>
             <tr><th>Category:</th> <td id="tt_cat"></td></tr>
-            <tr><th>Program:</th> <td id="tt_prog"></td></tr>
+            <tr><th>Programme:</th> <td id="tt_prog"></td></tr>
             <tr><th>Function:</th> <td id="tt_func"></td></tr>
             <tr><th>Start:</th> <td id="tt_start"></td></tr>
             <tr><th>End:</th> <td id="tt_end"></td></tr>
@@ -73,12 +93,13 @@
 {% endblock %}
 {% block foot %}
     <script type="text/javascript">
-        var cols = 6,
-            rows = 12,
-            colw = 170,
-            rowh = 65,
-            w = cols * colw,
-            h = rows * rowh + rowh/2,
+        init_grid.cols = 6;
+        init_grid.rows = 12;
+        init_grid.colw = 170;
+        init_grid.rowh = 65;
+
+        var w = init_grid.cols * init_grid.colw,
+            h = init_grid.rows * init_grid.rowh + init_grid.rowh/2,
             init_indx = {};
 
         var prog_data = [
@@ -121,10 +142,10 @@
 
         progs.append("rect")
             .attr({
-                x: function(d) { return d.col * colw + 10; },
-                y: function(d) { return d.row * rowh + 0; },
-                width: function(d) { return d.cols * colw - 20; },
-                height: function(d) { return d.rows * rowh - 0 + rowh/2; },
+                x: function(d) { return d.col * init_grid.colw + 10; },
+                y: function(d) { return d.row * init_grid.rowh + 0; },
+                width: function(d) { return d.cols * init_grid.colw - 20; },
+                height: function(d) { return d.rows * init_grid.rowh - 0 + init_grid.rowh/2; },
                 fill: function(d) { return d.color; },
                 rx: 10,
                 ry: 10,
@@ -133,8 +154,8 @@
         progs.append("text")
             .text(function(d) { return d.name; })
             .attr({
-                x: function(d) { return d.col * colw + 20; },
-                y: function(d) { return d.row * rowh + 10 + 12; },
+                x: function(d) { return d.col * init_grid.colw + 20; },
+                y: function(d) { return d.row * init_grid.rowh + 10 + 12; },
             });
 
         function soft_line(d) {
@@ -143,10 +164,10 @@
             //console.log(d)
             d3.select(this)
                 .attr({
-                    x1: d1.byprog_col * colw + colw/2,
-                    y1: d1.byprog_row * rowh + rowh,
-                    x2: d2.byprog_col * colw + colw/2,
-                    y2: d2.byprog_row * rowh + rowh,
+                    x1: d1.byprog_col * init_grid.colw + init_grid.colw/2,
+                    y1: d1.byprog_row * init_grid.rowh + init_grid.rowh,
+                    x2: d2.byprog_col * init_grid.colw + init_grid.colw/2,
+                    y2: d2.byprog_row * init_grid.rowh + init_grid.rowh,
                 });
         }
         function hard_line(d) {
@@ -175,37 +196,6 @@
                 });
         }
 
-        function mk_init_rect(d) {
-            var x = d.byprog_col * colw + 20,
-                y = d.byprog_row * rowh + 10 + rowh/2,
-                w = colw - 40,
-                h = rowh - 20;
-            return {
-                l: x,
-                t: y,
-                r: x + w,
-                b: y + h,
-                w: w,
-                h: h,
-                cx: x + w/2,
-                cy: y + h/2,
-            };
-        }
-
-        function init_rect(d) {
-            var r = mk_init_rect(d),
-                typ = mk_class(d.type);
-            d3.select(this)
-                .classed(typ, true)
-                .classed(mk_class(d.category), true)
-                .classed(mk_class(d.state), true)
-                .attr({
-                    x: r.l,  y: r.t,  width: r.w,  height: r.h,
-                    rx: typ === "project" ? 5 : (typ === "activity" ? (rowh-20)/2 : 0),
-                    ry: typ === "project" ? 5 : (typ === "activity" ? (rowh-20)/2 : 0),
-                })
-        }
-
         d3.json("/api/byprog", function(data) {
 
             data.inits.forEach(function(ini) {
@@ -225,34 +215,16 @@
                 .append("line")
                 .classed("hard", true)
                 .each(hard_line);
+
             var gs = svg.selectAll("g.init")
                      .data(data.inits)
                      .enter()
                      .append("g")
                      .classed("init", true);
 
-            gs.append("rect")
-                .each(init_rect);
-
-            gs.selectAll("text")
-                .data(function(d) {
-                    var ns = d.byprog_txt.split("|");
-                    return ns.map(function(n) {
-                        return {
-                            col: d.byprog_col,
-                            row: d.byprog_row,
-                            n: ns.length,
-                            name: n,
-                        };
-                    });
-                })
-                .enter()
-                .append("text")
-                .text(function(d) {return d.name})
-                .attr({
-                    x: function(d) { return d.col * colw + colw/2; },
-                    y: function(d, i) { return d.row * rowh + rowh/2 + (9 - d.n*6 + i*12) + rowh/2; },
-                });
+            gs.each(init_rect);
+            gs.each(init_text);
+            gs.each(init_rag);
 
             $('.init').qtip({
                 content: {
@@ -267,7 +239,7 @@
                         tt.select("#tt_stat").text(d.state);
                         tt.select("#tt_type").text(d.type);
                         tt.select("#tt_cat").text(d.category);
-                        tt.select("#tt_prog").text(d.program);
+                        tt.select("#tt_prog").text(d.program.name);
                         tt.select("#tt_func").text(d['function']);
                         tt.select("#tt_start").text(d.start);
                         tt.select("#tt_end").text(d.end);

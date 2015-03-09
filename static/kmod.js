@@ -123,3 +123,135 @@ function mk_class(s) {
     return s.toLowerCase().replace(/ /g, "").replace(/-/g, "");
 }
 
+//==============================================================================
+// Initiatives
+
+var RAG = {
+    'INI0025': {T: 'G', S: 'G', C: 'G'},
+    'INI0026': {T: 'G', S: 'G', C: 'G'},
+    'INI0052': {T: 'G', S: 'G', C: 'G'},
+    'INI0023': {T: 'G', S: 'G', C: 'G'},
+    'INI0003': {T: 'G', S: 'G', C: 'G'},
+    'INI0002': {T: 'G', S: 'G', C: 'G'},
+    'INI0051': {T: 'G', S: 'G', C: 'A'},
+
+    'INI0035': {T: 'G', S: 'G', C: 'G'},
+    'INI0041': {T: 'G', S: 'A', C: 'A'},
+    'INI0049': {T: 'G', S: 'G', C: 'G'},
+    //'': {T: 'G', S: 'G', C: 'G'},
+
+    'INI0030': {T: 'G', S: 'G', C: 'G'},
+    'INI0017': {T: 'G', S: 'G', C: 'G'},
+    'INI0005': {T: 'G', S: 'G', C: 'G'},
+    'INI0020': {T: 'G', S: 'G', C: 'G'},
+
+    'INI0032': {T: 'G', S: 'G', C: 'G'},
+    'INI0031': {T: 'G', S: 'G', C: 'G'},
+
+    'INI0009': {T: 'G', S: 'G', C: 'G'},
+
+    'INI0038': {T: 'A', S: 'R', C: 'G'},
+
+    'INI0043': {T: 'G', S: 'G', C: 'G'},
+    'INI0044': {T: 'G', S: 'G', C: 'G'},
+    'INI0042': {T: 'G', S: 'G', C: 'G'},
+    'INI0021': {T: 'G', S: 'G', C: 'A'},
+    'INI0022': {T: 'G', S: 'G', C: 'A'},
+};
+
+var init_grid = {
+    cols: 6,
+    rows: 12,
+    colw: 170,
+    rowh: 65,
+};
+
+function mk_init_rect(d) {
+    var x = d.byprog_col * init_grid.colw + 20,
+        y = d.byprog_row * init_grid.rowh + 10 + init_grid.rowh/2,
+        w = init_grid.colw - 40,
+        h = init_grid.rowh - 20;
+    return {
+        l: x,
+        t: y,
+        r: x + w,
+        b: y + h,
+        w: w,
+        h: h,
+        cx: x + w/2,
+        cy: y + h/2,
+    };
+}
+
+function init_rect(d) {
+    var r = mk_init_rect(d),
+        typ = mk_class(d.type);
+    d3.select(this)
+        .append("rect")
+        .classed(typ, true)
+        .classed(mk_class(d.category), true)
+        .classed(mk_class(d.state), true)
+        .attr({
+            x: r.l,  y: r.t,  width: r.w,  height: r.h,
+            rx: typ === "project" ? 5 : (typ === "activity" ? (init_grid.rowh-20)/2 : 0),
+            ry: typ === "project" ? 5 : (typ === "activity" ? (init_grid.rowh-20)/2 : 0),
+        })
+        .on('click', function () {window.location.href = '/init/'+d._id;});
+}
+
+function init_text(d) {
+    var g = d3.select(this);
+
+    g.selectAll("text")
+        .data(function(d) {
+            var ns = d.byprog_txt.split("|");
+            return ns.map(function(n) {
+                return {
+                    col: d.byprog_col,
+                    row: d.byprog_row,
+                    n: ns.length,
+                    name: n,
+                };
+            });
+        })
+        .enter()
+        .append("text")
+        .text(function(d) {return d.name})
+        .attr({
+            x: function(d)    { return d.col * init_grid.colw + init_grid.colw/2; },
+            y: function(d, i) { return d.row * init_grid.rowh + init_grid.rowh/2 + (9 - d.n*6 + i*12) + init_grid.rowh/2; },
+        });
+}
+
+function init_rag(d) {
+    var r = mk_init_rect(d),
+        g = d3.select(this).append("g");
+
+    function mk_one(i, ltr, clr) {
+        g.append("circle")
+         .classed(clr, true)
+         .attr({
+            r: 5.5,
+            cx: 5 + i * 10,
+            cy: 5,
+         });
+        g.append("text")
+         .text(ltr)
+         .attr({
+            x: 4 + i * 10,
+            y: 8.5,
+         });
+    }
+
+    var rag = RAG[d._id] || {T: '-', S: '-', C: '-'},
+        clrs = {R: 'red', A: 'amber', G: 'green', '-': 'grey'};
+
+    mk_one(0, 'T', clrs[rag['T']]);
+    mk_one(1, 'S', clrs[rag['S']]);
+    mk_one(2, 'C', clrs[rag['C']]);
+
+    g.classed("rag", true)
+     .attr("transform", "translate(" + (r.r - 25) + " " + (r.t - 5) + ")");
+}
+
+
