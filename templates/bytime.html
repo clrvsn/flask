@@ -268,10 +268,12 @@
         while (i <= lst_yr)
             years.push(i++);
 
-        svg.selectAll("rect.row")
-           .data(data.inits)
-           .enter()
-           .append("rect")
+        var ini_gs = svg.selectAll("g")
+                        .data(data.inits)
+                        .enter()
+                        .append("g");
+
+        ini_gs.append("rect")
            .each(row_rect);
 
         svg.selectAll("text.year")
@@ -298,17 +300,15 @@
         //   .append("rect")
         //   .each(init_bar);
 
-        svg.selectAll("path.bar")
-           .data(data.inits)
-           .enter()
-           .append("path")
+        ini_gs.append("path")
            .each(init_bar2);
 
-        svg.selectAll("text.bar")
-           .data(data.inits)
-           .enter()
-           .append("text")
+        ini_gs.append("text")
            .each(init_text);
+
+        ini_gs.each(function (d,i) {
+            mk_ini_rag_g(d, d3.select(this), off-30, (i+1) * rowh + 2);
+        });
 
         svg.selectAll("line.dep")
             .data(deps)

@@ -223,9 +223,8 @@ function init_text(d) {
         });
 }
 
-function init_rag(d) {
-    var r = mk_init_rect(d),
-        g = d3.select(this).append("g");
+function mk_ini_rag_g(ini, node, x, y) {
+    var g = node.append("g");
 
     function mk_one(i, ltr, clr) {
         g.append("circle")
@@ -243,7 +242,7 @@ function init_rag(d) {
          });
     }
 
-    var rag = RAG[d._id] || {T: '-', S: '-', C: '-'},
+    var rag = RAG[ini._id] || {T: '-', S: '-', C: '-'},
         clrs = {R: 'red', A: 'amber', G: 'green', '-': 'grey'};
 
     mk_one(0, 'T', clrs[rag['T']]);
@@ -251,7 +250,15 @@ function init_rag(d) {
     mk_one(2, 'C', clrs[rag['C']]);
 
     g.classed("rag", true)
-     .attr("transform", "translate(" + (r.r - 25) + " " + (r.t - 5) + ")");
+     .attr("transform", "translate(" + x + " " + y + ")");
+
+    return g;
+}
+
+function init_rag(d) {
+    var r = mk_init_rect(d);
+
+    mk_ini_rag_g(d, d3.select(this), r.r - 25, r.t - 5);
 }
 
 

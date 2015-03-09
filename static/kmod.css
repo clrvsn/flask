@@ -132,4 +132,5 @@ g.rag circle.grey {
 }
 g.rag text {
     font-size: 60%;
+    text-anchor: middle;
 }
