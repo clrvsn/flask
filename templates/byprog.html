@@ -75,6 +75,9 @@
 </style>
 {% endblock %}
 {% block content %}
+<div class="container-fluid">
+<div class="main">
+  <h1 class="page-header">Initiatives by Programme</h1>
     <p>Initiatives displayed by the Programme they belong to.</p>
     <div id="tooltip" class="hidden">
         <table>
@@ -89,7 +92,9 @@
     </div>
     <div id="diagram"></div>
     <p>Legend:</p>
-    <img src="/static/byprog.legend.svg">
+    <img src="/static/img/byprog.legend.svg">
+</div>
+</div>
 {% endblock %}
 {% block foot %}
     <script type="text/javascript">
@@ -103,7 +108,7 @@
             init_indx = {};
 
         var prog_data = [
-                {col: 0, row: 0, cols: 2, rows: 3,  color: "#f7ffd4", name: "eCommerce"},
+                {col: 0, row: 0, cols: 2, rows: 3,  color: "#f7ffd4", name: "Multi-Channel"},
                 {col: 0, row: 4, cols: 2, rows: 8,  color: "#fff6d4", name: "Planned Business"},
                 {col: 2, row: 0, cols: 3, rows: 12, color: "#ffffd4", name: "MHS Transformation"},
                 {col: 5, row: 0, cols: 1, rows: 6,  color: "#fff6d4", name: "Planned Business"},
@@ -162,41 +167,46 @@
             var d1 = init_indx[d.from_init_id],
                 d2 = init_indx[d.to_init_id];
             //console.log(d)
-            d3.select(this)
-                .attr({
-                    x1: d1.byprog_col * init_grid.colw + init_grid.colw/2,
-                    y1: d1.byprog_row * init_grid.rowh + init_grid.rowh,
-                    x2: d2.byprog_col * init_grid.colw + init_grid.colw/2,
-                    y2: d2.byprog_row * init_grid.rowh + init_grid.rowh,
-                });
+            if (d1 && d2) {
+                d3.select(this)
+                    .attr({
+                        x1: d1.byprog_col * init_grid.colw + init_grid.colw/2,
+                        y1: d1.byprog_row * init_grid.rowh + init_grid.rowh,
+                        x2: d2.byprog_col * init_grid.colw + init_grid.colw/2,
+                        y2: d2.byprog_row * init_grid.rowh + init_grid.rowh,
+                    });
+            }
         }
         function hard_line(d) {
             var d1 = init_indx[d.from_init_id],
-                d2 = init_indx[d.to_init_id],
-                r1 = mk_init_rect(d1),
-                xk = r1.cx, yk = r1.cy,
-                r2 = mk_init_rect(d2),
-                xl = r2.cx, yl = r2.cy,
-                xm = r2.l, ym = r2.t,
-                xn = r2.r, yn = r2.t,
-                xp = r2.r, yp = r2.b,
-                xq = r2.l, yq = r2.b,
-                p = intersect_lineseg_rect(xk,yk, xl,yl, xm,ym, xn,yn, xp,yp, xq,yq);
-            //console.log(d)
-            if (!p) {
-                p = {x: xl, y: yl};
+                d2 = init_indx[d.to_init_id];
+
+            if (d1 && d2) {
+                var r1 = mk_init_rect(d1),
+                    xk = r1.cx, yk = r1.cy,
+                    r2 = mk_init_rect(d2),
+                    xl = r2.cx, yl = r2.cy,
+                    xm = r2.l, ym = r2.t,
+                    xn = r2.r, yn = r2.t,
+                    xp = r2.r, yp = r2.b,
+                    xq = r2.l, yq = r2.b,
+                    p = intersect_lineseg_rect(xk,yk, xl,yl, xm,ym, xn,yn, xp,yp, xq,yq);
+                //console.log(d)
+                if (!p) {
+                    p = {x: xl, y: yl};
+                }
+                d3.select(this)
+                    .attr({
+                        x1: xk, // d1.col * colw + colw/2,
+                        y1: yk, // d1.row * rowh + rowh,
+                        x2: p.x, // d2.col * colw + colw/2,
+                        y2: p.y, // d2.row * rowh + rowh,
+                        "marker-end": "url(#arrow)",
+                    });
             }
-            d3.select(this)
-                .attr({
-                    x1: xk, // d1.col * colw + colw/2,
-                    y1: yk, // d1.row * rowh + rowh,
-                    x2: p.x, // d2.col * colw + colw/2,
-                    y2: p.y, // d2.row * rowh + rowh,
-                    "marker-end": "url(#arrow)",
-                });
         }
 
-        d3.json("/api/byprog", function(data) {
+        d3.json("/data/byprog", function(data) {
 
             data.inits.forEach(function(ini) {
                 init_indx[ini._id] = ini;

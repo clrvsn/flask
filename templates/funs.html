@@ -3,6 +3,8 @@
 <style>
 #diagram table {
     width: 100%;
+    border-spacing: 10px;
+    border-collapse: separate;
 }
 #diagram td {
     text-align: center;
@@ -33,10 +35,13 @@
 </style>
 {% endblock %}
 {% block content %}
+<div class="container-fluid">
+<div class="main">
+  <h1 class="page-header">Functional Areas Status</h1>
     <p>The main Functional Areas showing the number of Capabilities that need to
     be transformed (where known).</p>
     <div id="diagram">
-        <table cellspacing="10px">
+        <table>
             <tr>
                 <td id="FUN0001" colspan="4"></td>
             </tr>
@@ -68,10 +73,12 @@
             </tr>
         </table>
     </div>
+</div>
+</div>
 {% endblock %}
 {% block foot %}
 <script type="text/javascript">
-    d3.json("/api/funs", function (data) {
+    d3.json("/data/funs", function (data) {
         _.each(data.funs, function (d) {
             var td = d3.select('#'+d._id),
                 a = td.append("a").attr('href', "/caps/" + d._id);

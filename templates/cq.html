@@ -1,0 +1,41 @@
+﻿{% extends "base.html" %}
+{% block head %}
+    <style>
+    </style>
+{% endblock %}
+{% block content %}
+    <table id="the-grid" class="table table-condensed table-striped"></table>
+{% endblock %}
+{% block foot %}
+    <script type="text/javascript">
+
+        function mk(el,cls,kids) {
+            if (cls) cls = ' class="'+cls+'"'; else cls = '';
+            el = $('<'+el+cls+'/>').append(kids);
+            return el;
+        }
+
+        d3.json("/api/cq/{{query}}", function(data) {
+            //console.log(data.cqresponse.rows.row);
+
+            table = $('#the-grid');
+            rows = data.cqresponse.rows.row;
+            if (rows.length > 0) {
+                tr = mk('tr','');
+                _.each(rows[0], function (value, key, list) {
+                    tr.append(mk('th','',key));
+                });
+                table.append(tr);
+
+                _.each(rows, function (row) {
+                    tr = mk('tr','');
+                    _.each(row, function (value, key, list) {
+                        tr.append(mk('td','',value));
+                    });
+                    table.append(tr);
+
+                });
+            }
+        });
+    </script>
+{% endblock %}

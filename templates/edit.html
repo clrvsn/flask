@@ -1,0 +1,1106 @@
+﻿{% extends "base.html" %}
+{% block head %}
+    <link href="/static/css/dashboard.css" rel="stylesheet">    <style>
+    hr.in-table {
+        margin-top: 0.5em;
+        margin-bottom: 0.5em;
+    }
+    .removed {
+        color: #AAA;
+    }
+    </style>
+{% endblock %}
+{% block content %}
+   <div class="container-fluid">
+      <div class="row">
+        <div class="col-sm-3 col-md-2 sidebar">
+          <ul id="editors" class="nav nav-sidebar">
+          </ul>
+          <div class="btn-toolbar">
+            <div class="btn-group" role="group">
+                <button id="add-meta-btn" type="button" class="btn btn-success btn-sm">
+                    <span class="glyphicon glyphicon-plus"></span> Add
+                </button>
+            </div>
+          </div>
+        </div>
+        <div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
+          <h1 class="page-header"></h1>
+          <div role="tabpanel">
+            <!-- Nav tabs -->
+            <ul class="nav nav-tabs" role="tablist">
+              <li role="presentation" class="active">
+                <a href="#data-pane" aria-controls="data-pane" role="tab" data-toggle="tab">
+                <span class="glyphicon glyphicon-folder-open"></span> Data
+                </a>
+              </li>
+              <li role="presentation">
+                <a href="#design-pane" aria-controls="design-pane" role="tab" data-toggle="tab">
+                <span class="glyphicon glyphicon-wrench"></span> Design
+                </a>
+              </li>
+            </ul>
+            <!-- Tab panes -->
+            <div class="tab-content">
+              <div role="tabpanel" class="tab-pane active" id="data-pane">
+                <!-- DATA -->
+                  <p class="btn-toolbar">
+                    <div class="btn-group" role="group">
+                        <button id="add-btn" type="button" class="btn btn-success btn-sm">
+                            <span class="glyphicon glyphicon-plus"></span> Add
+                        </button>
+                    </div>
+                    <div class="btn-group" role="group" data-toggle="buttons">
+                        <label class="btn btn-primary btn-sm">
+                            <input id="show-ids-chk" type="checkbox" autocomplete="off">
+                            <span class="glyphicon glyphicon-list"></span> Show IDs
+                        </label>
+                        <label class="btn btn-primary btn-sm">
+                            <input id="show-removed-chk" type="checkbox" autocomplete="off">
+                            <span class="glyphicon glyphicon-remove-circle"></span> Show Removed
+                        </input>
+                    </div>
+                  </p>
+                  <div class="table-responsive">
+                    <table id="data-grid" class="table table-condensed table-striped"></table>
+                 </div>
+              </div>
+              <div role="tabpanel" class="tab-pane" id="design-pane">
+                <!-- DESIGN -->
+                <p></p>
+                <form class="form-horizontal">
+                  <div class="form-group">
+                    <label for="meta-id" class="col-sm-2 col-md-1 control-label">ID</label>
+                    <div class="col-sm-10 col-md-11">
+                      <input type="text" class="form-control" id="meta-id" readonly>
+                    </div>
+                  </div>
+                  <div class="form-group">
+                    <label for="meta-name" class="col-sm-2 col-md-1 control-label">Name</label>
+                    <div class="col-sm-10 col-md-11">
+                      <input type="text" class="form-control" id="meta-name" readonly>
+                    </div>
+                  </div>
+                  <div class="form-group">
+                    <label for="meta-label" class="col-sm-2 col-md-1 control-label">Label</label>
+                    <div class="col-sm-10 col-md-11">
+                      <input type="text" class="form-control" id="meta-label">
+                    </div>
+                  </div>
+                </form>
+                  <div role="tabpanel">
+                    <!-- Nav tabs -->
+                    <ul class="nav nav-tabs" role="tablist">
+                      <li role="presentation" class="active">
+                        <a href="#meta-fields-pane" aria-controls="meta-fields-pane" role="tab" data-toggle="tab">
+                        Fields
+                        </a>
+                      </li>
+                      <li role="presentation">
+                        <a href="#meta-cols-pane" aria-controls="meta-cols-pane" role="tab" data-toggle="tab">
+                        Columns
+                        </a>
+                      </li>
+                       <li role="presentation">
+                        <a href="#meta-tabs-pane" aria-controls="meta-tabs-pane" role="tab" data-toggle="tab">
+                        Tabs
+                        </a>
+                      </li>
+                   </ul>
+                    <!-- Tab panes -->
+                    <div class="tab-content">
+                      <div role="tabpanel" class="tab-pane active" id="meta-fields-pane">
+                        <!-- FIELDS -->
+                          <p class="btn-toolbar">
+                            <div class="btn-group" role="group">
+                                <button id="add-field-btn" type="button" class="btn btn-success btn-sm">
+                                    <span class="glyphicon glyphicon-plus"></span> Add
+                                </button>
+                            </div>
+                          </p>
+                          <div class="table-responsive">
+                            <table id="meta-field-grid" class="table table-condensed table-striped">
+                            </table>
+                          </div>
+                      </div>
+                      <div role="tabpanel" class="tab-pane" id="meta-cols-pane">
+                        <!-- COLUMNS -->
+
+                      </div>
+                      <div role="tabpanel" class="tab-pane" id="meta-tabs-pane">
+                        <!-- TABS -->
+
+                      </div>
+                    </div>
+                  </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+    <div id="edit-modal" class="modal" tabindex="-1" role="dialog">
+    </div>
+{% endblock %}
+{% block foot %}
+    <script type="text/javascript">
+        var design,
+            id = '{{ id }}',
+            options = {},
+            index = {},
+            show_ids = false,
+            show_removed = false;
+
+        $('[data-toggle="tooltip"]').tooltip();
+
+        //======================================================================
+        // Data
+        //======================================================================
+
+        function lookup(id) {
+            var val = index[id];
+
+            if (val) return val.txt;
+            return id || '';
+        }
+
+        function mk_btn_bar(grps,cls) {
+            return $('<div class="btn-toolbar '+(cls||'')+'"/>').append(grps);
+        }
+
+        function mk_btn_grp(btns,cls) {
+            return $('<div class="btn-group '+(cls||'')+'" role="group"/>').append(btns);
+        }
+
+        function mk_btn(kids,cls) {
+            var el = $('<button type="button" class="btn '+(cls||'')+'"/>').append(kids);
+            return el;
+        }
+
+        function mk_tip(el,text,cntnr) {
+            el.attr('title', text);
+            el.tooltip({
+                placement: 'auto top',
+                delay: 200,
+                container: cntnr || false,
+            });
+            return el;
+        }
+
+        function mk_icn(name) {
+            return $('<span class="glyphicon glyphicon-'+name+'"/>');
+        }
+
+        function mk() {
+            var el = arguments[0].split('.'),
+                cls = (el.length > 1) ? el[1] : '',
+                id = el[0].split('#');
+
+            el = $('<'+id[0]+'/>');
+            if (id.length > 1) {
+                el.attr('id', id[1]);
+            }
+            if (cls) {
+                el.addClass(cls);
+            }
+
+            _.each(_.tail(arguments), function (arg) {
+                if (arg) {
+                    if (arg.constructor == Object) {
+                        el.attr(arg)
+                    } else {
+                        el.append(arg);
+                    }
+                }
+            });
+
+            return el;
+        }
+
+        //----------------------------------------------------------------------
+        // Modal Forms
+
+        function mk_modal(ttl,kids,fun) {
+            var close_btn = mk_btn('<span aria-hidden="true">&times;</span>','close'),
+                title = mk('h4.modal-title',ttl),
+                head = mk('div.modal-header', close_btn, title),
+                cancel_btn = mk_btn('Cancel','btn-default'),
+                save_btn = mk_btn('Save','btn-primary'),
+                foot = mk('div.modal-footer', cancel_btn, save_btn),
+                bdy = mk('div.modal-content', head, mk('div.modal-body',kids), foot),
+                dlg = mk('div.modal-dialog modal-lg',bdy),
+                ui = $('#edit-modal');
+
+            close_btn.click(function (e) {
+                ui.modal('hide');
+            });
+            cancel_btn.click(function (e) {
+                ui.modal('hide');
+            });
+            save_btn.click(function (e) {
+                fun();
+                ui.modal('hide');
+            });
+
+            ui.empty();
+            ui.append(dlg);
+            return ui;
+        }
+
+        // . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+        // Editors
+
+        var METAFIELDS = [
+            {name:'name', label:'Name', required:true, type:'string'},
+            {name:'label', label:'Label', required:true, type:'string'},
+            {name:'type', label:'Type', required:true, type:'enum', enum_vals:[
+                {val:'string', txt:'string'},
+                {val:'bool', txt:'bool'},
+                {val:'enum', txt:'enum'},
+                {val:'ref', txt:'ref'},
+                {val:'assoc', txt:'assoc'},
+            ]},
+            {name:'required', label:'Required', type:'bool'},
+            {name:'struct', label:'Structure', type:'enum', enum_vals:[
+                {val:'set', txt:'set'},
+                {val:'list', txt:'list'},
+            ]},
+            {name:'ref_id', label:'Ref To', type:'ref', ref_id:'META'},
+            {name:'ref_field', label:'Ref Field', type:'string'},
+            {name:'enum_vals', label:'Enum Vals', type:'assoc', struct:'list'},
+        ];
+
+        function mk_string_ed(field,vals,lbl) {
+            var ed = mk('input.form-control', {id: field.name+'_ed', type:'text'});
+            lbl.attr('for', field.name+'_ed');
+            ed.attr('value', vals[field.name]);
+            ed.on('change', function () {
+                vals[field.name] = ed.val();
+            });
+            return ed;
+        }
+        function mk_text_ed(field,vals,lbl) {
+            var ed = mk('textarea.form-control', {id: field.name+'_ed', wrap:'soft', rows:'3'});
+            lbl.attr('for', field.name+'_ed');
+            ed.append(vals[field.name]);
+            ed.on('change', function () {
+                vals[field.name] = ed.val();
+            });
+            return ed;
+        }
+        function mk_bool_ed(field,vals,lbl) {
+            var ed = mk('input', {id: field.name+'_ed', type:'checkbox'});
+            lbl.attr('for', field.name+'_ed');
+            ed.prop('checked', !!vals[field.name]);
+            ed.on('change', function () {
+                vals[field.name] = ed.prop('checked');
+            });
+            return mk('div.checkbox',
+                        mk('label',ed));
+        }
+        function mk_date_ed(field,vals,lbl) {
+            var ed = mk('input.form-control', {id: field.name+'_ed', type:'string'});
+            lbl.attr('for', field.name+'_ed');
+            ed.attr('value', vals[field.name]);
+            ed.on('change', function () {
+                vals[field.name] = ed.val();
+            });
+            return ed;
+        }
+        function mk_enum_ed(field,vals,lbl) {
+            var ed = mk('select.form-control', {id: field.name+'_ed'});
+            if (!field.required)
+                ed.append(mk('option'));
+            else
+                vals[field.name] = field.enum_vals[0].val;
+            lbl.attr('for', field.name+'_ed');
+            //ed.append(_.map(field.opts, function (opt) {
+            ed.append(_.map(field.enum_vals, function (opt) {
+                var el = mk('option', opt.txt);
+                el.attr('value', opt.val);
+                if (opt.val === vals[field.name]) {
+                    el.attr('selected', true);
+                }
+                return el;
+            }));
+            ed.attr('value', vals[field.name]);
+            ed.on('change', function () {
+                vals[field.name] = ed.val();
+            });
+            return ed;
+        }
+        function mk_ref_ed(field,vals,lbl) {
+            var ed = mk('select.form-control', {id: field.name+'_ed'});
+            if (!field.required)
+                ed.append(mk('option'));
+            lbl.attr('for', field.name+'_ed');
+            //ed.append(_.map(field.opts, function (opt) {
+            ed.append(_.map(options[field.ref_id], function (opt) {
+                var el = mk('option',opt.txt);
+                el.attr('value', opt.val);
+                if (opt.val === vals[field.name]) {
+                    el.attr('selected', true);
+                }
+                return el;
+            }));
+            var val = lookup(vals[field.name]);
+            if (val) {
+                ed.attr('value', val);
+            }
+            ed.on('change', function () {
+                vals[field.name] = ed.val();
+            });
+            return ed;
+        }
+        function mk_ref_set_ed(field,vals,lbl) {
+            var ed = mk('div.panel-body');
+            //ed.append(_.map(field.opts, function (opt) {
+            ed.append(_.map(options[field.ref_id], function (opt) {
+                var el = mk('input', {type:'checkbox', value:opt.val}),
+                    val = vals[field.name];
+                if (val === 'ALL' || _.contains(val, opt.val)) {
+                    el.attr('checked', true);
+                }
+                el.change(function () {
+                    if (this.checked)
+                        vals[field.name] = _.union(vals[field.name], [opt.val]);
+                    else
+                        vals[field.name] = _.without(vals[field.name], opt.val);
+                });
+                return mk('div.checkbox',
+                            mk('label',
+                                el,
+                                opt.txt));
+            }));
+            return mk('div.panel panel-default', {id: field.name+'_ed'}, ed);
+        }
+        function mk_ref_list_ed(field,vals,lbl) {
+            var ed = mk('div.panel-body'),
+                els;
+
+            function mk_one(ref) {
+                var ed1 = mk('select.form-control', {id: field.name+'_ed'});
+                ed1.append(mk('option'));
+                //ed1.append(_.map(field.opts, function (opt) {
+                ed1.append(_.map(options[field.ref_id], function (opt) {
+                    var el1 = mk('option',opt.txt);
+                    el1.attr('value', opt.val);
+                    if (ref && opt.val === ref) {
+                        el1.attr('selected', true);
+                    }
+                    return el1;
+                }));
+                if (ref) {
+                    var val = lookup(ref);
+                    if (val) {
+                        ed1.attr('value', val);
+                    }
+                }
+                ed1.on('change', function () {
+                    var new_val = [];
+                    _.each(els, function (el) {
+                        var val = el.val();
+                        if (val)
+                            new_val.push(val);
+                    });
+                    vals[field.name] = new_val;
+                    render();
+                });
+                return ed1;
+            }
+
+            function render() {
+                ed.empty();
+                els = _.map(vals[field.name], function (ref) {
+                    return mk_one(ref);
+                });
+                els.push(mk_one());
+                ed.append(els);
+            }
+
+            render();
+            return mk('div.panel panel-default', {id: field.name+'_ed'}, ed);
+        }
+        function mk_assoc_list_ed(field,vals,lbl) {
+            var ed = mk('div.panel-body container-fluid'),
+                els;
+
+            function mk_one(assoc) {
+                var ed1 = mk('input.col-sm-6', {type:'text'}),
+                    ed2 = mk('input.col-sm-6', {type:'text'}),
+                    row = mk('div.row', ed1, ed2);
+
+                if (assoc) {
+                    ed1.attr('value', assoc.val);
+                    ed2.attr('value', assoc.txt);
+                }
+                ed1.change(on_change);
+                ed2.change(on_change);
+
+                els.push([ed1,ed2]);
+
+                return row;
+            }
+
+            function render() {
+                ed.empty();
+                ed.append(mk('div.row',
+                    mk('div.col-sm-6', mk('p.form-control-static','Value')),
+                    mk('div.col-sm-6', mk('p.form-control-static','Text' ))
+                ));
+                els = [];
+                ed.append(_.map(vals[field.name], mk_one));
+                ed.append(mk_one());
+            }
+
+            function on_change() {
+                var new_val = [];
+                _.each(els, function (el) {
+                    var val = el[0].val(),
+                        txt = el[1].val();
+
+                    if (val) {
+                        if (!txt) {
+                            txt = s.capitalize(val);
+                        }
+                        new_val.push({val:val, txt:txt});
+                    }
+                });
+                vals[field.name] = new_val;
+                render();
+            }
+
+            render();
+            return mk('div.panel panel-default', {id: field.name+'_ed'}, ed);
+        }
+
+        var ed_mkr = {
+            'string':     mk_string_ed,
+            'text':       mk_text_ed,
+            'bool':       mk_bool_ed,
+            'date':       mk_date_ed,
+            'enum':       mk_enum_ed,
+            'ref':        mk_ref_ed,
+            'ref-set':    mk_ref_set_ed,
+            'ref-list':   mk_ref_list_ed,
+            'assoc-list': mk_assoc_list_ed,
+        };
+
+        function mk_form_grp(field,vals) {
+            var lbl = mk('label.col-sm-4 control-label', field.label),
+                type = field.type,
+                wrap = '';
+
+            if (field.struct)
+                type += '-' + field.struct;
+
+            if (type in ed_mkr) {
+                wrap = ed_mkr[type](field,vals,lbl);
+            }
+
+            return mk('div.form-group',
+                        lbl,
+                        mk('div.col-sm-8',
+                            wrap));
+        }
+
+        function mk_dlg_bdy(vals) {
+            var bdy;
+
+            if (design.has('tabs')) {
+                var tabs = mk('ul.nav nav-tabs', {role: 'tablist'}),
+                    pnls = mk('div.tab-content'),
+                    frst = true;
+
+                design.get('tabs').each(function (t) {
+                    var tab = t.toJSON();
+                    var tab_id = tab.name + '-tab',
+                        pnl_id = tab.name + '-pnl',
+                        a = mk('a', {id: tab_id, href: "#"+pnl_id,
+                                     'aria-controls': pnl_id, role: "tab",
+                                     'data-toggle': "tab"}, tab.label),
+                        li = mk('li', {role: 'presentation'}, a),
+                        form = mk('form.form-horizontal container-fluid'),
+                        pnl = mk('div.tab-pane', {role:'tabpanel', id:pnl_id}, mk('p'), form),
+                        fldnms = _.pluck(tab.fields, 'field'),
+                        fields = design.get('fields').filter(function (f) {
+                            return _.contains(fldnms, f.get('name'));
+                        });
+
+                    tabs.append(li);
+                    pnls.append(pnl);
+
+                    _.each(fields, function (field) {
+                        var grp = mk_form_grp(field.toJSON(),vals);
+                        form.append(grp);
+                    });
+
+                    if (frst) {
+                        frst = false;
+                        li.addClass('active');
+                        pnl.addClass('active');
+                    }
+                });
+
+                bdy = mk('div', {role: 'tabpanel'}, tabs, pnls);
+            } else {
+                bdy = mk('form.form-horizontal container-fluid');
+                design.get('fields').each(function (field) {
+                    var grp = mk_form_grp(field.toJSON(),vals);
+                    bdy.append(grp);
+                });
+            }
+
+            return bdy;
+        }
+
+        //----------------------------------------------------------------------
+        // Data Table
+
+        var table_view;
+
+        function on_edit_data(e) {
+            var ttl = 'Editing ' + e.data.model.get('_id'),
+                bdy, // = mk('form','form-horizontal container-fluid'),
+                vals = e.data.model.toJSON();// {};
+
+            function save() {
+                e.data.model.set(vals);
+                e.data.model.save()
+                    .done(function(result) {
+                        console.info(e.data.model.get('_id'), 'Saved!');
+                    })
+                    .fail(function(error) {
+                        alert(error.status + ' - ' + error.statusText);
+                    });
+            }
+
+            bdy = mk_dlg_bdy(vals);
+
+            design.get('fields').each(function (field) {
+                var field_name = field.get('name');
+                if (_.contains(['name','title'], field_name)) {
+                    ttl = 'Editing "' + e.data.model.get(field_name) + '"';
+                    return;
+                }
+            });
+
+            var ui = mk_modal(ttl,bdy,save);
+            ui.modal('show');
+        }
+        function on_remove(e) {
+            e.data.btn.tooltip('destroy');
+            e.data.model.set('removed', true);
+            e.data.model.save();
+            table_view.render();
+        }
+        function on_restore(e) {
+            e.data.btn.tooltip('destroy');
+            e.data.model.set('removed', false);
+            e.data.model.save();
+            table_view.render();
+        }
+
+        function mk_act_cell(model) {
+            var ed_btn = mk_tip(mk_btn(mk_icn('pencil'),'btn-info'),'Edit','body'),
+                rm_btn,
+                data = {'model': model};
+
+            ed_btn.click(data, on_edit_data);
+            if (model.removed()) {
+                rm_btn = mk_tip(mk_btn(mk_icn('plus'), 'btn-success'),'Restore','body');
+                data.btn = rm_btn;
+                rm_btn.click(data, on_restore);
+            } else {
+                rm_btn = mk_tip(mk_btn(mk_icn('remove-sign'), 'btn-warning'),'Remove','body');
+                data.btn = rm_btn;
+                rm_btn.click(data, on_remove);
+            }
+
+            return mk('td', mk_btn_grp([ed_btn,rm_btn], 'btn-group-xs'));
+        }
+
+        function mk_tbl_hdr() {
+            var cells = [mk('th', 'Actions')],
+                fields = design.get('fields').toJSON();
+
+            if (show_ids) {
+                cells.push(mk('th', 'ID'));
+            }
+            if (design.has('columns')) {
+                var col_names = design.get('columns').pluck('field'),
+                    flds = design.get('fields');
+                fields = _.map(col_names, function (col) {
+                    var val = flds.findWhere({name:col});
+                    return val.toJSON();
+                });
+            }
+            var hdrs = _.map(fields, function (f) {
+                    return mk('th', f.label);
+                });
+            cells = cells.concat(hdrs);
+            return mk('tr', cells);
+        }
+
+        function mk_tbl_cell(field, model) {
+            var cell = model.get(field.name) || '',
+                type = field.type;
+
+            if (!_.isString(cell) && _.isArray(cell)) {
+                //if (field.opts && cell.length >= field.opts.length) {
+                if (type === 'ref' && cell.length >= options[field.ref_id].length) {
+                    cell = 'ALL'
+                } else {
+                    if (cell.length > 2) {
+                        cell = _.map(_.first(cell, 2), lookup);
+                        cell.push('. . .');
+                    } else {
+                        cell = _.map(cell, lookup);
+                    }
+                    cell = cell.join('<hr class="in-table"/>');
+                }
+            } else {
+                if (type === 'enum') {
+                    var val = _.findWhere(field.enum_vals, {val:cell});
+                    if (val)
+                        cell = val.txt;
+                } else {
+                    if (field.name !== '_id')
+                        cell = lookup(cell);
+                }
+            }
+
+            return mk('td', cell);
+        }
+
+        function mk_tbl_row(model) {
+            var cells = [mk_act_cell(model)],
+                fields = design.get('fields').toJSON();
+
+            if (show_ids) {
+                cells.push(mk_tbl_cell({name: '_id', type:'string', disabled:true}, model));
+            }
+            if (design.has('columns')) {
+                var col_names = design.get('columns').pluck('field'),
+                    flds = design.get('fields');
+                fields = _.map(col_names, function (col) {
+                    var val = flds.findWhere({name:col});
+                    return val.toJSON();
+                });
+            }
+            cells = cells.concat(_.map(fields, function (field) {
+                return mk_tbl_cell(field, model);
+            }));
+            return cells;
+        }
+
+        //======================================================================
+        // Design
+        //======================================================================
+
+        var meta_grid_view;
+
+        function save_design() {
+            design.save()
+                .done(function(result) {
+                    render_nav();
+                    $('h1.page-header').text(design.get('label'));
+                    meta_grid_view.render();
+                    table_view.render();
+                    console.info(id, 'Saved!');
+                })
+                .fail(function(error) {
+                    alert(error.status + ' - ' + error.statusText);
+                });
+        }
+
+        function mk_field_act_cell(field_model) {
+            var ed_btn = mk_tip(mk_btn(mk_icn('pencil'),'btn-info'),'Edit','body'),
+                rm_btn = mk_tip(mk_btn(mk_icn('remove-sign'), 'btn-warning'),'Delete','body');
+
+            ed_btn.click(function (e) {
+                var vals = field_model.toJSON(),
+                    ttl = "Editing '" + vals['name'] + "' Field",
+                    bdy = mk('form.form-horizontal container-fluid');
+
+                _.each(METAFIELDS, function (field) {
+                    bdy.append(mk_form_grp(field, vals));
+                });
+
+                var ui = mk_modal(ttl,bdy, function () {
+                    field_model.set(vals);
+                    save_design();
+                });
+                ui.modal('show');
+            });
+            rm_btn.click(function (e) {
+                if (confirm("Are you sure you want to delete field '"+field_model.get('name')+"'")) {
+                    design.set('fields', design.get('fields').reject(function (f) {
+                        return f.get('name') === field_model.get('name');
+                    }));
+                    save_design();
+                }
+            });
+
+            return mk('td', mk_btn_grp([ed_btn,rm_btn], 'btn-group-xs'));
+        }
+
+        function mk_field_tbl_hdr() {
+            var cells = [mk('th', 'Actions')];
+
+            var hdrs = _.map(METAFIELDS, function (f) {
+                    return mk('th', f.label);
+                });
+
+            cells = cells.concat(hdrs);
+            return mk('tr', cells);
+        }
+
+        function mk_field_tbl_row(field_model) {
+            var cells = [mk_field_act_cell(field_model)];
+
+            cells = cells.concat(_.map(METAFIELDS, function (f) {
+                        var cell = field_model.get(f.name);
+
+                        if (f.name === 'enum_vals') {
+                            var vals = field_model.get('enum_vals'),
+                                cell = vals ? vals.pluck('txt').join('|') : '';
+                        }
+
+                        return mk('td', cell);
+                    })
+            );
+
+            return cells;
+        }
+
+        //======================================================================
+        // Fetch
+        //======================================================================
+
+        //----------------------------------------------------------------------
+        // Meta List
+
+        var MetaModel = Backbone.DocumentModel.extend({
+                urlRoot: '/api/baremeta/',
+                idAttribute: '_id',
+            }),
+            MetaCollection = Backbone.DocumentCollection.extend({
+                url: '/api/baremeta',
+                idAttribute: '_id',
+                model: MetaModel,
+            });
+
+        var meta_collection = new MetaCollection(),
+            editors = $('#editors');
+
+        function render_nav() {
+            d3.json('/api/baremeta', function (meta) {
+                meta_collection.set(meta);
+                editors.empty();
+                _.each(meta, function (m) {
+                    var cls = (m._id === id) ? 'active' : '',
+                        a = mk('a', {href: '/edit/'+m.name}, m.label),
+                        li = mk('li.'+cls, a);
+                    editors.append(li);
+                });
+            });
+        }
+        render_nav();
+
+        $('#add-meta-btn').click(function (e) {
+            var ttl = "Adding new entity to model",
+                bdy = mk('form.form-horizontal container-fluid'),
+                vals = {};
+
+            function validate() {
+                if (!vals._id || vals._id.length !== 3 || !isAlpha(vals._id)) {
+                    alert("ID must be three letters");
+                    return false;
+                }
+                vals._id = vals._id.toUpperCase();
+                if (!vals.name || !isAlpha(vals.name)) {
+                    alert("Name must be letters");
+                    return false;
+                }
+                vals.name = vals.name.toLowerCase();
+                if (!vals.label) {
+                    vals.label = s.capitalize(vals.name);
+                }
+                vals.fields = [];
+                return true;
+            }
+
+            function save() {
+                if (validate()) {
+                    var model = meta_collection.add(vals);
+
+                    // This will POST to the collection URL
+                    model.save()
+                        .done(function(result) {
+                            console.info(model.id, 'Saved!');
+                            render_nav();
+                        })
+                        .fail(function(error) {
+                            alert(error.status + ' - ' + error.statusText);
+                        });
+                }
+            }
+
+            bdy.append(mk_form_grp({name:'_id', label:'ID', type:'string'}, vals));
+            bdy.append(mk_form_grp({name:'name', label:'Name', type:'string'}, vals));
+            bdy.append(mk_form_grp({name:'label', label:'Label', type:'string'}, vals));
+
+            var ui = mk_modal(ttl,bdy,save);
+            ui.modal('show');
+        });
+
+        //----------------------------------------------------------------------
+        // Entity Meta
+
+        d3.json('/api/options', function (opts) {
+
+            _.each(opts, function (o) {
+                options[o._id] = o.opts;
+                _.each(o.opts, function (opt) {
+                    index[opt.val] = {txt: opt.txt};
+                });
+            });
+
+            d3.json('/api/baremeta/'+id, function (meta) {
+                $('h1.page-header').text(meta.label);
+
+                design = new MetaModel();
+                design.set(meta);
+
+                var design_id = $('#meta-id'),
+                    design_name = $('#meta-name'),
+                    design_label = $('#meta-label');
+
+                design_id.val(design.get('_id'));
+                design_name.val(design.get('name'));
+                design_label.val(design.get('label'));
+
+                design_label.change(function () {
+                    design.set('label', design_label.val());
+                    save_design();
+                });
+
+                var FieldModelRowView = Backbone.View.extend({
+                        tagName: "tr",
+                        render: function () {
+                            this.$el.html(mk_field_tbl_row(this.model));
+                            return this;
+                        }
+                    }),
+                    FieldCollectionTableView = Backbone.View.extend({
+                        initialize: function() {
+                            this.listenTo(this.model, "sync", this.modelUpdated);
+                            this.listenTo(this.model, "add", this.modelUpdated);
+                        },
+                        modelUpdated: function() {
+                            this.render();
+                        },
+                        render: function() {
+                            var self = this;
+                            this.$el.html(mk_field_tbl_hdr());
+                            this.model.each(function (item) {
+                                var row_view = new FieldModelRowView({model: item});
+                                self.$el.append(row_view.$el);
+                                row_view.render();
+                            });
+                            return this;
+                        },
+                    });
+
+                meta_grid_view = new FieldCollectionTableView({ el: $("#meta-field-grid"), model: design.get('fields') });
+                meta_grid_view.render();
+
+                $('#meta-cols-pane').append(mk_col_list_ed());
+
+            function mk_col_list_ed() {
+                var ed = mk('div.panel-body'),
+                    flds = design.get('fields').toJSON(),
+                    cols = design.get('columns'),
+                    els,
+                    vals = cols ? cols.toJSON() : [];
+
+                function mk_one(ref) {
+                    var ed1 = mk('select.form-control'); //, {id: field.name+'_ed'});
+                    ed1.append(mk('option'));
+                    ed1.append(_.map(flds, function (f) {
+                        var el1 = mk('option',f.label);
+                        el1.attr('value', f.name);
+                        if (ref && f.name === ref) {
+                            el1.attr('selected', true);
+                        }
+                        return el1;
+                    }));
+                    if (ref) {
+                        ed1.attr('value', ref);
+                    }
+                    ed1.on('change', function () {
+                        vals = [];
+                        _.each(els, function (el) {
+                            var val = el.val();
+                            if (val)
+                                vals.push({field:val});
+                        });
+                        design.set('columns', vals);
+                        save_design();
+                        render();
+                    });
+                    return ed1;
+                }
+
+                function render() {
+                    ed.empty();
+                    els = _.map(vals, function (v) {
+                        return mk_one(v.field);
+                    });
+                    els.push(mk_one());
+                    ed.append(els);
+                }
+
+                render();
+                return mk('div.panel panel-default', ed);
+            }
+
+            //----------------------------------------------------------------------
+            // Entity Data
+
+                var api = '/api/kmod/' + design.get('name'),
+                    Model = Backbone.Model.extend({
+                        urlRoot: api,
+                        idAttribute: '_id',
+                        removed: function () {
+                            return this.has('removed') && !!this.get('removed');
+                        },
+                    }),
+                    Collection = Backbone.Collection.extend({
+                        model: Model,
+                        url: api,
+                    }),
+                    collection = new Collection();
+
+                var ModelRowView = Backbone.View.extend({
+                        tagName: "tr",
+                        className: function () {
+                            if (this.model.removed()) return 'removed';
+                            return '';
+                        },
+                        model: Model,
+                        render: function () {
+                            this.$el.html(mk_tbl_row(this.model));
+                            return this;
+                        }
+                    }),
+                    CollectionTableView = Backbone.View.extend({
+                        model: Collection,
+
+                        initialize: function() {
+                            this.listenTo(this.model, "sync", this.modelUpdated);
+                            this.listenTo(this.model, "add", this.modelUpdated);
+                        },
+
+                        modelUpdated: function() {
+                            this.render();
+                        },
+
+                        render: function() {
+                            var self = this;
+
+                            this.$el.html(mk_tbl_hdr()); // lets render this view
+                            this.model.each(function (item) {
+                                if (show_removed || !item.removed()) {
+                                    var row_view = new ModelRowView({model: item});
+                                    self.$el.append(row_view.$el);
+                                    row_view.render();
+                                }
+                            });
+
+                            return this;
+                        },
+                    });
+
+                table_view = new CollectionTableView({ el: $("#data-grid"), model: collection });
+
+                function mk_id(prefix, collection) {
+                    var tmp = '' + (collection.length + 1);
+                    tmp = s.pad(tmp, 4, '0');
+                    return prefix + tmp;
+                }
+
+                $('#add-field-btn').click(function (e) {
+                    var ttl = "Adding new field to '" + design.get('label') + "'",
+                        bdy = mk('form.form-horizontal container-fluid'),
+                        vals = {};
+
+                    function save() {
+                        var model = design.get('fields').add(vals);
+
+                        // This will POST to the collection URL
+                        model.save()
+                            .done(function(result) {
+                                console.info(model.id, 'Saved!');
+                                table_view.render();
+                            })
+                            .fail(function(error) {
+                                alert(error.status + ' - ' + error.statusText);
+                            });
+                    }
+
+                    _.each(METAFIELDS, function (field) {
+                        bdy.append(mk_form_grp(field, vals));
+                    });
+
+                    var ui = mk_modal(ttl,bdy,save);
+                    ui.modal('show');
+                });
+
+                $('#add-btn').click(function (e) {
+                    var ttl = "Adding a new '" + design.get('label') + "'",
+                        bdy = mk('form.form-horizontal container-fluid'),
+                        vals = {};
+
+                    function save() {
+                        var model = collection.add(vals);
+
+                        // This will POST to the collection URL
+                        model.save()
+                            .done(function(result) {
+                                console.info(model.id, 'Saved!');
+                            })
+                            .fail(function(error) {
+                                alert(error.status + ' - ' + error.statusText);
+                            });
+                    }
+
+                    bdy.append(mk_dlg_bdy(vals));
+
+                    var ui = mk_modal(ttl,bdy,save);
+                    ui.modal('show');
+                });
+
+                $('#show-ids-chk')
+                    .val(show_ids)
+                    .on('change', function () {
+                        show_ids = !show_ids;
+                        table_view.render();
+                    });
+
+                $('#show-removed-chk')
+                    .val(show_removed)
+                    .on('change', function () {
+                        show_removed = !show_removed;
+                        table_view.render();
+                    });
+
+
+                table_view.render();
+                collection.fetch({reset: true});
+            });
+        });
+    </script>
+{% endblock %}

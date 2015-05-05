@@ -1,46 +1,43 @@
-﻿/*
-MHS TP APPROVED COLOURS
-85-142-213
-39-96-172
-*/
-
-body {
+﻿body {
     font-family: Verdana;
     -font-size: 96%;
-    margin: 0;
+    -margin: 0;
+  padding-top: 50px;
 }
 #banner {
-    background: #0063AD;
-    color: white;
+    background: black; /* #0063AD;*/
+    color: #CCC;
     font-size: 2em;
-    height: 80px;
-    margin-bottom: 1em;
+    -height: 72px;
+    -margin-bottom: 1em;
 }
 a img {
     border: none;
 }
 #title {
-    padding: 1em;
-    margin-left: 200px;
+    padding: 0.5em;
+    margin-left: 250px;
+    font-weight: bold;
+    -color: #CCC;
 }
-#content {
+/*#content {
     margin: 10px;
-}
+}*/
 
 .hidden {
     display: none;
 }
 
 
-.impacting, path.impacting {
+.impacting, path.impacting, .impact, path.impact{
     fill: white;
 }
 
-.dependency, path.dependency {
+.dependency, path.dependency, .depend, path.depend{
     fill: #DDD;
 }
 
-.mhstp, path.mhstp {
+.mhstp, path.mhstp, .transform, path.transform {
     fill: #C5E6FF;
 }
 
@@ -58,10 +55,10 @@ rect.activity {
     ry: 22.5;
 }
 
-.notstarted {
+.notstarted, .pending {
     stroke: #808000;
 }
-.running {
+.started {
     stroke: #0000FF;
 }
 .rollout {
@@ -139,4 +136,9 @@ g.rag circle.grey {
 g.rag text {
     font-size: 60%;
     text-anchor: middle;
+}
+
+
+.navbar-brand {
+    padding: 5px 15px;
 }

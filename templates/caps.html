@@ -14,7 +14,12 @@
 </style>
 {% endblock %}
 {% block content %}
-    <div id="grid" class="backgrid-container" style="height: 100%"></div>
+<div class="container-fluid">
+<div class="main">
+  <h1 class="page-header">Capabilities</h1>
+  <div id="grid" class="backgrid-container" style="height: 100%"></div>
+</div>
+</div>
 {% endblock %}
 {% block foot %}
 <script type="text/javascript">
@@ -22,7 +27,7 @@
         Capabilities = Backbone.Collection.extend({
             model: Capability,
         }),
-        api = '/api/caps',
+        api = '/data/caps',
         id = '{{ id if id else '' }}';
 
     if (id !== '') {
@@ -35,7 +40,7 @@
                 //{name: "_id", label: "ID",  editable: false, cell: "string" },
                 {name: "name", label: "Name", cell: "string" },
                 {name: "area", label: "TL2020 Platform Area", cell: "string"},
-                {name: "ident", label: "ID", cell: "string"},
+                {name: "ref", label: "Reference", cell: "string"},
                 {name: "ibcm", label: "IBCM", cell: "string"},
                 //{name: "notes", label: "Notes", cell: "string"},
             ];

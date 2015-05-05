@@ -15,6 +15,13 @@
   };
 }
 
+// from https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/isArray
+if (!Array.isArray) {
+  Array.isArray = function(arg) {
+    return Object.prototype.toString.call(arg) === '[object Array]';
+  };
+}
+
 function fmt() {
     // The string containing the format items (e.g. "{0}")
     // will and always has to be the first argument.
@@ -31,19 +38,66 @@ function fmt() {
     return theString;
 }
 
-// Make Underscore templates more like Moustache
-_.templateSettings = {
-  interpolate: /\{\{(.+?)\}\}/g
-};
+var _NUM = '0123456789';
+var _LWR = 'abcdefghijklmnopqrstuvwxyz';
+var _UPR = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
 
-
-funcition mk_id(prefix, num) {
-    if (_.isArray(num)) {
-        num = num.length + 1;
+function _isValid(parm,val) {
+    if (parm == "") return true;
+    for (i=0; i<parm.length; i++) {
+        if (val.indexOf(parm.charAt(i),0) == -1) return false;
     }
-    return prefix + ('0000' + num).slice(-4);
+    return true;
 }
 
+function isNumber(parm) {return _isValid(parm,_NUM);}
+function isLower(parm) {return _isValid(parm,_LWR);}
+function isUpper(parm) {return _isValid(parm,_UPR);}
+function isAlpha(parm) {return _isValid(parm,_LWR+_UPR);}
+function isAlphanum(parm) {return _isValid(parm,_LWR+_UPR+_NUM);}
+
+// Make Underscore templates more like Moustache
+//_.templateSettings = {
+//  interpolate: /\{\{(.+?)\}\}/g
+//};
+//Backform.bootstrap2();
+
+// from http://stackoverflow.com/questions/2419749/get-selected-elements-outer-html
+(function($) {
+    $.fn.outerHTML = function (arg) {
+        var ret;
+
+        // If no items in the collection, return
+        if (!this.length)
+            return typeof arg == "undefined" ? this : null;
+        // Getter overload (no argument passed)
+        if (!arg) {
+            return this[0].outerHTML ||
+                (ret = this.wrap('<div>').parent().html(), this.unwrap(), ret);
+        }
+        // Setter overload
+        $.each(this, function (i, el) {
+            var fnRet,
+                pass = el,
+                inOrOut = el.outerHTML ? "outerHTML" : "innerHTML";
+
+            if (!el.outerHTML)
+                el = $(el).wrap('<div>').parent()[0];
+
+            if (jQuery.isFunction(arg)) {
+                if ((fnRet = arg.call(pass, i, el[inOrOut])) !== false)
+                    el[inOrOut] = fnRet;
+            }
+            else
+                el[inOrOut] = arg;
+
+            if (!el.outerHTML)
+                $(el).children().unwrap();
+        });
+
+        return this;
+    }
+})(jQuery);
 //==============================================================================
 // Geometry
 
@@ -208,8 +262,8 @@ function init_rect(d) {
             x: r.l,  y: r.t,  width: r.w,  height: r.h,
             rx: typ === "project" ? 5 : (typ === "activity" ? (init_grid.rowh-20)/2 : 0),
             ry: typ === "project" ? 5 : (typ === "activity" ? (init_grid.rowh-20)/2 : 0),
-        });
-        //.on('click', function () {window.location.href = '/init/'+d._id;});
+        })
+        .on('click', function () {window.location.href = '/init/'+d._id;});
 }
 
 function init_text(d) {

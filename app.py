@@ -17,3 +17,4 @@ app.config.from_object('config')
 mongo = PyMongo(app)
 
 import views
+import api

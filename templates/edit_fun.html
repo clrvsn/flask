@@ -1,0 +1,82 @@
+﻿{% extends "base.html" %}
+{% block head %}
+    <style>
+    </style>
+{% endblock %}
+{% block content %}
+    <ul id="fun-list">
+    </ul>
+{% endblock %}
+{% block foot %}
+    <script type="text/javascript">
+        var FunModel = Backbone.Model.extend({
+            urlRoot: '/api/function',
+            idAttribute: '_id',
+            initialize: function () {
+                Backbone.Model.prototype.initialize.apply(this, arguments);
+                this.on("change", function (model, options) {
+                    if (options && options.save === false) return;
+                    model.save();
+                });
+            },
+        });
+        var FunCollection = Backbone.Collection.extend({
+            model: FunModel,
+            url: '/api/function',
+        });
+
+        var FunView = Backbone.View.extend({
+            tagname: "li",
+            model: FunModel,
+            render: function (){
+                this.$el.html('<li>' + this.model.get("name") + '</li>');
+                return this;
+            },
+        });
+        var FunListView = Backbone.View.extend({
+            tagname: "ul",
+            model: FunCollection,
+
+            render: function() {
+                this.$el.html(); // lets render this view
+
+                var self = this;
+
+                for (var i = 0; i < this.model.length; ++i) {
+                    // lets create a book view to render
+                    var item = new FunView({model: this.model.at(i)});
+
+                    // lets add this item view to this list view
+                    this.$el.append(item.$el);
+                    item.render(); // lets render the book
+                }
+
+                return this;
+            },
+        });
+
+        d3.json("/api/function", function(data) {
+            var funs = new FunCollection(),
+                cols = [
+                    {name: "name", label: "Name", cell: "string" },
+                ],
+                grid = new Backgrid.Grid({
+                    columns: cols,
+                    collection: funs,
+                });
+
+            $("#fun-list").append(grid.render().el);
+            //funs.reset(data);
+            funs.fetch({reset: true});
+
+            //var fun = new FunModel({_id: 'FUN0016'});
+
+            //fun.fetch({success: function () {
+            //    fun.set('name', 'Some Function');
+            //    fun.save();
+            //}});
+            //list = new FunListView({ el: $("#fun-list"), model: funs });
+            //list.render();
+        });
+    </script>
+{% endblock %}

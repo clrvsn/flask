@@ -18,6 +18,9 @@
 </style>
 {% endblock %}
 {% block content %}
+<div class="container-fluid">
+<div class="main">
+  <h1 class="page-header">Initiative: {{title}}</h1>
     <table class="ini">
         <tr>
             <th>Dependencies:</th>
@@ -37,11 +40,13 @@
             <tr><th>End:</th> <td id="tt_end"></td></tr>
         </table>
     </div>
+</div>
+</div>
 {% endblock %}
 {% block foot %}
 <script type="text/javascript">
     var _id = '{{ id }}',
-        api = '/api/ini/' + _id;
+        api = '/data/ini/' + _id;
 
     init_grid.cols = 3;
     init_grid.rows = 1;
