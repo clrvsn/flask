@@ -12,7 +12,7 @@
 from flask import Flask
 from flask.ext.pymongo import PyMongo
 
-app = Flask('kmod')
+app = Flask('clrvsn')
 app.config.from_object('config')
 mongo = PyMongo(app)
 

@@ -92,7 +92,7 @@ def filter_removed(inis):
     return filter(lambda o: not o.get('removed', False), inis)
 
 def deref(old,fields=None):
-    typs = {
+    TYPS = {
         'AGT': mongo.db.agent,
         'CAP': mongo.db.capability,
         'FUN': mongo.db.function,
@@ -108,10 +108,10 @@ def deref(old,fields=None):
     new = {}
     for k,v in old.iteritems():
         if not fields or k in fields:
-            if v:
+            if v is not None:
                 if k.endswith('_id') and k != '_id':
                     typ = v[0:3]
-                    obj = typs[typ].find_one(v)
+                    obj = TYPS[typ].find_one(v)
                     if obj:
                         new[k[0:-3]] = deref(obj)
                 else:
@@ -148,10 +148,11 @@ def ini_api(id):
 def byprog_api():
     fields = ['_id','name','state','start','end','type','category','program_id',
               'function_ids','byprog_col','byprog_row','byprog_txt']
+    deps = mongo.db.dependency
     return jsonify(
         inits = [deref_ini(ini,fields) for ini in filter_removed(mongo.db.initiative.find())],
-        hards = list(mongo.db.dependency.find({'type': 'hard'})),
-        softs = list(mongo.db.dependency.find({'type': 'soft'})))
+        hards = list(deps.find({'type': 'hard'})),
+        softs = list(deps.find({'type': 'soft'})))
 
 @app.route('/data/byprogf')
 def byprogf_api():

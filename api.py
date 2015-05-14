@@ -45,50 +45,6 @@ api = Api(app)
 
 #-------------------------------------------------------------------------------
 
-##def elab_meta(meta):
-##    for field in meta['fields']:
-##        typ = field['type'].split('.')
-##        if len(typ) == 2:
-##            typ,etc = typ
-##            if '-' in typ:
-##                typ,mod = typ.split('-')
-##                field[mod] = True
-##            if typ == 'ref':
-##                _id,fld = etc.split(':')
-##                omet = mongo.db.meta.find_one(_id)
-##                opts = filter(lambda o: not o.get('removed', False),
-##                              mongo.db[omet['name']].find(fields=['_id',fld,'removed']))
-##                field['type'] = 'ref'
-##                field['opts'] = []
-##                for opt in opts:
-##                    try:
-##                        #field['opts'].append([opt[fld],opt['_id']])
-##                        field['opts'].append({'txt': opt[fld], 'val': opt['_id']})
-##                    except:
-##                        pass
-##            elif typ == 'enum':
-##                opts = etc.split('|')
-##                field['type'] = 'enum'
-##                #field['opts'] = [[opt,opt] for opt in opts]
-##                field['opts'] = [{'txt': opt, 'val': opt} for opt in opts]
-##    return meta
-
-##class Meta(Resource):
-##    def get(self, _id):
-##        return elab_meta(mongo.db.meta.find_one_or_404(_id))
-####    def put(self, _id):
-####        data = request.get_data()
-####        obj = json.loads(data)
-####        mongo.db.meta.update({'_id': _id}, obj)
-####        return obj, 201
-##
-##class MetaList(Resource):
-##    def get(self):
-##        return [elab_meta(m) for m in mongo.db.meta.find(sort=[('_id',pymongo.ASCENDING)])]
-##
-##api.add_resource(MetaList, '/api/meta')
-##api.add_resource(Meta,     '/api/meta/<string:_id>')
-
 class BareMeta(Resource):
     def get(self, _id):
         return mongo.db.meta.find_one_or_404(_id)
@@ -110,8 +66,8 @@ class BareMetaList(Resource):
         _id = mongo.db.meta.insert(obj)
         return mongo.db.meta.find_one(_id)
 
-api.add_resource(BareMetaList, '/api/meta/%s'%(app.name,))
-api.add_resource(BareMeta,     '/api/meta/%s/<string:_id>'%(app.name,))
+api.add_resource(BareMetaList, '/api/meta')
+api.add_resource(BareMeta,     '/api/meta/<string:_id>')
 
 class OptionsList(Resource):
     def get(self):
@@ -125,7 +81,7 @@ class OptionsList(Resource):
                 objs.append(obj)
         return objs
 
-api.add_resource(OptionsList, '/api/options/%s'%(app.name,))
+api.add_resource(OptionsList, '/api/options')
 
 #-------------------------------------------------------------------------------
 
@@ -169,11 +125,14 @@ def mk_list_resource(coll,prfx):
         return obj
     return type(coll.capitalize()+'List', (Resource,), {'get': get, 'post': post})
 
-from pymongo import MongoClient
-for meta in MongoClient().kmod.meta.find():
+def mongo_db():
+    from pymongo import MongoClient
+    return MongoClient(app.config['MONGO_URI']).get_default_database()
+
+for meta in mongo_db().meta.find():
     prfx,coll = meta['_id'], str(meta['name'])
-    api.add_resource(mk_list_resource(coll,prfx), '/api/data/%s/%s'%(app.name,coll))
-    api.add_resource(mk_model_resource(coll),     '/api/data/%s/%s/<string:_id>'%(app.name,coll))
+    api.add_resource(mk_list_resource(coll,prfx), '/api/data/%s'%(coll,))
+    api.add_resource(mk_model_resource(coll),     '/api/data/%s/<string:_id>'%(coll,))
 
 #-------------------------------------------------------------------------------
 
@@ -228,9 +187,9 @@ class ExecLib(Resource):
         l = mongo.db._lib.find_one(_id)
         return lispy.execute(l['src']) if l else ''
 
-api.add_resource(LibList, '/api/lib/%s'%(app.name,))
-api.add_resource(Lib,     '/api/lib/%s/<string:_id>'%(app.name,))
-api.add_resource(ExecLib, '/api/exec/%s/<string:_id>'%(app.name,))
+api.add_resource(LibList, '/api/lib')
+api.add_resource(Lib,     '/api/lib/<string:_id>')
+api.add_resource(ExecLib, '/api/exec/<string:_id>')
 
 #-------------------------------------------------------------------------------
 

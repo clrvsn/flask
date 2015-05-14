@@ -12,5 +12,7 @@
 import os
 basedir = os.path.abspath(os.path.dirname(__file__))
 
-SQLALCHEMY_DATABASE_URI = 'sqlite:///' + os.path.join(basedir, 'kmod.db')
-SQLALCHEMY_MIGRATE_REPO = os.path.join(basedir, 'db_repository')
+#SQLALCHEMY_DATABASE_URI = 'sqlite:///' + os.path.join(basedir, 'kmod.db')
+#SQLALCHEMY_MIGRATE_REPO = os.path.join(basedir, 'db_repository')
+
+MONGO_URI = "mongodb://martin:nevada92@ds063630.mongolab.com:63630/mhstp"

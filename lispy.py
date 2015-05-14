@@ -82,7 +82,7 @@ class Env(dict):
             return self.outer.find(var)
 
 from pymongo import MongoClient
-db = MongoClient().kmod
+db = MongoClient(app.config['MONGO_URI'])[app.name]
 meta = {m['_id']:m for m in db.meta.find()}
 
 def _mongo(*args):

@@ -784,11 +784,11 @@
         // Meta List
 
         var MetaModel = Backbone.DocumentModel.extend({
-                urlRoot: '/api/meta/kmod',
+                urlRoot: '/api/meta',
                 idAttribute: '_id',
             }),
             MetaCollection = Backbone.DocumentCollection.extend({
-                url: '/api/meta/kmod',
+                url: '/api/meta',
                 idAttribute: '_id',
                 model: MetaModel,
             });
@@ -797,7 +797,7 @@
             editors = $('#editors');
 
         function render_nav() {
-            d3.json('/api/meta/kmod', function (meta) {
+            d3.json('/api/meta', function (meta) {
                 meta_collection.set(meta);
                 editors.empty();
                 _.each(meta, function (m) {
@@ -860,7 +860,7 @@
         //----------------------------------------------------------------------
         // Entity Meta
 
-        d3.json('/api/options/kmod', function (opts) {
+        d3.json('/api/options', function (opts) {
 
             _.each(opts, function (o) {
                 options[o._id] = o.opts;
@@ -869,7 +869,7 @@
                 });
             });
 
-            d3.json('/api/meta/kmod/'+id, function (meta) {
+            d3.json('/api/meta/'+id, function (meta) {
                 $('h1.page-header').text(meta.label);
 
                 design = new MetaModel();
@@ -971,7 +971,7 @@
             //----------------------------------------------------------------------
             // Entity Data
 
-                var api = '/api/data/kmod/' + design.get('name'),
+                var api = '/api/data/' + design.get('name'),
                     Model = Backbone.Model.extend({
                         urlRoot: api,
                         idAttribute: '_id',
