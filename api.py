@@ -45,7 +45,7 @@ api = Api(app)
 
 #-------------------------------------------------------------------------------
 
-class BareMeta(Resource):
+class Meta(Resource):
     def get(self, _id):
         return mongo.db.meta.find_one_or_404(_id)
     def put(self, _id):
@@ -57,7 +57,7 @@ class BareMeta(Resource):
         mongo.db.meta.remove(_id)
         return '', 204
 
-class BareMetaList(Resource):
+class MetaList(Resource):
     def get(self):
         return list(mongo.db.meta.find(sort=[('_id',pymongo.ASCENDING)]))
     def post(self):
@@ -66,8 +66,8 @@ class BareMetaList(Resource):
         _id = mongo.db.meta.insert(obj)
         return mongo.db.meta.find_one(_id)
 
-api.add_resource(BareMetaList, '/api/meta')
-api.add_resource(BareMeta,     '/api/meta/<string:_id>')
+api.add_resource(MetaList, '/api/meta')
+api.add_resource(Meta,     '/api/meta/<string:_id>')
 
 class OptionsList(Resource):
     def get(self):
@@ -85,6 +85,14 @@ api.add_resource(OptionsList, '/api/options')
 
 #-------------------------------------------------------------------------------
 
+PRFX = {}
+
+def get_prfx(db,coll):
+    if not PRFX.has_key(coll):
+        meta = db.meta.find_one({'name':coll})
+        PRFX[coll] = meta['_id']
+    return PRFX[coll]
+
 def mk_id(pre,num):
     if isinstance(num, (dict,list)):
         num = len(num)+1
@@ -95,44 +103,35 @@ def id_max(coll):
     high = coll.find_one(sort=[('_id', pymongo.DESCENDING)])
     return int(high['_id'].strip(alpha)) if high else 0
 
-def mk_model_resource(coll):
-    def get(self, _id):
+class Data(Resource):
+    def get(self, coll, _id):
         clctn = mongo.db[coll]
         return clctn.find_one_or_404(_id)
-    def put(self, _id):
+    def put(self, coll, _id):
         data = request.get_data()
         obj = json.loads(data)
         mongo.db[coll].update({'_id': _id}, obj)
         return obj, 201
-    def delete(self, _id):
+    def delete(self, coll, _id):
         mongo.db[coll].remove(_id)
         return '', 204
-    return type(coll.capitalize(), (Resource,), {'get': get, 'put': put, 'delete': delete})
 
-def mk_list_resource(coll,prfx):
-    def get(self):
+class DataList(Resource):
+    def get(self, coll):
         #print list(mongo.db[coll].find())
         return list(mongo.db[coll].find(sort=[('_id',pymongo.ASCENDING)]))
-    def post(self):
+    def post(self, coll):
         data = request.get_data()
-        hi = id_max(mongo.db[coll])
+        cltn = mongo.db[coll]
+        hi = id_max(cltn)
         obj = json.loads(data)
-        obj['_id'] = mk_id(prfx, hi+1)
-        _id = mongo.db[coll].insert(obj)
-        #print hi, _id, obj
-        obj = mongo.db[coll].find_one(_id)
-        #print obj
+        obj['_id'] = mk_id(get_prfx(mongo.db,coll), hi+1)
+        _id = cltn.insert(obj)
+        obj = cltn.find_one(_id)
         return obj
-    return type(coll.capitalize()+'List', (Resource,), {'get': get, 'post': post})
 
-def mongo_db():
-    from pymongo import MongoClient
-    return MongoClient(app.config['MONGO_URI']).get_default_database()
-
-for meta in mongo_db().meta.find():
-    prfx,coll = meta['_id'], str(meta['name'])
-    api.add_resource(mk_list_resource(coll,prfx), '/api/data/%s'%(coll,))
-    api.add_resource(mk_model_resource(coll),     '/api/data/%s/<string:_id>'%(coll,))
+api.add_resource(DataList, '/api/data/<string:coll>')
+api.add_resource(Data,     '/api/data/<string:coll>/<string:_id>')
 
 #-------------------------------------------------------------------------------
 
