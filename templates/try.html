@@ -1,0 +1,20 @@
+﻿{% extends "base.html" %}
+{% block head %}
+    <style>
+    </style>
+{% endblock %}
+{% block content %}
+    <span id="output">
+    </span>
+{% endblock %}
+{% block foot %}
+    <script type="text/javascript">
+        var src = "(from (db 'dependency) (d)"
+            + "(where (and (= d.from 'start) (= d.to 'end)))"
+            + "(select (dict ('from d.from_init.name) ('to d.to_init.name))))";
+
+        $.post("/api/exec", src, function(result){
+            $("#output").html(JSON.stringify(result));
+        });
+    </script>
+{% endblock %}

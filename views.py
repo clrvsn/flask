@@ -22,6 +22,9 @@ def front_page():
 def edit_fun():
     return render_template("edit_fun.html",
                             title='Functional Areas Editor')
+@app.route('/try')
+def try_it():
+    return render_template("try.html")
 
 @app.route('/editor')
 def editor():
@@ -85,6 +88,9 @@ def caps_page(id=''):
     return render_template("caps.html", title=title, id=id)
 
 
+def filter_removed(inis):
+    return filter(lambda o: not o.get('removed', False), inis)
+
 def deref(old,fields=None):
     typs = {
         'AGT': mongo.db.agent,
@@ -93,6 +99,7 @@ def deref(old,fields=None):
         'INI': mongo.db.initiative,
         'PCS': mongo.db.process,
         'PGM': mongo.db.programme,
+        'DEM': mongo.db.demand,
     }
     if fields:
         for k in fields:
@@ -101,13 +108,14 @@ def deref(old,fields=None):
     new = {}
     for k,v in old.iteritems():
         if not fields or k in fields:
-            if k.endswith('_id') and k != '_id':
-                typ = v[0:3]
-                obj = typs[typ].find_one(v)
-                if obj:
-                    new[k[0:-3]] = deref(obj)
-            else:
-                new[k] = v
+            if v:
+                if k.endswith('_id') and k != '_id':
+                    typ = v[0:3]
+                    obj = typs[typ].find_one(v)
+                    if obj:
+                        new[k[0:-3]] = deref(obj)
+                else:
+                    new[k] = v
     return new
 
 def deref_ini(old, fields=None):
@@ -117,6 +125,7 @@ def deref_ini(old, fields=None):
             ini['function'] = 'ALL'
         else:
             funcs = [mongo.db.function.find_one(fid) for fid in ini['function_ids']] #.split()]
+            ini['ncaps'] = mongo.db.capability.find({'init_id': ini['_id']}).count()
             ini['function'] =  '/'.join(f.get('abbr', f['name']) if f else '?' for f in funcs)
         del ini['function_ids']
     return ini
@@ -124,20 +133,16 @@ def deref_ini(old, fields=None):
 @app.route('/data/ini/<id>')
 def ini_api(id):
     fields = ['_id','name','state','start','end','type','category',
-              'program_id','function_ids','byprog_txt','removed']
+              'program_id','function_ids','byprog_txt','removed',
+              'biz_pm_id','it_pm_id']
     def get(id):
         return deref_ini(mongo.db.initiative.find_one(id), fields)
-    def fltr(inis):
-        return filter(lambda ini: not ini['removed'], inis)
     return jsonify(
         ini   = deref_ini(mongo.db.initiative.find_one(id)),
-        froms = fltr([get(ini['from_init_id']) for ini in mongo.db.dependency.find({'type': 'hard', 'to_init_id': id})]),
-        tos   = fltr([get(ini['to_init_id']) for ini in mongo.db.dependency.find({'type': 'hard', 'from_init_id': id})]),
-        softs = fltr([get(ini['from_init_id']) for ini in mongo.db.dependency.find({'type': 'soft', 'to_init_id': id})])
-              + fltr([get(ini['to_init_id']) for ini in mongo.db.dependency.find({'type': 'soft', 'from_init_id': id})]))
-
-def filter_removed(inis):
-    return filter(lambda o: not o.get('removed', False), inis)
+        froms = filter_removed([get(ini['from_init_id']) for ini in mongo.db.dependency.find({'type': 'hard', 'to_init_id': id})]),
+        tos   = filter_removed([get(ini['to_init_id']) for ini in mongo.db.dependency.find({'type': 'hard', 'from_init_id': id})]),
+        softs = filter_removed([get(ini['from_init_id']) for ini in mongo.db.dependency.find({'type': 'soft', 'to_init_id': id})])
+              + filter_removed([get(ini['to_init_id']) for ini in mongo.db.dependency.find({'type': 'soft', 'from_init_id': id})]))
 
 @app.route('/data/byprog')
 def byprog_api():

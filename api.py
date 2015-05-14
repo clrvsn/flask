@@ -45,49 +45,49 @@ api = Api(app)
 
 #-------------------------------------------------------------------------------
 
-def elab_meta(meta):
-    for field in meta['fields']:
-        typ = field['type'].split('.')
-        if len(typ) == 2:
-            typ,etc = typ
-            if '-' in typ:
-                typ,mod = typ.split('-')
-                field[mod] = True
-            if typ == 'ref':
-                _id,fld = etc.split(':')
-                omet = mongo.db.meta.find_one(_id)
-                opts = filter(lambda o: not o.get('removed', False),
-                              mongo.db[omet['name']].find(fields=['_id',fld,'removed']))
-                field['type'] = 'ref'
-                field['opts'] = []
-                for opt in opts:
-                    try:
-                        #field['opts'].append([opt[fld],opt['_id']])
-                        field['opts'].append({'txt': opt[fld], 'val': opt['_id']})
-                    except:
-                        pass
-            elif typ == 'enum':
-                opts = etc.split('|')
-                field['type'] = 'enum'
-                #field['opts'] = [[opt,opt] for opt in opts]
-                field['opts'] = [{'txt': opt, 'val': opt} for opt in opts]
-    return meta
+##def elab_meta(meta):
+##    for field in meta['fields']:
+##        typ = field['type'].split('.')
+##        if len(typ) == 2:
+##            typ,etc = typ
+##            if '-' in typ:
+##                typ,mod = typ.split('-')
+##                field[mod] = True
+##            if typ == 'ref':
+##                _id,fld = etc.split(':')
+##                omet = mongo.db.meta.find_one(_id)
+##                opts = filter(lambda o: not o.get('removed', False),
+##                              mongo.db[omet['name']].find(fields=['_id',fld,'removed']))
+##                field['type'] = 'ref'
+##                field['opts'] = []
+##                for opt in opts:
+##                    try:
+##                        #field['opts'].append([opt[fld],opt['_id']])
+##                        field['opts'].append({'txt': opt[fld], 'val': opt['_id']})
+##                    except:
+##                        pass
+##            elif typ == 'enum':
+##                opts = etc.split('|')
+##                field['type'] = 'enum'
+##                #field['opts'] = [[opt,opt] for opt in opts]
+##                field['opts'] = [{'txt': opt, 'val': opt} for opt in opts]
+##    return meta
 
-class Meta(Resource):
-    def get(self, _id):
-        return elab_meta(mongo.db.meta.find_one_or_404(_id))
-##    def put(self, _id):
-##        data = request.get_data()
-##        obj = json.loads(data)
-##        mongo.db.meta.update({'_id': _id}, obj)
-##        return obj, 201
-
-class MetaList(Resource):
-    def get(self):
-        return [elab_meta(m) for m in mongo.db.meta.find(sort=[('_id',pymongo.ASCENDING)])]
-
-api.add_resource(MetaList, '/api/meta')
-api.add_resource(Meta,     '/api/meta/<string:_id>')
+##class Meta(Resource):
+##    def get(self, _id):
+##        return elab_meta(mongo.db.meta.find_one_or_404(_id))
+####    def put(self, _id):
+####        data = request.get_data()
+####        obj = json.loads(data)
+####        mongo.db.meta.update({'_id': _id}, obj)
+####        return obj, 201
+##
+##class MetaList(Resource):
+##    def get(self):
+##        return [elab_meta(m) for m in mongo.db.meta.find(sort=[('_id',pymongo.ASCENDING)])]
+##
+##api.add_resource(MetaList, '/api/meta')
+##api.add_resource(Meta,     '/api/meta/<string:_id>')
 
 class BareMeta(Resource):
     def get(self, _id):
@@ -110,8 +110,8 @@ class BareMetaList(Resource):
         _id = mongo.db.meta.insert(obj)
         return mongo.db.meta.find_one(_id)
 
-api.add_resource(BareMetaList, '/api/baremeta')
-api.add_resource(BareMeta,     '/api/baremeta/<string:_id>')
+api.add_resource(BareMetaList, '/api/meta/%s'%(app.name,))
+api.add_resource(BareMeta,     '/api/meta/%s/<string:_id>'%(app.name,))
 
 class OptionsList(Resource):
     def get(self):
@@ -125,7 +125,7 @@ class OptionsList(Resource):
                 objs.append(obj)
         return objs
 
-api.add_resource(OptionsList, '/api/options')
+api.add_resource(OptionsList, '/api/options/%s'%(app.name,))
 
 #-------------------------------------------------------------------------------
 
@@ -155,6 +155,7 @@ def mk_model_resource(coll):
 
 def mk_list_resource(coll,prfx):
     def get(self):
+        #print list(mongo.db[coll].find())
         return list(mongo.db[coll].find(sort=[('_id',pymongo.ASCENDING)]))
     def post(self):
         data = request.get_data()
@@ -162,14 +163,17 @@ def mk_list_resource(coll,prfx):
         obj = json.loads(data)
         obj['_id'] = mk_id(prfx, hi+1)
         _id = mongo.db[coll].insert(obj)
-        return mongo.db[coll].find_one(_id)
+        #print hi, _id, obj
+        obj = mongo.db[coll].find_one(_id)
+        #print obj
+        return obj
     return type(coll.capitalize()+'List', (Resource,), {'get': get, 'post': post})
 
 from pymongo import MongoClient
 for meta in MongoClient().kmod.meta.find():
     prfx,coll = meta['_id'], str(meta['name'])
-    api.add_resource(mk_list_resource(coll,prfx), '/api/kmod/'+coll)
-    api.add_resource(mk_model_resource(coll),     '/api/kmod/'+coll+'/<string:_id>')
+    api.add_resource(mk_list_resource(coll,prfx), '/api/data/%s/%s'%(app.name,coll))
+    api.add_resource(mk_model_resource(coll),     '/api/data/%s/%s/<string:_id>'%(app.name,coll))
 
 #-------------------------------------------------------------------------------
 
@@ -184,6 +188,49 @@ class ClearQuestQuery(Resource):
         return xmltodict.parse(xml)
 
 api.add_resource(ClearQuestQuery, '/api/cq/<string:query>')
+
+#-------------------------------------------------------------------------------
+
+class ExecLispy(Resource):
+    def post(self):
+        import lispy
+        data = request.get_data()
+        rslt = lispy.execute(data)
+        #print data, '=>', rslt
+        return rslt
+
+api.add_resource(ExecLispy, '/api/exec')
+
+class Lib(Resource):
+    def get(self, _id):
+        return mongo.db._lib.find_one_or_404(_id)
+    def put(self, _id):
+        data = request.get_data()
+        obj = json.loads(data)
+        mongo.db._lib.update({'_id': _id}, obj, upsert=True)
+        return obj, 201
+    def delete(self, _id):
+        mongo.db._lib.remove(_id)
+        return '', 204
+
+class LibList(Resource):
+    def get(self):
+        return list(mongo.db._lib.find(sort=[('_id',pymongo.ASCENDING)]))
+    def post(self):
+        data = request.get_data()
+        obj = json.loads(data)
+        _id = mongo.db._lib.insert(obj)
+        return mongo.db._lib.find_one(_id)
+
+class ExecLib(Resource):
+    def get(self, _id):
+        import lispy
+        l = mongo.db._lib.find_one(_id)
+        return lispy.execute(l['src']) if l else ''
+
+api.add_resource(LibList, '/api/lib/%s'%(app.name,))
+api.add_resource(Lib,     '/api/lib/%s/<string:_id>'%(app.name,))
+api.add_resource(ExecLib, '/api/exec/%s/<string:_id>'%(app.name,))
 
 #-------------------------------------------------------------------------------
 
