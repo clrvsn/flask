@@ -21,12 +21,12 @@ class DataBase(object):
         self._cache = {}
     def __getattr__(self, coll):
         if not self._cache.has_key(coll):
-            print 'Fetching',coll
+            #print 'Fetching',coll
             self._cache[coll] = Collection(self._db[coll].find())
         return self._cache[coll]
     def __getitem__(self, coll):
         if not self._cache.has_key(coll):
-            print 'Fetching',coll
+            #print 'Fetching',coll
             self._cache[coll] = Collection(self._db[coll].find())
         return self._cache[coll]
 

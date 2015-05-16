@@ -102,7 +102,7 @@ def deref(db, old, fields=None):
     new = {}
     for k,v in old.iteritems():
         if not fields or k in fields:
-            if v is not None:
+            if v is not None and v != '':
                 if k.endswith('_id') and k != '_id':
                     typ = v[0:3]
                     obj = db[TYPS[typ]][v]

@@ -78,7 +78,7 @@ class OptionsList(Resource):
         for meta in db._meta:
             if 'txt_field' in meta:
                 fld = meta['txt_field']
-                print meta['name'], fld
+                #print meta['name'], fld
                 opts = [{'val':x['_id'], 'txt':x[fld]} for x in filter_removed(db[meta['name']])]
                 obj = {'_id': meta['_id'], 'opts': opts}
                 objs.append(obj)
