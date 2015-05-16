@@ -40,6 +40,7 @@ import json, pymongo
 from app import app, mongo
 from flask import request
 from flask.ext.restful import reqparse, abort, Api, Resource
+from data import *
 
 api = Api(app)
 
@@ -47,36 +48,38 @@ api = Api(app)
 
 class Meta(Resource):
     def get(self, _id):
-        return mongo.db.meta.find_one_or_404(_id)
+        return mongo.db._meta.find_one_or_404(_id)
     def put(self, _id):
         data = request.get_data()
         obj = json.loads(data)
-        mongo.db.meta.update({'_id': _id}, obj, upsert=True)
+        mongo.db._meta.update({'_id': _id}, obj, upsert=True)
         return obj, 201
     def delete(self, _id):
-        mongo.db.meta.remove(_id)
+        mongo.db._meta.remove(_id)
         return '', 204
 
 class MetaList(Resource):
     def get(self):
-        return list(mongo.db.meta.find(sort=[('_id',pymongo.ASCENDING)]))
+        return list(mongo.db._meta.find(sort=[('_id',pymongo.ASCENDING)]))
     def post(self):
         data = request.get_data()
         obj = json.loads(data)
-        _id = mongo.db.meta.insert(obj)
-        return mongo.db.meta.find_one(_id)
+        _id = mongo.db._meta.insert(obj)
+        return mongo.db._meta.find_one(_id)
 
 api.add_resource(MetaList, '/api/meta')
 api.add_resource(Meta,     '/api/meta/<string:_id>')
 
 class OptionsList(Resource):
     def get(self):
-        opts = [{'val':x['_id'], 'txt':x['label']} for x in mongo.db.meta.find()]
+        db = DataBase(mongo.db)
+        opts = [{'val':x['_id'], 'txt':x['label']} for x in db._meta]
         objs = [{'_id':'META', 'opts':opts}]
-        for meta in mongo.db.meta.find():
+        for meta in db._meta:
             if 'txt_field' in meta:
                 fld = meta['txt_field']
-                opts = [{'val':x['_id'], 'txt':x[fld]} for x in mongo.db[meta['name']].find() if not 'removed' in x or not x['removed']]
+                print meta['name'], fld
+                opts = [{'val':x['_id'], 'txt':x[fld]} for x in filter_removed(db[meta['name']])]
                 obj = {'_id': meta['_id'], 'opts': opts}
                 objs.append(obj)
         return objs
@@ -89,7 +92,7 @@ PRFX = {}
 
 def get_prfx(db,coll):
     if not PRFX.has_key(coll):
-        meta = db.meta.find_one({'name':coll})
+        meta = db._meta.find_one({'name':coll})
         PRFX[coll] = meta['_id']
     return PRFX[coll]
 

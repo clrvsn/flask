@@ -10,8 +10,9 @@
 #-------------------------------------------------------------------------------
 
 from flask import render_template, jsonify
-from flask.ext.pymongo import ASCENDING
+#from flask.ext.pymongo import ASCENDING
 from app import app, mongo
+from data import *
 import json
 
 @app.route('/')
@@ -39,7 +40,7 @@ def cq(query):
 
 @app.route('/edit/<name>')
 def edit_any(name):
-    meta = mongo.db.meta.find_one({'name': name})
+    meta = mongo.db._meta.find_one({'name': name})
     return render_template("edit.html",
                             title=meta['label'] + ' Editor', id=meta['_id'])
 
@@ -88,19 +89,12 @@ def caps_page(id=''):
     return render_template("caps.html", title=title, id=id)
 
 
-def filter_removed(inis):
-    return filter(lambda o: not o.get('removed', False), inis)
+def deref(db, old, fields=None):
+    meta = db._meta
+    TYPS = {}
+    for m in meta:
+        TYPS[m['_id']] = m['name']
 
-def deref(old,fields=None):
-    TYPS = {
-        'AGT': mongo.db.agent,
-        'CAP': mongo.db.capability,
-        'FUN': mongo.db.function,
-        'INI': mongo.db.initiative,
-        'PCS': mongo.db.process,
-        'PGM': mongo.db.programme,
-        'DEM': mongo.db.demand,
-    }
     if fields:
         for k in fields:
             if not k in old:
@@ -111,54 +105,57 @@ def deref(old,fields=None):
             if v is not None:
                 if k.endswith('_id') and k != '_id':
                     typ = v[0:3]
-                    obj = TYPS[typ].find_one(v)
+                    obj = db[TYPS[typ]][v]
                     if obj:
-                        new[k[0:-3]] = deref(obj)
+                        new[k[0:-3]] = deref(db,obj)
                 else:
                     new[k] = v
     return new
 
-def deref_ini(old, fields=None):
-    ini = deref(old,fields)
+def deref_ini(db, old, fields=None):
+    ini = deref(db, old, fields)
+    if fields and 'ncaps' in fields:
+        ini['ncaps'] = len(db.capability.where({'init_id': ini['_id']}))
     if 'function_ids' in ini:
         if ini['function_ids'] == 'ALL':
             ini['function'] = 'ALL'
         else:
-            funcs = [mongo.db.function.find_one(fid) for fid in ini['function_ids']] #.split()]
-            ini['ncaps'] = mongo.db.capability.find({'init_id': ini['_id']}).count()
+            funcs = [db.function[fid] for fid in ini['function_ids']] #.split()]
             ini['function'] =  '/'.join(f.get('abbr', f['name']) if f else '?' for f in funcs)
         del ini['function_ids']
     return ini
 
-@app.route('/data/ini/<id>')
-def ini_api(id):
+@app.route('/data/ini/<_id>')
+def ini_api(_id):
+    db = DataBase(mongo.db)
     fields = ['_id','name','state','start','end','type','category',
-              'program_id','function_ids','byprog_txt','removed',
-              'biz_pm_id','it_pm_id']
-    def get(id):
-        return deref_ini(mongo.db.initiative.find_one(id), fields)
+              'program_id','function_ids','byprog_txt','removed','ncaps']
+    def get(typ,id1,id2):
+        inis = [deref_ini(db, db.initiative[ini[id1]], fields)
+                for ini in db.dependency.where({'type': typ, id2: _id})]
+        return filter_removed(inis)
     return jsonify(
-        ini   = deref_ini(mongo.db.initiative.find_one(id)),
-        froms = filter_removed([get(ini['from_init_id']) for ini in mongo.db.dependency.find({'type': 'hard', 'to_init_id': id})]),
-        tos   = filter_removed([get(ini['to_init_id']) for ini in mongo.db.dependency.find({'type': 'hard', 'from_init_id': id})]),
-        softs = filter_removed([get(ini['from_init_id']) for ini in mongo.db.dependency.find({'type': 'soft', 'to_init_id': id})])
-              + filter_removed([get(ini['to_init_id']) for ini in mongo.db.dependency.find({'type': 'soft', 'from_init_id': id})]))
+        ini   = deref_ini(db, db.initiative[_id]),
+        froms = get('hard','from_init_id','to_init_id'),
+        tos   = get('hard','to_init_id','from_init_id'),
+        softs = get('soft','from_init_id','to_init_id') + get('soft','to_init_id','from_init_id'))
 
 @app.route('/data/byprog')
 def byprog_api():
+    db = DataBase(mongo.db)
     fields = ['_id','name','state','start','end','type','category','program_id',
               'function_ids','byprog_col','byprog_row','byprog_txt']
-    deps = mongo.db.dependency
     return jsonify(
-        inits = [deref_ini(ini,fields) for ini in filter_removed(mongo.db.initiative.find())],
-        hards = list(deps.find({'type': 'hard'})),
-        softs = list(deps.find({'type': 'soft'})))
+        inits = [deref_ini(db,ini,fields) for ini in filter_removed(db.initiative)],
+        hards = db.dependency.where({'type': 'hard'}),
+        softs = db.dependency.where({'type': 'soft'}))
 
 @app.route('/data/byprogf')
 def byprogf_api():
+    db = DataBase(mongo.db)
     fields = ['_id','name','state','start','end','type','category','program_id',
               'function_ids','byprog_txt']
-    inis = [deref_ini(ini,fields) for ini in filter_removed(mongo.db.initiative.find(sort=[('_id', ASCENDING)]))]
+    inis = [deref_ini(db,ini,fields) for ini in filter_removed(db.initiative.sort('_id'))]
     indx = {ini['_id']: i for i,ini in enumerate(inis)}
     def is_link(d):
         return d['from_init_id'] in indx.keys() and d['to_init_id'] in indx.keys()
@@ -167,30 +164,30 @@ def byprogf_api():
         #return {'source': int(d['from_init_id'][3:])-1, 'target':  int(d['to_init_id'][3:])-1, 'type': d['type']}
     return jsonify(
         inits = inis,
-        links = map(mk_link, filter(is_link, mongo.db.dependency.find({'type': 'soft'})))
-              + map(mk_link, filter(is_link, mongo.db.dependency.find({'type': 'hard'}))))
+        links = map(mk_link, filter(is_link, db.dependency.where({'type': 'soft'})))
+              + map(mk_link, filter(is_link, db.dependency.where({'type': 'hard'}))))
 
 
 @app.route('/data/bytime')
 def bytime_api():
+    db = DataBase(mongo.db)
     hards = {}
-    for dpn in mongo.db.dependency.find({'type': 'hard'}):
+    for dpn in db.dependency.where({'type': 'hard'}):
         if not dpn['from_init_id'] in hards.keys():
             hards[dpn['from_init_id']] = []
         hards[dpn['from_init_id']].append(dpn['to_init_id'])
     fields = ['_id','name','state','start','end','type','category','program_id','function_ids']
     inits = []
-    for init in filter_removed(mongo.db.initiative.find().sort('function_ids', ASCENDING)):
+    for init in filter_removed(db.initiative.sort('function_ids')):
         ini = {name: init.get(name, '') for name in fields}
         ini['to'] = hards.get(ini['_id'], [])
-        prog = mongo.db.programme.find_one(ini['program_id'])
+        prog = db.programme[ini['program_id']]
         ini['program'] = prog['name'] if prog else ''
         del ini['program_id']
         if ini['function_ids'] == 'ALL':
             ini['function'] = 'ALL'
         else:
-            #funcs = [mongo.db.function.find_one(fid) for fid in ini['function_ids'].split()]
-            funcs = [mongo.db.function.find_one(fid) for fid in ini['function_ids']]
+            funcs = [db.function[fid] for fid in ini['function_ids']]
             ini['function'] =  ' / '.join(f.get('abbr', f['name']) if f else '?' for f in funcs)
         del ini['function_ids']
         inits.append(ini)
@@ -209,29 +206,31 @@ def mk_options(cursor, field='name'):
 @app.route('/data/caps')
 @app.route('/data/caps/<id>')
 def caps_api(id=None):
+    db = DataBase(mongo.db)
     #print id
     if id:
         if id[0:3] == 'FUN':
-            fun = mongo.db.function.find_one(id)
-            caps = list(mongo.db.capability.find({'function_id': id}))
-            inis = list(mongo.db.initiative.find())
+            fun  = db.function[id]
+            caps = db.capability.where({'function_id': id})
+            inis = db.initiative
             return jsonify(caps=caps, fun=fun, inis=mk_options(inis))
         elif id[0:3] == 'INI':
-            ini = mongo.db.initiative.find_one(id)
-            caps = list(mongo.db.capability.find({'init_id': id}))
-            funs = list(mongo.db.function.find())
+            ini  = db.initiative[id]
+            caps = db.capability.where({'init_id': id})
+            funs = db.function
             return jsonify(caps=caps, funs=mk_options(funs), ini=ini)
     else:
-        caps = list(mongo.db.capability.find())
-        funs = list(mongo.db.function.find())
-        inis = list(mongo.db.initiative.find())
+        caps = db.capability
+        funs = db.function
+        inis = db.initiative
         return jsonify(caps=caps, funs=mk_options(funs), inis=mk_options(inis))
 
 @app.route('/data/funs')
 def funs_api():
-    funs = list(mongo.db.function.find())
+    db = DataBase(mongo.db)
+    funs = db.function
     for fun in funs:
-        fun['ncap'] = mongo.db.capability.find({'function_id': fun['_id']}).count()
+        fun['ncap'] = len(db.capability.where({'function_id': fun['_id']}))
     return jsonify({'funs': funs})
 
 if __name__ == '__main__':

@@ -10,6 +10,8 @@
 #-------------------------------------------------------------------------------
 # http://norvig.com/lispy.html
 
+from app import app
+from data import *
 import sexpr
 
 def parse(src):
@@ -18,40 +20,46 @@ def parse(src):
             return map(enlisp,s)
         else:
             return atom(s)
-    s = sexpr.parse(src)
-    return enlisp(s)
+    return enlisp(sexpr.parse(src))
 
-#Symbol = str          # A Lisp Symbol is implemented as a Python str
-List   = list         # A Lisp List is implemented as a Python list
-Number = (int, float, complex) # A Lisp Number is implemented as a Python int or float
-String = unicode
-Boolean = bool
+Num  = (int, float, complex) # A Lisp Number is implemented as a Python int or float
+Bool = bool
 
-class Symbol(unicode): pass
+class List(list):
+    pass
+class Str(unicode):
+    pass
+class Sym(unicode):
+    Table = {}
+    def __new__(cls, *args, **kwargs):
+        if not Sym.Table.has_key(args[0]):
+            Sym.Table[args[0]] =  super(Sym, cls).__new__(cls, *args, **kwargs)
+        return Sym.Table[args[0]]
 
-def mk_symbol(s, symbol_table={}):
-    "Find or create unique Symbol entry for str s in symbol table."
-    if s not in symbol_table: symbol_table[s] = Symbol(s)
-    return symbol_table[s]
 
-_quote, _if, _set, _define, _lambda, _begin, _definemacro, = map(mk_symbol,
+_quote, _if, _set, _define, _lambda, _begin, _definemacro, = map(Sym,
     "quote if assign def fn begin mac".split())
 
 def atom(token):
     'Numbers become numbers; #t and #f are booleans; "..." string; otherwise Symbol.'
-    if token == '#t': return True
-    elif token == '#f': return False
-    elif token[0] == '"': return String(token[1:-1]) #.decode('string_escape'))
-    try: return int(token)
+    if token == '#t':
+        return True
+    elif token == '#f':
+        return False
+    elif token[0] == '"':
+        return Str(token[1:-1]) #.decode('string_escape'))
+    try:
+        return int(token)
     except ValueError:
-        try: return float(token)
+        try:
+            return float(token)
         except ValueError:
             if not token in ('i','j'):
                 try:
                     return complex(token.replace('i', 'j', 1))
                 except ValueError:
                     pass
-            return mk_symbol(token)
+            return Sym(token)
 
 class Procedure(object):
     "A user-defined Scheme procedure."
@@ -65,7 +73,7 @@ class Env(dict):
     def __init__(self, parms=(), args=(), outer=None):
         # Bind parm list to corresponding args, or single parm to list of args
         self.outer = outer
-        if isa(parms, Symbol):
+        if isa(parms, Sym):
             self.update({parms:list(args)})
         else:
             if len(args) != len(parms):
@@ -81,13 +89,10 @@ class Env(dict):
         else:
             return self.outer.find(var)
 
-from pymongo import MongoClient
-db = MongoClient(app.config['MONGO_URI'])[app.name]
-meta = {m['_id']:m for m in db.meta.find()}
 
-def _mongo(*args):
-    coll = db[str(args[0])]
-    return list(coll.find())
+def _db(*args):
+    db = DataBase(app.config['MONGO_URI'])
+    return db[str(args[0])]
 
 def _orderby(seq, fun):
     seq = seq[:]
@@ -132,16 +137,16 @@ def standard_env():
         'min':     min,
         'not':     op.not_,
         'null?':   lambda x: x == [],
-        'number?': lambda x: isinstance(x, Number),
+        'number?': lambda x: isinstance(x, Num),
         'procedure?': callable,
         'round':   round,
-        'symbol?': lambda x: isinstance(x, Symbol),
-        'string?': lambda x: isinstance(x, String),
-        'bool?': lambda x: isinstance(x, Boolean),
+        'symbol?': lambda x: isinstance(x, Sym),
+        'string?': lambda x: isinstance(x, Str),
+        'bool?': lambda x: isinstance(x, Bool),
         'bool':op.truth,
         #'obj': lambda *x: {k:v for k,v in x},
         #'!': lambda x: x,
-        'db': _mongo,
+        'db': _db,
         'upper': lambda x: x.upper(),
         'lower': lambda x: x.lower(),
         'orderby': _orderby,
@@ -178,6 +183,13 @@ isa = isinstance
 #global_env = standard_env()
 global_env = arc_env(standard_env())
 
+_db = None
+def db():
+    global _db
+    if _db is None:
+        _db = DataBase(app.config['MONGO_URI'])
+    return _db
+
 def _lookup(x, env):
     if '.' in x:
         names = x.split('.')
@@ -189,8 +201,8 @@ def _lookup(x, env):
                 if _id is None:
                     break
                 pre = _id[:3]
-                nm = meta[pre]['name']
-                new_obj = db[nm].find_one(_id)
+                nm = db().meta[pre]['name']
+                new_obj = db()[nm][_id]
             obj = new_obj
         return obj
     else:
@@ -198,10 +210,8 @@ def _lookup(x, env):
 
 def eval(x, env=global_env):
     "Evaluate an expression in an environment."
-    if isa(x, Symbol):          # variable reference
+    if isa(x, Sym):             # variable reference
         return _lookup(x, env)
-    elif not isa(x, List):      # constant literal
-        return x
     elif not isa(x, list):      # constant literal
         return x
     elif x[0] == _quote:        # (quote exp)
@@ -349,7 +359,7 @@ def main():
     """
     MON = """
         ;(! '(1 2 3))
-        (from (db 'dependency) d
+        (from (db 'dependency) (d)
             (where (and (= d.from 'start) (= d.to 'end)))
             (select (dict ('from d.from_init.name) ('to d.to_init.name)))
         )
@@ -361,7 +371,7 @@ def main():
         ;ably\\"")
     """
     #for exp in parse(u"(def name \"Marcus Baumgartner & Paulo Cinelli\") {obj ('name name)} (+ 2 3.14e-10i)"):
-    for exp in parse(LNQ):
+    for exp in parse(MON):
         #print exp, '=>',
         print eval(exp)
 
