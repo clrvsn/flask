@@ -16,7 +16,9 @@
 #SQLALCHEMY_MIGRATE_REPO = os.path.join(basedir, 'db_repository')
 
 def read_cfg():
-    f = open('app.cfg')
+    import os.path
+    path = os.path.split(__file__)[0]
+    f = open(os.path.join(path,'app.cfg'))
     env = f.readline().strip(' \n')
     f.close()
     return env
