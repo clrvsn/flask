@@ -156,6 +156,36 @@ function intersect_lineseg_rect(xk,yk, xl,yl, xm,ym, xn,yn, xp,yp, xq,yq) {
 
 
 //==============================================================================
+// Generate HTML
+
+function mk() {
+    var el = arguments[0].split('.'),
+        cls = (el.length > 1) ? el[1] : '',
+        id = el[0].split('#');
+
+    el = $('<'+id[0]+'/>');
+    if (id.length > 1) {
+        el.attr('id', id[1]);
+    }
+    if (cls) {
+        el.addClass(cls);
+    }
+
+    _.each(_.tail(arguments), function (arg) {
+        if (arg) {
+            if (arg.constructor == Object) {
+                el.attr(arg)
+            } else {
+                el.append(arg);
+            }
+        }
+    });
+
+    return el;
+}
+
+
+//==============================================================================
 // Fiscal Dates
 
 var FiscalDate = function (fy, t, end) {

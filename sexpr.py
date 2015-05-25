@@ -9,7 +9,7 @@
 # Licence:     <your licence>
 #-------------------------------------------------------------------------------
 
-DELIMS = u"()'{}:[]"
+DELIMS = u"()'{}[]"
 SPACE = u" \t\n\r"
 
 def lex(string):
@@ -56,6 +56,8 @@ def parse(string):
         return tokens.pop(0) if tokens else None
     def exp():
         quote = False
+        in_list = False
+        in_dict = False
         lst = []
         token = get()
         while token != None:
@@ -63,17 +65,18 @@ def parse(string):
                 break
             elif token == "'":
                 quote = True
-            elif token in '({[':
+            elif token in '({':
                 lst.append(['quote', exp()] if quote else exp())
                 quote = False
-                openr = token
+            elif token == '[':
+                lst.append(['quote', ['list'] + exp()] if quote else ['list'] + exp())
+                quote = False
             else:
                 lst.append(['quote', token] if quote else token)
                 quote = False
             token = get()
         return lst
-
-    return exp()#[0]
+    return exp()
 
 def main():
 ##    print lex('abc')
@@ -87,6 +90,9 @@ def main():
 ##    print parse('abc ced(abc (123) zyz)(abc (1 2 3) zyz)')
     print lex(u'"Marcus Baumgartner & Paulo Cinelli"')
     print parse(u'{obj \'name "Marcus Baumgartner \\"&\\" Paulo Cinelli"}')
+    print parse('(+ (list (+ 1 2) 2 3))')
+    print parse('(+ [(+ 1 2) 2 3])')
+    print parse('(+ \'[1 2 3])')
 
 if __name__ == '__main__':
     main()

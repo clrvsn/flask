@@ -11,7 +11,6 @@
     </style>
 {% endblock %}
 {% block content %}
-   <div class="container-fluid">
       <div class="row">
         <div class="col-sm-3 col-md-2 sidebar">
           <ul id="editors" class="nav nav-sidebar">
@@ -141,7 +140,6 @@
       </div>
     </div>
     <div id="edit-modal" class="modal" tabindex="-1" role="dialog">
-    </div>
 {% endblock %}
 {% block foot %}
     <script type="text/javascript">
@@ -192,7 +190,7 @@
             return $('<span class="glyphicon glyphicon-'+name+'"/>');
         }
 
-        function mk() {
+        /*function mk() {
             var el = arguments[0].split('.'),
                 cls = (el.length > 1) ? el[1] : '',
                 id = el[0].split('#');
@@ -216,7 +214,7 @@
             });
 
             return el;
-        }
+        }*/
 
         //----------------------------------------------------------------------
         // Modal Forms
@@ -256,6 +254,8 @@
             {name:'label', label:'Label', required:true, type:'string'},
             {name:'type', label:'Type', required:true, type:'enum', enum_vals:[
                 {val:'string', txt:'string'},
+                {val:'text', txt:'text'},
+                {val:'html', txt:'html'},
                 {val:'bool', txt:'bool'},
                 {val:'enum', txt:'enum'},
                 {val:'ref', txt:'ref'},
@@ -286,6 +286,15 @@
             ed.append(vals[field.name]);
             ed.on('change', function () {
                 vals[field.name] = ed.val();
+            });
+            return ed;
+        }
+        function mk_html_ed(field,vals,lbl) {
+            var ed = mk('textarea.form-control', {id: field.name+'_ed', wrap:'soft', rows:'10'});
+            lbl.attr('for', field.name+'_ed');
+            ed.append(_.escape(vals[field.name]));
+            ed.on('change', function () {
+                vals[field.name] = _.unescape(ed.val());
             });
             return ed;
         }
@@ -479,6 +488,7 @@
         var ed_mkr = {
             'string':     mk_string_ed,
             'text':       mk_text_ed,
+            'html':       mk_html_ed,
             'bool':       mk_bool_ed,
             'date':       mk_date_ed,
             'enum':       mk_enum_ed,

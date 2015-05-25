@@ -9,7 +9,7 @@
 # Licence:     <your licence>
 #-------------------------------------------------------------------------------
 
-from flask import render_template, jsonify
+from flask import render_template, jsonify, request, render_template_string
 #from flask.ext.pymongo import ASCENDING
 from app import app, mongo
 from data import *
@@ -19,24 +19,56 @@ import json
 def front_page():
     return render_template("front.html")
 
-@app.route('/edfun')
-def edit_fun():
-    return render_template("edit_fun.html",
-                            title='Functional Areas Editor')
 @app.route('/try')
 def try_it():
     return render_template("try.html")
 
-@app.route('/editor')
-def editor():
-    return render_template("editor.html",
-                            title='Editor')
+##@app.route('/edfun')
+##def edit_fun():
+##    return render_template("edit_fun.html",
+##                            title='Functional Areas Editor')
+##@app.route('/editor')
+##def editor():
+##    return render_template("editor.html",
+##                            title='Editor')
 
 @app.route('/cq/<string:query>')
 def cq(query):
     return render_template("cq.html",
                             title='ClearQuest Query: '+query,
                             query=query)
+@app.route('/page/<name>')
+def page(name):
+    import lispy
+    db_page = mongo.db._page.find_one(name)
+    page = {}
+    def elab(v):
+        if isinstance(v,dict):
+            if v.has_key('proc'):
+                obj = ''
+                if v['proc'] == 'lispy' and v.has_key('source'):
+                    obj = lispy.execute(v['source'], {
+                        'req': {
+                            'args': request.args,
+                            'form': request.form}})
+                elif v['proc'] == 'jinja' and v.has_key('source'):
+                    obj = render_template_string(v['source'],
+                            title=title,
+                            data=data,
+                            req={
+                                'args': request.args,
+                                'form': request.form})
+                return obj
+            elif v.has_key('source'):
+                return v['source']
+    title = elab(db_page['title']) if 'title' in db_page else ''
+    data = elab(db_page['data']) if 'data' in db_page else {}
+    page['title'] = title
+    page['data'] = json.dumps(data)
+    for k,v in db_page.iteritems():
+        if k not in ('data'):
+            page[k] = elab(v)
+    return render_template("page.html", **page)
 
 @app.route('/edit/<name>')
 def edit_any(name):

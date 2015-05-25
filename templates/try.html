@@ -1,20 +1,74 @@
 ﻿{% extends "base.html" %}
 {% block head %}
     <style>
+    /* docgroup */
+    g.docgroup rect {
+    }
+    g#DGP0001 rect { fill: #4f81bd; }
+    g#DGP0002 rect { fill: #00cc99; }
+    g#DGP0003 rect { fill: #009999; }
+
+    /* document */
+    g.document rect {
+        fill: white;
+        stroke: #4f81bd;
+        stroke-width: 2;
+    }
+    g.document rect:hover {
+        fill: orange;
+    }
+    g.document text {
+        font-family: Verdana;
+        font-size: 11px;
+        text-align: center;
+        line-height: 110%;
+        text-anchor: middle;
+        pointer-events: none;
+    }
     </style>
 {% endblock %}
 {% block content %}
-    <span id="output">
-    </span>
+<div class="main">
+  <h1 class="page-header">Try</h1>
+  <div id="output" />
+</div>
 {% endblock %}
 {% block foot %}
-    <script type="text/javascript">
-        var src = "(from (db 'dependency) (d)"
-            + "(where (and (= d.from 'start) (= d.to 'end)))"
-            + "(select (dict ('from d.from_init.name) ('to d.to_init.name))))";
+    <script id="foo" type="text/x-lispy">
+        ;(from (db 'dependency) (d)
+        ;    (where (and (= d.from 'start) (= d.to 'end)))
+        ;    (select (dict ('from d.from_init.name) ('to d.to_init.name))))
+        ;(def docs (db 'document))
+        ;(def grps (db 'docgroup))
+        ;(((db '_svg) 0) 'xml)
+        ;(dict
+        ;    ('docs (db 'document))
+        ;    ('grps (db 'docgroup))
+        ;    ('fig ((db '_svg) 'prog-plane))
+        ;)
+        (def docs (db 'document))
+        (def doc (docs 'DOC0001))
+        (dict
+            ('name doc.name)
+            ('children (map (fn (i) ((docs i) 'name)) doc.related_ids))
+        )
+    </script>
 
-        $.post("/api/exec", src, function(result){
-            $("#output").html(JSON.stringify(result));
+    <script type="text/javascript">
+        var src = $('#foo').html();
+
+        $.post("/api/exec", src, function(data){
+            //$("#output").html(JSON.stringify(result));
+            $("#output").html(data.fig.xml);
+            $("g.document").click( function (e) {
+                var id = this.id,
+                    doc = _.findWhere(data.docs, {_id: id}),
+                    lnk = doc.link;
+
+                if (lnk) {
+                    window.location.href = lnk;
+                }
+            });
         });
     </script>
 {% endblock %}

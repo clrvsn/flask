@@ -85,7 +85,7 @@ class Env(dict):
         if var in self:
             return self
         elif self.outer is None:
-            raise LookupError(var)
+            raise KeyError(var)
         else:
             return self.outer.find(var)
 
@@ -102,6 +102,42 @@ def _orderby_down(seq, fun):
     seq = seq[:]
     seq.sort(cmp=fun, revese=True)
     return seq
+
+import figure
+def _fig(*args, **kwargs):
+    fig = figure.Fig(*args,**kwargs)
+    return fig.render()
+
+FIG = """
+;(def cols 12)
+(def docs (db 'document))
+(len docs)
+;(: (/ n 2))
+(fig width: '5cm height: '4cm viewBox: "0 0 100 100"
+    (rect x: 20 y: 20 width: 20 height: 20)
+    (rect x: 50 y: 20 width: 30 height: 15)
+    (rect x: 20 y: 50 width: 20 height: 20)
+    (rect x: 50 y: 50 width: 20 height: 40)
+)
+        (def docs (db 'document))
+        (def f (fn (id depth) (begin
+            (def doc (docs id))
+            (if (> depth 0)
+                (dict
+                    ('name doc.name)
+                    ('children (map
+                                    (fn (i) (f i (- depth 1)))
+                                    (doc 'related_ids [])
+                    ))
+                )
+                (dict
+                    ('name doc.name)
+                )
+            )
+        )))
+        (f 'DOC0001 2)
+"""
+
 
 def standard_env():
     "An environment with some 'standard' procedures."
@@ -146,11 +182,14 @@ def standard_env():
         'bool':op.truth,
         #'obj': lambda *x: {k:v for k,v in x},
         #'!': lambda x: x,
+        ':': range,
         'db': _db,
         'upper': lambda x: x.upper(),
         'lower': lambda x: x.lower(),
         'orderby': _orderby,
         'orderby_down': _orderby_down,
+        'fig': _fig,
+        'rect': figure.rect,
     })
     return env
 
@@ -201,7 +240,7 @@ def _lookup(x, env):
                 if _id is None:
                     break
                 pre = _id[:3]
-                nm = db().meta[pre]['name']
+                nm = db()._meta[pre]['name']
                 new_obj = db()[nm][_id]
             obj = new_obj
         return obj
@@ -218,7 +257,7 @@ def eval(x, env=global_env):
         (_, exp) = x
         return exp
     elif x[0] == _if:           # (if test conseq ... alt)
-        for i in range(len(x)/2):
+        for i in range(len(x)/2-1):
             test, conseq = x[2*i + 1], x[2*i + 2]
             if eval(test, env):
                 return eval(conseq, env)
@@ -237,13 +276,42 @@ def eval(x, env=global_env):
         return {eval(k,env):eval(v,env) for k,v in x[1:]}
     elif x[0] == 'from':
         return _from(x[1:], env)
+##    elif x[0] == 'fig':
+##        return _fig(x[1:], env)
     else:                       # (proc arg...)
         proc = eval(x[0], env)
         if callable(proc):
-            args = [eval(exp, env) for exp in x[1:]]
-            return proc(*args)
+            #args = [eval(exp, env) for exp in x[1:]]
+            args = []
+            kwargs = {}
+            kw = None
+            app = None
+            for arg in x[1:]:
+                if kw:
+                    kwargs[kw] = eval(arg, env)
+                    kw = None
+                    continue
+                elif app:
+                    if app == '*':
+                        args.extend(eval(arg, env))
+                    elif app == '**':
+                        kwargs.update(eval(arg, env))
+                    app = None
+                    continue
+                elif isinstance(arg,basestring):
+                    if arg[-1] == ':':
+                        kw = arg[:-1]
+                        continue
+                    elif arg in ('*','**'):
+                        app = arg
+                        continue
+                args.append(eval(arg, env))
+            return proc(*args,**kwargs)
         if hasattr(proc, '__getitem__'):
-            return proc[eval(x[1],env)]
+            if isinstance(proc,dict):
+                args = [eval(exp, env) for exp in x[1:]]
+                return proc.get(*args)
+            return proc[eval(x[1], env)]
 
 def _from(args, env):
     objs = eval(args[0],env)
@@ -269,13 +337,28 @@ def _from(args, env):
             for a in reversed(arg[1:]):
                 key = Procedure(prms, a, env)
                 objs.sort(key=key, reverse=True)
-
     return obj if obj else objs
+
+##def _fig(args, env):
+##    import figure
+##    fig = figure.Fig()
+##    def f(node,arg):
+##        hd = arg[0]
+##        if hd[-1] == ':':
+##            node._attr[hd[:-1]] = eval(arg[1],env)
+##        else:
+##            kid = figure.Node(hd)
+##            for a in arg[1:]:
+##                f(kid,a)
+##            node.append(kid)
+##    for arg in args:
+##        f(fig,arg)
+##    return fig.render()
 
 def _select(bdy):
     pass
 
-global_env['from'] = _from
+#global_env['from'] = _from
 
 def main():
     SRC = """
@@ -367,15 +450,21 @@ def main():
             (where (= i.category 'impact))
             (select i.name)
         )
+        (def docs (db 'document))
+        (docs 'DOC0010)
         ;(! "\\"prob
         ;ably\\"")
     """
     #for exp in parse(u"(def name \"Marcus Baumgartner & Paulo Cinelli\") {obj ('name name)} (+ 2 3.14e-10i)"):
-    for exp in parse(MON):
+    for exp in parse(FIG):
         #print exp, '=>',
         print eval(exp)
 
-def execute(src, env=global_env):
+def execute(src, args=None):
+    env = Env()
+    env.update(global_env)
+    if args:
+        env.update(args)
     rslt = ''
     for exp in parse(src):
         #print exp, '=>',

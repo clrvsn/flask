@@ -39,8 +39,13 @@ class Collection(list):
             #print 'Indexing',coll
             self._index = {d['_id']:d for d in self}
         return self._index
-    def __getitem__(self, _id):
-        return self._get_index().get(_id, None)
+    def __getitem__(self, key):
+        if isinstance(key,int):
+            return super(Collection, self).__getitem__(key)
+        else:
+            return self._get_index().get(key, None)
+    #def get(self, key, dflt=None):
+    #    return self._get_index().get(key, dflt)
     def where(self, spec):
         if callable(spec):
             return Collection(filter(spec, self))

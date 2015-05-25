@@ -1,0 +1,20 @@
+﻿{% extends "base.html" %}
+{% block head %}
+    <style>
+{{ style|safe }}
+    </style>
+{% endblock %}
+{% block content %}
+<div class="main">
+{{ html|safe }}
+</div>
+{% endblock %}
+{% block foot %}
+    <script id="data-json" type="text/json">
+{{ data|safe }}
+    </script>
+    <script type="text/javascript">
+        var DATA = JSON.parse($('#data-json').html());
+{{ script|safe }}
+    </script>
+{% endblock %}
