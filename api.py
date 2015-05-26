@@ -195,6 +195,54 @@ api.add_resource(ExecLib, '/api/exec/<string:_id>')
 
 #-------------------------------------------------------------------------------
 
+##from werkzeug import Response
+##from gridfs import GridFS
+##
+##class File(Resource):
+##    def get(self, name):
+##        fs = GridFS(mongo.db)
+##        f = fs.get_last_version(name)
+##        return Response(f, mimetype=f.content_type, direct_passthrough=True)
+####    def put(self, name):
+####        data = request.get_data()
+####        obj = json.loads(data)
+####        mongo.db._lib.update({'_id': _id}, obj, upsert=True)
+####        return obj, 201
+####    def delete(self, name):
+####        mongo.db._lib.remove(_id)
+####        return '', 204
+##
+##class FileList(Resource):
+##    def get(self):
+##        fs = GridFS(mongo.db)
+##        files = [fs.get_last_version(file) for file in fs.list()]
+##        file_list = "\n".join(['<li><a href="%s">%s</a></li>' % \
+##                                ('/file/' + file.name, file.name) \
+##                                for file in files])
+##        return '''<!DOCTYPE html>
+##<html>
+##  <head><title>Files</title></head>
+##  <body>
+##    <h1>Files</h1>
+##    <ul>
+##%s
+##    </ul>
+##    <a href="%s">Upload new file</a>
+##  </body>
+##</html>
+##        ''' % (file_list, '')
+##    def post(self):
+##        fs = GridFS(mongo.db)
+##        file = request.files['file']
+##        if file: # and allowed_file(file.filename):
+##            filename = secure_filename(file.filename)
+##            oid = fs.put(file, content_type=file.content_type, filename=filename)
+##            return redirect('/file/' + filename)
+##
+##api.add_resource(FileList, '/file')
+##api.add_resource(File,     '/file/<string:name>')
+##
+
 def main():
     pass
 

@@ -124,14 +124,14 @@ FIG = """
             (def doc (docs id))
             (if (> depth 0)
                 (dict
-                    ('name doc.name)
-                    ('children (map
+                    'name doc.name
+                    'children (map
                                     (fn (i) (f i (- depth 1)))
                                     (doc 'related_ids [])
-                    ))
+                    )
                 )
                 (dict
-                    ('name doc.name)
+                    'name doc.name
                 )
             )
         )))
@@ -247,6 +247,16 @@ def _lookup(x, env):
     else:
         return env.find(x)[x]
 
+def _pairs(x):
+    n = len(x)
+    if n % 2:
+        return [(x[2*i + 1], x[2*i + 2]) for i in range((n-1)/2)]
+    else:
+        return [(x[2*i + 1], x[2*i + 2]) for i in range(n/2-1)]
+
+def _last(x):
+    return x[-1]
+
 def eval(x, env=global_env):
     "Evaluate an expression in an environment."
     if isa(x, Sym):             # variable reference
@@ -257,14 +267,13 @@ def eval(x, env=global_env):
         (_, exp) = x
         return exp
     elif x[0] == _if:           # (if test conseq ... alt)
-        for i in range(len(x)/2-1):
-            test, conseq = x[2*i + 1], x[2*i + 2]
+        for test, conseq in _pairs(x):
             if eval(test, env):
                 return eval(conseq, env)
-        return eval(x[-1], env)
-    elif x[0] == _define:       # (define var exp)
-        (_, var, exp) = x
-        env[var] = eval(exp, env)
+        return eval(_last(x), env)
+    elif x[0] == _define:       # (define var exp ...)
+        for var, exp in _pairs(x):
+            env[var] = eval(exp, env)
     elif x[0] == _set:          # (set! var exp)
         (_, var, exp) = x
         env.find(var)[var] = eval(exp, env)
@@ -273,7 +282,7 @@ def eval(x, env=global_env):
         return Procedure(parms, body, env)
     # Extra special forms
     elif x[0] == 'dict':
-        return {eval(k,env):eval(v,env) for k,v in x[1:]}
+        return {eval(k,env):eval(v,env) for k,v in _pairs(x)}
     elif x[0] == 'from':
         return _from(x[1:], env)
 ##    elif x[0] == 'fig':
@@ -389,11 +398,11 @@ def main():
         (map fib (range 0 20))
     """
     LNQ = """
-        (def numbers '(5 4 1 3 9 8 6 7 2 0))
-        (def digits '(zero one two three four five six seven eight nine))
-        (def words '(cherry apple blueberry))
-        (def doubles '(1.7 2.3 1.9 4.1 2.9))
-
+        (def numbers '(5 4 1 3 9 8 6 7 2 0)
+             digits '(zero one two three four five six seven eight nine)
+             words '(cherry apple blueberry)
+             doubles '(1.7 2.3 1.9 4.1 2.9)
+        )
         ; Where - Simple 1
         (from numbers (n)
             (where (< n 5))
@@ -408,7 +417,7 @@ def main():
         )
         ; Select - Anonymous Types 1
         (from '(aPPLE BlUeBeRrY cHeRry) (w)
-            (select (dict ('upper (upper w)) ('lower (lower w))))
+            (select (dict 'upper (upper w) 'lower (lower w)))
         )
         ; OrderBy - Simple 1
         (from words (w)
@@ -442,21 +451,40 @@ def main():
     """
     MON = """
         ;(! '(1 2 3))
-        (from (db 'dependency) (d)
-            (where (and (= d.from 'start) (= d.to 'end)))
-            (select (dict ('from d.from_init.name) ('to d.to_init.name)))
-        )
-        (from (db 'initiative) (i)
-            (where (= i.category 'impact))
-            (select i.name)
-        )
-        (def docs (db 'document))
-        (docs 'DOC0010)
+        ;(from (db 'dependency) (d)
+        ;    (where (and (= d.from 'start) (= d.to 'end)))
+        ;    (select (dict 'from d.from_init.name 'to d.to_init.name))
+        ;)
+        ;(from (db 'initiative) (i)
+        ;    (where (= i.category 'impact))
+        ;    (select i.name)
+        ;)
+        ;(def docs (db 'document))
+        ;(docs 'DOC0010)
         ;(! "\\"prob
         ;ably\\"")
+
+        (def docs  (db 'document)
+             doc   (docs 'DOC0006) ;req.args.id)
+             rdocs (map (fn (i) (docs i)) (doc 'related_ids []))
+        )
+        (dict
+            'desc    (doc 'desc "")
+            'related rdocs
+            'link    (doc 'link "")
+            'content (doc 'content "")
+        )
+        (dict
+            'docs (db 'document)
+            'grps (db 'docgroup)
+            'figs [
+                ((db '_svg) 'prog-plan)
+                ((db '_svg) 'prog-plan-legend)
+            ]
+        )
     """
     #for exp in parse(u"(def name \"Marcus Baumgartner & Paulo Cinelli\") {obj ('name name)} (+ 2 3.14e-10i)"):
-    for exp in parse(FIG):
+    for exp in parse(MON):
         #print exp, '=>',
         print eval(exp)
 

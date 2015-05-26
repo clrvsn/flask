@@ -265,5 +265,69 @@ def funs_api():
         fun['ncap'] = len(db.capability.where({'function_id': fun['_id']}))
     return jsonify({'funs': funs})
 
+#-------------------------------------------------------------------------------
+# Files
+
+from flask import url_for, redirect
+from werkzeug import Response, secure_filename
+from gridfs import GridFS
+
+@app.route('/file/<name>')
+def get_file(name):
+    fs = GridFS(mongo.db)
+    f = fs.get_last_version(name)
+    return Response(f, mimetype=f.content_type, direct_passthrough=True)
+
+@app.route('/file_upload', methods=['GET', 'POST'])
+def upload_file():
+    fs = GridFS(mongo.db)
+    if request.method == 'POST':
+        file = request.files['file']
+        if file: # and allowed_file(file.filename):
+            filename = secure_filename(file.filename)
+            oid = fs.put(file, content_type=file.content_type, filename=filename)
+            return redirect(url_for('get_file', name=filename))
+    return '''
+    <!DOCTYPE html>
+    <html>
+    <head>
+    <title>Upload new file</title>
+    </head>
+    <body>
+    <h1>Upload new file</h1>
+    <form action="" method="post" enctype="multipart/form-data">
+    <p><input type="file" name="file"></p>
+    <p><input type="submit" value="Upload"></p>
+    </form>
+    <a href="%s">All files</a>
+    </body>
+    </html>
+    ''' % url_for('list_files')
+
+@app.route('/file')
+def list_files():
+    fs = GridFS(mongo.db)
+    files = [fs.get_last_version(file) for file in fs.list()]
+    file_list = "\n".join(['<li><a href="%s">%s</a></li>' % \
+                            (url_for('get_file', name=file.name), file.name) \
+                            for file in files])
+    return '''
+    <!DOCTYPE html>
+    <html>
+    <head>
+    <title>Files</title>
+    </head>
+    <body>
+    <h1>Files</h1>
+    <ul>
+    %s
+    </ul>
+    <a href="%s">Upload new file</a>
+    </body>
+    </html>
+    ''' % (file_list, url_for('upload_file'))
+
+#-------------------------------------------------------------------------------
+
 if __name__ == '__main__':
     pass
