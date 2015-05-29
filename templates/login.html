@@ -1,0 +1,30 @@
+﻿{% extends "base.html" %}
+{% block head %}
+    <style>
+    </style>
+{% endblock %}
+{% block content %}
+ <h2>Login</h2>
+  <form action="" method="post" class="form-horizontal">
+  {{ form.hidden_tag() }}
+    <div class="form-group">
+      <label for="username-ctrl"class="col-sm-2 control-label">{{form.username.label}}</label>
+      <div class="col-sm-6">
+        <input name="username" size="20" type="text" class="form-control" id="username-ctrl" placeholder="Enter username">
+      </div>
+    </div>
+    <div class="form-group">
+      <label for="password-ctrl"class="col-sm-2 control-label">{{form.password.label}}</label>
+      <div class="col-sm-6">
+        <input name="password" size="20" type="password" class="form-control" id="password-ctrl" placeholder="Password">
+      </div>
+    </div>
+    <div class="col-sm-offset-2 col-sm-6">
+      <button type="submit" value="login" class="btn btn-default">Login</button>
+    </div>
+  </form>
+{% endblock %}
+{% block foot %}
+    <script type="text/javascript">
+    </script>
+{% endblock %}

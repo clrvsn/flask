@@ -9,32 +9,23 @@
 # Licence:     <your licence>
 #-------------------------------------------------------------------------------
 
-from flask import render_template, jsonify, request, render_template_string
+#from flask import render_template, jsonify, request, render_template_string
 #from flask.ext.pymongo import ASCENDING
 from app import app, mongo
 from data import *
-import json
+import flask, json
 
 @app.route('/')
 def front_page():
-    return render_template("front.html")
+    return flask.render_template("front.html")
 
 @app.route('/try')
 def try_it():
-    return render_template("try.html")
-
-##@app.route('/edfun')
-##def edit_fun():
-##    return render_template("edit_fun.html",
-##                            title='Functional Areas Editor')
-##@app.route('/editor')
-##def editor():
-##    return render_template("editor.html",
-##                            title='Editor')
+    return flask.render_template("try.html")
 
 @app.route('/cq/<string:query>')
 def cq(query):
-    return render_template("cq.html",
+    return flask.render_template("cq.html",
                             title='ClearQuest Query: '+query,
                             query=query)
 @app.route('/page/<name>')
@@ -49,15 +40,15 @@ def page(name):
                 if v['proc'] == 'lispy' and v.has_key('source'):
                     obj = lispy.execute(v['source'], {
                         'req': {
-                            'args': request.args,
-                            'form': request.form}})
+                            'args': flask.request.args,
+                            'form': flask.request.form}})
                 elif v['proc'] == 'jinja' and v.has_key('source'):
-                    obj = render_template_string(v['source'],
+                    obj = flask.render_template_string(v['source'],
                             title=title,
                             data=data,
                             req={
-                                'args': request.args,
-                                'form': request.form})
+                                'args': flask.request.args,
+                                'form': flask.request.form})
                 return obj
             elif v.has_key('source'):
                 return v['source']
@@ -68,42 +59,75 @@ def page(name):
     for k,v in db_page.iteritems():
         if k not in ('data'):
             page[k] = elab(v)
-    return render_template("page.html", **page)
+    return flask.render_template("page.html", **page)
+
+#-------------------------------------------------------------------------------
+# Login
+
+from login import LoginForm, login_user, logout_user, login_required
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    # Here we use a class of some kind to represent and validate our
+    # client-side form data. For example, WTForms is a library that will
+    # handle this for us.
+    form = LoginForm()
+    if form.validate_on_submit():
+        # Login and validate the user.
+        login_user(form.user) #, remember=True)
+
+        flask.flash('Logged in successfully.')
+
+        next = flask.request.args.get('next')
+        #if not next_is_valid(next):
+        #    return flask.abort(400)
+
+        return flask.redirect(next or '/')
+    return flask.render_template('login.html', form=form)
+
+@app.route("/logout")
+@login_required
+def logout():
+    logout_user()
+    return redirect('/')
 
 @app.route('/edit/<name>')
+@login_required
 def edit_any(name):
     meta = mongo.db._meta.find_one({'name': name})
-    return render_template("edit.html",
+    return flask.render_template("edit.html",
                             title=meta['label'] + ' Editor', id=meta['_id'])
+
+#-------------------------------------------------------------------------------
 
 @app.route('/byprog')
 def inis_byprog():
-    return render_template("byprog.html",
+    return flask.render_template("byprog.html",
                            title='Initiatives by Programme')
 @app.route('/byprog/force')
 def inis_byprogf():
-    return render_template("byprog_force.html",
+    return flask.render_template("byprog_force.html",
                            title='Initiatives by Programme')
 @app.route('/bytime')
 def inis_bytime():
-    return render_template("bytime.html",
+    return flask.render_template("bytime.html",
                            title='Initiatives Timeline')
 
 @app.route('/inits')
 def inis_page():
-    return render_template("inis.html",
+    return flask.render_template("inis.html",
                            title='Initiatives List')
 
 @app.route('/init/<id>')
 def ini_page(id):
     ini = mongo.db.initiative.find_one(id)
     if ini:
-        return render_template("ini.html",
+        return flask.render_template("ini.html",
                            title=ini['name'], id=id)
 
 @app.route('/funcs')
 def funs_page():
-    return render_template("funs.html",
+    return flask.render_template("funs.html",
                            title='Functional Areas Status')
 
 @app.route('/caps')
@@ -118,8 +142,9 @@ def caps_page(id=''):
         elif id[0:3] == 'INI':
             ini = mongo.db.initiative.find_one(id)
             title += ' (' + ini['name'] + ")"
-    return render_template("caps.html", title=title, id=id)
+    return flask.render_template("caps.html", title=title, id=id)
 
+#-------------------------------------------------------------------------------
 
 def deref(db, old, fields=None):
     meta = db._meta
@@ -166,7 +191,7 @@ def ini_api(_id):
         inis = [deref_ini(db, db.initiative[ini[id1]], fields)
                 for ini in db.dependency.where({'type': typ, id2: _id})]
         return filter_removed(inis)
-    return jsonify(
+    return flask.jsonify(
         ini   = deref_ini(db, db.initiative[_id]),
         froms = get('hard','from_init_id','to_init_id'),
         tos   = get('hard','to_init_id','from_init_id'),
@@ -177,7 +202,7 @@ def byprog_api():
     db = DataBase(mongo.db)
     fields = ['_id','name','state','start','end','type','category','program_id',
               'function_ids','byprog_col','byprog_row','byprog_txt']
-    return jsonify(
+    return flask.jsonify(
         inits = [deref_ini(db,ini,fields) for ini in filter_removed(db.initiative)],
         hards = db.dependency.where({'type': 'hard'}),
         softs = db.dependency.where({'type': 'soft'}))
@@ -194,7 +219,7 @@ def byprogf_api():
     def mk_link(d):
         return {'source': indx[d['from_init_id']], 'target': indx[d['to_init_id']], 'type': d['type']}
         #return {'source': int(d['from_init_id'][3:])-1, 'target':  int(d['to_init_id'][3:])-1, 'type': d['type']}
-    return jsonify(
+    return flask.jsonify(
         inits = inis,
         links = map(mk_link, filter(is_link, db.dependency.where({'type': 'soft'})))
               + map(mk_link, filter(is_link, db.dependency.where({'type': 'hard'}))))
@@ -223,7 +248,7 @@ def bytime_api():
             ini['function'] =  ' / '.join(f.get('abbr', f['name']) if f else '?' for f in funcs)
         del ini['function_ids']
         inits.append(ini)
-    return jsonify({'inits': inits})
+    return flask.jsonify({'inits': inits})
 
 def mk_options(cursor, field='name'):
     opts = []
@@ -245,17 +270,17 @@ def caps_api(id=None):
             fun  = db.function[id]
             caps = db.capability.where({'function_id': id})
             inis = db.initiative
-            return jsonify(caps=caps, fun=fun, inis=mk_options(inis))
+            return flask.jsonify(caps=caps, fun=fun, inis=mk_options(inis))
         elif id[0:3] == 'INI':
             ini  = db.initiative[id]
             caps = db.capability.where({'init_id': id})
             funs = db.function
-            return jsonify(caps=caps, funs=mk_options(funs), ini=ini)
+            return flask.jsonify(caps=caps, funs=mk_options(funs), ini=ini)
     else:
         caps = db.capability
         funs = db.function
         inis = db.initiative
-        return jsonify(caps=caps, funs=mk_options(funs), inis=mk_options(inis))
+        return flask.jsonify(caps=caps, funs=mk_options(funs), inis=mk_options(inis))
 
 @app.route('/data/funs')
 def funs_api():
@@ -263,7 +288,7 @@ def funs_api():
     funs = db.function
     for fun in funs:
         fun['ncap'] = len(db.capability.where({'function_id': fun['_id']}))
-    return jsonify({'funs': funs})
+    return flask.jsonify({'funs': funs})
 
 #-------------------------------------------------------------------------------
 # Files
@@ -281,8 +306,8 @@ def get_file(name):
 @app.route('/file_upload', methods=['GET', 'POST'])
 def upload_file():
     fs = GridFS(mongo.db)
-    if request.method == 'POST':
-        file = request.files['file']
+    if flask.request.method == 'POST':
+        file = flask.request.files['file']
         if file: # and allowed_file(file.filename):
             filename = secure_filename(file.filename)
             oid = fs.put(file, content_type=file.content_type, filename=filename)

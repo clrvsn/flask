@@ -15,6 +15,8 @@
 #SQLALCHEMY_DATABASE_URI = 'sqlite:///' + os.path.join(basedir, 'kmod.db')
 #SQLALCHEMY_MIGRATE_REPO = os.path.join(basedir, 'db_repository')
 
+SECRET_KEY = "JumpingJackFlash"
+
 def read_cfg():
     import os.path
     path = os.path.split(__file__)[0]
