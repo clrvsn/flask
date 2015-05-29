@@ -13,7 +13,7 @@ from flask import Flask
 from flask.ext.pymongo import PyMongo
 from flask.ext.login import LoginManager
 
-app = Flask('clrvsn')
+app = Flask(__name__)
 app.config.from_object('config')
 mongo = PyMongo(app)
 
