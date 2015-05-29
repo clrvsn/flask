@@ -68,8 +68,8 @@ def polygon(*args, **kwargs): return PolyPoint('polygon', *args, **kwargs)
 def main():
     #print Node('circle',cx=12,cy=24,r=44).render()
     #print Node('g', Node('circle',cx=12,cy=24,r=44)).render()
-    #print Fig(Node('g', Node('circle',cx=12,cy=24,r=44))).render()
-    print [(x,y) for x in range(3) for y in range(3)]
+    print Fig(Node('g', Node('circle',cx=12,cy=24,r=44))).render()
+    #print [(x,y) for x in range(3) for y in range(3)]
 
 if __name__ == '__main__':
     main()
