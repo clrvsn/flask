@@ -208,12 +208,12 @@
             }
         }
         function dep_line(d) {
-            var s = mk_fyt(d.d1.end, true),
-                e = mk_fyt(d.d2.start, false),
-                sc = fyt_col(s,fst_yr),
-                ec = fyt_col(e,fst_yr);
+            var s = d.d1 ? mk_fyt(d.d1.end, true) : undefined,
+                e = d.d2 ? mk_fyt(d.d2.start, false) : undefined,
+                sc = s ? fyt_col(s,fst_yr) : undefined,
+                ec = e ? fyt_col(e,fst_yr) : undefined;
 
-            if (sc) {
+            if (sc && ec) {
                 d3.select(this)
                     .classed("dep", true)
                     //.classed("backward", sc > ec + .34)
