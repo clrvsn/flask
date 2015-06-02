@@ -264,6 +264,9 @@ var init_grid = {
 };
 
 function mk_init_rect(d) {
+    if (d.byprog_col == null || d.byprog_row == null) {
+        return null;
+    }
     var x = d.byprog_col * init_grid.colw + 20,
         y = d.byprog_row * init_grid.rowh + 10 + init_grid.rowh/2,
         w = init_grid.colw - 40,
@@ -282,42 +285,46 @@ function mk_init_rect(d) {
 
 function init_rect(d) {
     var r = mk_init_rect(d),
-        typ = mk_class(d.type);
-    d3.select(this)
-        .append("rect")
-        .classed(typ, true)
-        .classed(mk_class(d.category), true)
-        .classed(mk_class(d.state), true)
-        .attr({
-            x: r.l,  y: r.t,  width: r.w,  height: r.h,
-            rx: typ === "project" ? 5 : (typ === "activity" ? (init_grid.rowh-20)/2 : 0),
-            ry: typ === "project" ? 5 : (typ === "activity" ? (init_grid.rowh-20)/2 : 0),
-        })
-        .on('click', function () {window.location.href = '/init/'+d._id;});
+        typ = d.type ? mk_class(d.type) : "project";
+    if (r) {
+        d3.select(this)
+            .append("rect")
+            .classed(typ, true)
+            .classed(mk_class(d.category), true)
+            .classed(mk_class(d.state), true)
+            .attr({
+                x: r.l,  y: r.t,  width: r.w,  height: r.h,
+                rx: typ === "project" ? 5 : (typ === "activity" ? (init_grid.rowh-20)/2 : 0),
+                ry: typ === "project" ? 5 : (typ === "activity" ? (init_grid.rowh-20)/2 : 0),
+            })
+            .on('click', function () {window.location.href = '/init/'+d._id;});
+    }
 }
 
 function init_text(d) {
     var g = d3.select(this);
 
-    g.selectAll("text")
-        .data(function(d) {
-            var ns = d.byprog_txt.split("|");
-            return ns.map(function(n) {
-                return {
-                    col: d.byprog_col,
-                    row: d.byprog_row,
-                    n: ns.length,
-                    name: n,
-                };
+    if (d.byprog_txt) {
+        g.selectAll("text")
+            .data(function(d) {
+                var ns = d.byprog_txt.split("|");
+                return ns.map(function(n) {
+                    return {
+                        col: d.byprog_col,
+                        row: d.byprog_row,
+                        n: ns.length,
+                        name: n,
+                    };
+                });
+            })
+            .enter()
+            .append("text")
+            .text(function(d) {return d.name})
+            .attr({
+                x: function(d)    { return d.col * init_grid.colw + init_grid.colw/2; },
+                y: function(d, i) { return d.row * init_grid.rowh + init_grid.rowh/2 + (9 - d.n*6 + i*12) + init_grid.rowh/2; },
             });
-        })
-        .enter()
-        .append("text")
-        .text(function(d) {return d.name})
-        .attr({
-            x: function(d)    { return d.col * init_grid.colw + init_grid.colw/2; },
-            y: function(d, i) { return d.row * init_grid.rowh + init_grid.rowh/2 + (9 - d.n*6 + i*12) + init_grid.rowh/2; },
-        });
+    }
 }
 
 function mk_ini_rag_g(ini, node, x, y) {
@@ -355,7 +362,9 @@ function mk_ini_rag_g(ini, node, x, y) {
 function init_rag(d) {
     var r = mk_init_rect(d);
 
-    mk_ini_rag_g(d, d3.select(this), r.r - 25, r.t - 5);
+    if (r) {
+        mk_ini_rag_g(d, d3.select(this), r.r - 25, r.t - 5);
+    }
 }
 
 

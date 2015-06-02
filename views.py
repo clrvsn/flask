@@ -15,7 +15,7 @@ from app import app, mongo
 from data import *
 import flask, json
 
-@app.route('/')
+@app.route('/model')
 def front_page():
     return flask.render_template("front.html")
 
@@ -60,6 +60,10 @@ def page(name):
         if k not in ('data'):
             page[k] = elab(v)
     return flask.render_template("page.html", **page)
+
+@app.route('/')
+def plan():
+    return page('prog-plan')
 
 #-------------------------------------------------------------------------------
 # Login
@@ -202,8 +206,10 @@ def byprog_api():
     db = DataBase(mongo.db)
     fields = ['_id','name','state','start','end','type','category','program_id',
               'function_ids','byprog_col','byprog_row','byprog_txt']
+    def fltr(ini):
+        return (not ini.get('removed', False)) or (not ini.has_key('byprog_txt'))
     return flask.jsonify(
-        inits = [deref_ini(db,ini,fields) for ini in filter_removed(db.initiative)],
+        inits = [deref_ini(db,ini,fields) for ini in filter(fltr, db.initiative)],
         hards = db.dependency.where({'type': 'hard'}),
         softs = db.dependency.where({'type': 'soft'}))
 

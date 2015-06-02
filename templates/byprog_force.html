@@ -171,42 +171,43 @@
         }*/
 
         function mk_node(d) {
-            var typ = mk_class(d.type),
-                wth = 100,
-                hgt = 40,
-                grp = d3.select(this);
+            if (d.type && d.category && d.state && d.byprog_txt) { // && d.byprog_col != null && d.byprog_row != null) {
+                var typ = mk_class(d.type),
+                    wth = 100,
+                    hgt = 40,
+                    grp = d3.select(this);
 
-            grp.append("rect")
-                .classed(typ, true)
-                .classed(mk_class(d.category), true)
-                .classed(mk_class(d.state), true)
-                .attr({
-                    x: -(wth/2), y: -(hgt/2), width: wth,  height: hgt,
-                    rx: typ === "project" ? 5 : (typ === "activity" ? hgt/2 : 0),
-                    ry: typ === "project" ? 5 : (typ === "activity" ? hgt/2 : 0),
-                });
-                //.on('click', function () {window.location.href = '/init/'+d._id;});
-
-            grp.selectAll("text")
-                .data(function(d) {
-                    var ns = d.byprog_txt.split("|");
-                    return ns.map(function(n) {
-                        return {
-                            col: d.byprog_col,
-                            row: d.byprog_row,
-                            n: ns.length,
-                            name: n,
-                        };
+                grp.append("rect")
+                    .classed(typ, true)
+                    .classed(mk_class(d.category), true)
+                    .classed(mk_class(d.state), true)
+                    .attr({
+                        x: -(wth/2), y: -(hgt/2), width: wth,  height: hgt,
+                        rx: typ === "project" ? 5 : (typ === "activity" ? hgt/2 : 0),
+                        ry: typ === "project" ? 5 : (typ === "activity" ? hgt/2 : 0),
                     });
-                })
-                .enter()
-                .append("text")
-                .text(function(d) {return d.name})
-                .attr({
-                    x: function(d)    { return 0; },
-                    y: function(d, i) { return -hgt/2 + (9 - d.n*6 + i*11) + hgt/2; },
-                });
+                    //.on('click', function () {window.location.href = '/init/'+d._id;});
 
+                grp.selectAll("text")
+                    .data(function(d) {
+                        var ns = d.byprog_txt.split("|");
+                        return ns.map(function(n) {
+                            return {
+                                col: d.byprog_col,
+                                row: d.byprog_row,
+                                n: ns.length,
+                                name: n,
+                            };
+                        });
+                    })
+                    .enter()
+                    .append("text")
+                    .text(function(d) {return d.name})
+                    .attr({
+                        x: function(d)    { return 0; },
+                        y: function(d, i) { return -hgt/2 + (9 - d.n*6 + i*11) + hgt/2; },
+                    });
+            }
         }
 
 
