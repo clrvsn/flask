@@ -98,6 +98,8 @@ function isAlphanum(parm) {return _isValid(parm,_LWR+_UPR+_NUM);}
         return this;
     }
 })(jQuery);
+
+
 //==============================================================================
 // Geometry
 

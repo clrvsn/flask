@@ -25,13 +25,18 @@
             <th>Start:</th><td id="start"></td>
             <th>Dependencies:</th>
         </tr>
-        <tr><th>Finish:</th><td id="end"></td></td><td id="diagram" rowspan="10"></td></tr>
+        <tr><th>Finish:</th>
+            <td id="end"></td>
+            <td rowspan="9"><div id="diagram"></div>
+                <p>Legend:</p>
+                <img src="/static/img/byprog.legend.svg">
+            </td>
+        </tr>
         <tr><th>Type:</th><td id="type"></td></tr>
         <tr><th>Category:</th><td id="category"></td></tr>
         <tr><th>Business Project Manager:</th><td id="biz_pm_id"></td></tr>
         <tr><th>IT Project Manager:</th><td id="it_pm_id"></td></tr>
-        <tr><th>Number of Capabilities to be Moved Out:</th><td id="ncaps"></td></tr>
-        <tr><th>Demand Area:</th><td id="demand"></td></tr>
+        <tr><th>Capabilities to be Moved Out:</th><td id="ncaps"></td></tr>
         <tr><th>Objective:</th><td id="objective"></td></tr>
         <tr><th>MHS-TP Objective:</th><td id="tp_objective"></td></tr>
         <tr style="height: 100%;"><th></th><td></td></tr>
@@ -198,7 +203,7 @@
 
         gs.each(init_rect);
         gs.each(init_text);
-        gs.each(init_rag);
+        //gs.each(init_rag);
 
         $('.init').qtip({
             content: {
