@@ -1,85 +1,65 @@
 ﻿{% extends "base.html" %}
 {% block head %}
 <style>
-    line.soft {
-        stroke: grey;
-        stroke-width: 8;
-        opacity: 0.5;
-    }
-    line.soft:hover {
-        stroke: orange;
-        opacity: 1;
-    }
-
-    line.hard {
-        stroke: black;
-        stroke-width: 3;
-        -opacity: 0.5;
-    }
-    line.hard:hover {
-        stroke: orange;
-        -opacity: 1;
-    }
-
-    g.prog rect {
-        stroke: #BBB;
-        stroke-width: 2;
-        stroke-linejoin: round;
-    }
-    g.prog text {
-        font-family: sans-serif;
-        font-weight: bold;
-        font-size: 13px;
-        color: gray;
-        --text-anchor: middle;
-        pointer-events: none;
-    }
-
-    g.init rect {
-        stroke-width: 3;
-        stroke-linejoin: round;
-        cursor: pointer;
-    }
-    g.init rect:hover {
-        fill: orange;
-    }
-    g.init text {
-        -font-family: sans-serif;
-        font-size: 11px;
-        text-anchor: middle;
-        pointer-events: none;
-    }
-    g.rag circle {
-        stroke: #666;
-        stroke-width: 1.5;
-    }
-    g.rag circle.red {
-        fill: #F88;
-    }
-    g.rag circle.amber {
-        fill: #EE0;
-    }
-    g.rag circle.green {
-        fill: #6F6;
-    }
-    g.rag circle.grey {
-        fill: #CCC;
-    }
-    g.rag text {
-        font-size: 60%;
-    }
-    p {
-        font-family: sans-serif;
-        -font-size: 1px;
+    table.tooltip th, table.tooltip td {
+        vertical-align: top;
+        padding: 3px;
     }
 </style>
 {% endblock %}
 {% block content %}
 <div class="main">
   <h1 class="page-header">Initiatives by Programme</h1>
-    <p>Initiatives displayed by the Programme they belong to.</p>
+    <table>
+        <tr>
+            <td valign="top">
+                <h3>Initiatives clustered by the Programme they belong to</h3>
+                <div id="diagram"></div>
+                <br/>
+                <h3>Legend</h3>
+                <img src="/static/img/byprog.legend.svg">
+            </td>
+            <td valign="top">
+                <h3>Filters</h3>
+                <h4>Status</h4>
+                <div class="checkbox"><label>
+                    <input id="pending_chk" type="checkbox" onclick="draw_diagram()" checked> Not Started
+                </label></div>
+                <div class="checkbox"><label>
+                    <input id="started_chk" type="checkbox" onclick="draw_diagram()" checked> Started
+                </label></div>
+                <div class="checkbox"><label>
+                    <input id="rollout_chk" type="checkbox" onclick="draw_diagram()" checked> Rollout
+                </label></div>
+                <div class="checkbox"><label>
+                    <input id="closed_chk" type="checkbox" onclick="draw_diagram()" checked> Closed
+                </label></div>
+
+                <h4>Category</h4>
+                <div class="checkbox"><label>
+                    <input id="depend_chk" type="checkbox" onclick="draw_diagram()" checked> Dependency
+                </label></div>
+                <div class="checkbox"><label>
+                    <input id="impact_chk" type="checkbox" onclick="draw_diagram()" checked> Impacted
+                </label></div>
+                <div class="checkbox"><label>
+                    <input id="transform_chk" type="checkbox" onclick="draw_diagram()" checked> Transformation
+                </label></div>
+
+                <h4>Programme</h4>
+                <div id="prog-filter"></div>
+
+                <h4>IWOW Process</h4>
+                <div id="proc-filter"></div>
+                <button type="button" class="btn btn-default btn-xs" onclick="procs_all()">All</button>
+                <button type="button" class="btn btn-default btn-xs" onclick="procs_none()">None</button>
+
+            </td>
+        </tr>
+    </table>
+
     <div id="tooltip" class="hidden">
-        <table>
+        <table class="tooltip">
             <tr><th>Status:</th> <td id="tt_stat"></td></tr>
             <tr><th>Type:</th> <td id="tt_type"></td></tr>
             <tr><th>Category:</th> <td id="tt_cat"></td></tr>
@@ -89,97 +69,106 @@
             <tr><th>End:</th> <td id="tt_end"></td></tr>
         </table>
     </div>
-    <div id="diagram"></div>
-    <p>Legend:</p>
-    <img src="/static/img/byprog.legend.svg">
 </div>
 {% endblock %}
 {% block foot %}
     <script type="text/javascript">
-        init_grid.cols = 6;
+        init_grid.cols = 5;
         init_grid.rows = 12;
         init_grid.colw = 170;
         init_grid.rowh = 65;
 
-        var w = init_grid.cols * init_grid.colw,
+        var w = init_grid.cols * init_grid.colw + 20,
             h = init_grid.rows * init_grid.rowh + init_grid.rowh/2,
-            init_indx = {};
+            init_indx = {},
+            meta_indx = {},
+            enum_vals = {};
 
-        var prog_data = [
-                {col: 0, row: 0, cols: 2, rows: 3,  color: "#f7ffd4", name: "Multi-Channel"},
-                {col: 0, row: 4, cols: 2, rows: 8,  color: "#fff6d4", name: "Planned Business"},
-                {col: 2, row: 0, cols: 3, rows: 12, color: "#ffffd4", name: "MHS Transformation"},
-                {col: 5, row: 0, cols: 1, rows: 6,  color: "#fff6d4", name: "Planned Business"},
-            ];
+        /*var prog_data = {
+                //{col: 0, row: 0, cols: 2, rows: 3,  color: "#f7ffd4", name: "Multi-Channel"},
+                //{col: 0, row: 4, cols: 2, rows: 8,  color: "#fff6d4", name: "Planned Business"},
+                //{col: 2, row: 0, cols: 3, rows: 12, color: "#ffffd4", name: "MHS Transformation"},
+                //{col: 5, row: 0, cols: 1, rows: 6,  color: "#fff6d4", name: "Planned Business"},
+                'PGM0001': {col: 0, row: 4, cols: 2, rows: 8},
+                'PGM0002': {col: 0, row: 0, cols: 2, rows: 3},
+                'PGM0003': {col: 2, row: 0, cols: 3, rows: 12},
+            };*/
 
-        var svg = d3.select("#diagram")
-                    .append("svg")
-                    .attr("width", w)
-                    .attr("height", h);
-
-        svg.append("defs")
-            .append("marker")
-            .attr({
-                id: "arrow",
-                viewBox: "-20 -10 20 20",
-                markerWidth: 12,
-                markerHeight: 12,
-                refx: 0,
-                refy: 0,
-                orient: "auto",
-                markerUnits: "userSpaceOnUse"
-            })
-            .append("path")
-            .attr({
-                //d: "M2,2 L2,13 L8,7 L2,2",
-                //d: "M0,0 L-13,7 L-13,-7 L0,0",
-                d: "M-20,-8L0,0L-20,8",
-                fill: "black",
+        function procs_all() {
+            _.each(data.procs, function (proc) {
+                $('#'+proc._id+'_chk').prop('checked',true);
             });
-
-        var progs = svg.selectAll("g.prog")
-                        .data(prog_data)
-                        .enter()
-                        .append("g")
-                        .classed("prog", true);
-
-        progs.append("rect")
-            .attr({
-                x: function(d) { return d.col * init_grid.colw + 10; },
-                y: function(d) { return d.row * init_grid.rowh + 0; },
-                width: function(d) { return d.cols * init_grid.colw - 20; },
-                height: function(d) { return d.rows * init_grid.rowh - 0 + init_grid.rowh/2; },
-                fill: function(d) { return d.color; },
-                rx: 10,
-                ry: 10,
+            draw_diagram();
+        }
+        function procs_none() {
+            _.each(data.procs, function (proc) {
+                $('#'+proc._id+'_chk').prop('checked',false);
             });
+            draw_diagram();
+        }
 
-        progs.append("text")
-            .text(function(d) { return d.name; })
-            .attr({
-                x: function(d) { return d.col * init_grid.colw + 20; },
-                y: function(d) { return d.row * init_grid.rowh + 10 + 12; },
-            });
+        function ini_visible(ini) {
+            if (ini == null) return false;
+            if (ini.byprog_col == null || ini.byprog_row == null) {
+                console.warn('Cannot draw', ini.name)
+                return false;
+            }
+
+            if (ini.state === 'pending' && !($('#pending_chk').is(':checked'))) return false;
+            if (ini.state === 'started' && !($('#started_chk').is(':checked'))) return false;
+            if (ini.state === 'rollout' && !($('#rollout_chk').is(':checked'))) return false;
+            if (ini.state === 'closed' && !($('#closed_chk').is(':checked'))) return false;
+
+            if (ini.category === 'depend' && !($('#depend_chk').is(':checked'))) return false;
+            if (ini.category === 'impact' && !($('#impact_chk').is(':checked'))) return false;
+            if (ini.category === 'transform' && !($('#transform_chk').is(':checked'))) return false;
+
+            if (_.any(data.progs, function(prog) {
+                if (ini.program == null) return false;
+                return (ini.program._id === prog._id && !($('#'+prog._id+'_chk').is(':checked')));
+            })) return false;
+
+            if (_.any(data.procs, function(proc) {
+                if (ini.process == null) return false;
+                return (ini.process._id === proc._id && !($('#'+proc._id+'_chk').is(':checked')));
+            })) return false;
+
+            return true;
+        }
+        function dep_visible(dep) {
+            if (dep == null) return false;
+
+            var ini1 = init_indx[dep.from_init_id],
+                ini2 = init_indx[dep.to_init_id];
+
+            if (!ini_visible(ini1)) return false;
+            if (!ini_visible(ini2)) return false;
+
+            return true;
+        }
 
         function soft_line(d) {
             var d1 = init_indx[d.from_init_id],
                 d2 = init_indx[d.to_init_id];
-            //console.log(d)
-            if (d1 && d2) {
-                d3.select(this)
-                    .attr({
-                        x1: d1.byprog_col * init_grid.colw + init_grid.colw/2,
-                        y1: d1.byprog_row * init_grid.rowh + init_grid.rowh,
-                        x2: d2.byprog_col * init_grid.colw + init_grid.colw/2,
-                        y2: d2.byprog_row * init_grid.rowh + init_grid.rowh,
-                    });
+
+            if (ini_visible(d1) && ini_visible(d2)) {
+                var line = d3.select(this)
+                             .attr({
+                                x1: d1.byprog_col * init_grid.colw + init_grid.colw/2,
+                                y1: d1.byprog_row * init_grid.rowh + init_grid.rowh,
+                                x2: d2.byprog_col * init_grid.colw + init_grid.colw/2,
+                                y2: d2.byprog_row * init_grid.rowh + init_grid.rowh,
+                             });
+
+                d1.lines.push(line);
+                d2.lines.push(line);
             }
         }
         function hard_line(d) {
             var d1 = init_indx[d.from_init_id],
                 d2 = init_indx[d.to_init_id];
 
-            if (d1 && d2) {
+            if (ini_visible(d1) && ini_visible(d2)) {
                 var r1 = mk_init_rect(d1),
                     xk = r1.cx, yk = r1.cy,
                     r2 = mk_init_rect(d2),
@@ -188,44 +177,88 @@
                     xn = r2.r, yn = r2.t,
                     xp = r2.r, yp = r2.b,
                     xq = r2.l, yq = r2.b,
-                    p = intersect_lineseg_rect(xk,yk, xl,yl, xm,ym, xn,yn, xp,yp, xq,yq);
-                //console.log(d)
-                if (!p) {
-                    p = {x: xl, y: yl};
-                }
-                d3.select(this)
-                    .attr({
-                        x1: xk, // d1.col * colw + colw/2,
-                        y1: yk, // d1.row * rowh + rowh,
-                        x2: p.x, // d2.col * colw + colw/2,
-                        y2: p.y, // d2.row * rowh + rowh,
-                        "marker-end": "url(#arrow)",
-                    });
+                    p = intersect_lineseg_rect(xk,yk, xl,yl, xm,ym, xn,yn, xp,yp, xq,yq),
+                    line = d3.select(this)
+                             .attr({x1: xk, y1: yk,
+                                    x2: p.x, y2: p.y,
+                                    "marker-end": "url(#arrow)",
+                             });
+
+                d1.lines.push(line);
+                d2.lines.push(line);
             }
         }
 
-        d3.json("/data/byprog", function(data) {
+        var data;
 
-            data.inits.forEach(function(ini) {
-                init_indx[ini._id] = ini;
-            });
+        function draw_diagram() {
+            d3.select("#diagram svg").remove();
+
+            var svg = d3.select("#diagram")
+                        .append("svg")
+                        .attr("width", w)
+                        .attr("height", h);
+
+            svg.append("defs")
+                .append("marker")
+                .attr({
+                    id: "arrow",
+                    viewBox: "-20 -10 20 20",
+                    markerWidth: 12,
+                    markerHeight: 12,
+                    refx: 0,
+                    refy: 0,
+                    orient: "auto",
+                    markerUnits: "userSpaceOnUse"
+                })
+                .append("path")
+                .attr({
+                    //d: "M2,2 L2,13 L8,7 L2,2",
+                    //d: "M0,0 L-13,7 L-13,-7 L0,0",
+                    d: "M-20,-8L0,0L-20,8",
+                    fill: "black",
+                });
+
+            var progs = svg.selectAll("g.prog")
+                            .data(data.progs)
+                            .enter()
+                            .append("g")
+                            .classed("prog", true);
+
+            progs.append("rect")
+                .attr({
+                    x: function(d) { return d.byprog_col * init_grid.colw + 10; },
+                    y: function(d) { return d.byprog_row * init_grid.rowh + 0; },
+                    width: function(d) { return d.byprog_cols * init_grid.colw - 20; },
+                    height: function(d) { return d.byprog_rows * init_grid.rowh - 0 + init_grid.rowh/2; },
+                    //fill: function(d) { return d.color; },
+                    rx: 10,
+                    ry: 10,
+                });
+
+            progs.append("text")
+                .text(function(d) { return d.name; })
+                .attr({
+                    x: function(d) { return d.byprog_col * init_grid.colw + 20; },
+                    y: function(d) { return d.byprog_row * init_grid.rowh + 10 + 12; },
+                });
 
             svg.selectAll("line.soft")
-                .data(data.softs)
+                .data(data.softs.filter(dep_visible))
                 .enter()
                 .append("line")
                 .classed("soft", true)
                 .each(soft_line);
 
             svg.selectAll("line.hard")
-                .data(data.hards)
+                .data(data.hards.filter(dep_visible))
                 .enter()
                 .append("line")
                 .classed("hard", true)
                 .each(hard_line);
 
             var gs = svg.selectAll("g.init")
-                     .data(data.inits)
+                     .data(data.inits.filter(ini_visible))
                      .enter()
                      .append("g")
                      .classed("init", true);
@@ -241,31 +274,80 @@
                         return d.name;
                     },
                     text: function() {
-                        var d = this.context.__data__,
-                            tt = d3.select("#tooltip");
-                        //tt.select("#tt_name").text(d.name);
-                        tt.select("#tt_stat").text(d.state);
-                        tt.select("#tt_type").text(d.type);
-                        tt.select("#tt_cat").text(d.category);
-                        tt.select("#tt_prog").text(d.program.name);
-                        tt.select("#tt_func").text(d['function']);
-                        tt.select("#tt_start").text(d.start);
-                        tt.select("#tt_end").text(d.end);
-                        return tt.html();
+                        var d = this.context.__data__;
+                        $("#tt_stat").text(enum_vals.ini_state[d.state]);
+                        $("#tt_type").text(enum_vals.ini_type[d.type]);
+                        $("#tt_cat").text(enum_vals.ini_category[d.category]);
+                        $("#tt_prog").text(d.program.name);
+                        $("#tt_func").text(d['function']);
+                        $("#tt_start").text(d.start);
+                        $("#tt_end").text(d.end);
+                        var rslt = $("table.tooltip").html();
+                        return rslt;
                     },
                 },
                 style: {
-                    classes: 'qtip-cluetip qtip-shadow'
+                    classes: 'qtip-shadow'
                 },
                 position: {
-                    my: 'left center',
-                    at: 'center right',
+                    //my: 'left center',
+                    //at: 'center right',
                     viewport: $(window),
                     adjust: {
                         method: 'shift shift'
                     },
                 },
             });
+        }
+
+        function shorten(txt) {
+            if (txt.length > 30)
+                return mk('span', {title:txt}, txt.substr(0,28) + '...');
+            return txt;
+        }
+
+        d3.json("/data/byprog", function(byprog_data) {
+            data = byprog_data;
+
+            data.meta.forEach(function(m) {
+                meta_indx[m._id] = m;
+                m.fields.forEach(function(f) {
+                    if (f.type === 'enum') {
+                        vals = {};
+                        f.enum_vals.forEach(function(v) {
+                            vals[v.val] = v.txt;
+                        });
+                        enum_vals[m._id.toLowerCase() + '_' + f.name] = vals;
+                    }
+                });
+            });
+
+            data.inits.forEach(function(ini) {
+                ini.lines = [];
+                init_indx[ini._id] = ini;
+            });
+
+            data.progs.forEach(function(prog) {
+                var div = $('#prog-filter');
+                div.append(mk('div.checkbox',
+                    mk('label',
+                        mk('input#'+prog._id+'_chk', {type:'checkbox', onclick:'draw_diagram()', checked:'checked'}),
+                        prog.name
+                    )
+                ));
+            });
+
+            data.procs.forEach(function(proc) {
+                var div = $('#proc-filter');
+                div.append(mk('div.checkbox',
+                    mk('label',
+                        mk('input#'+proc._id+'_chk', {type:'checkbox', onclick:'draw_diagram()', checked:'checked'}),
+                        shorten(proc.title)
+                    )
+                ));
+            });
+
+            draw_diagram();
         });
 
     </script>

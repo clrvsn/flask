@@ -150,6 +150,25 @@ def caps_page(id=''):
 
 #-------------------------------------------------------------------------------
 
+##def brk_txt(txt,n=19):
+##    wrds = txt.split()
+##    brkn = []
+##    line = []
+##    for wrd in wrds:
+##        if len(wrd) > n:
+##            if line:
+##                brkn.append(' '.join(line))
+##                line = []
+##            brkn.append(wrd)
+##        else:
+##            if len(' '.join(line)) + 1 + len(wrd) > n:
+##                brkn.append(' '.join(line))
+##                line = []
+##            line.append(wrd)
+##    if line:
+##        brkn.append(' '.join(line))
+##    return '|'.join(brkn)
+
 def deref(db, old, fields=None):
     meta = db._meta
     TYPS = {}
@@ -177,6 +196,8 @@ def deref_ini(db, old, fields=None):
     ini = deref(db, old, fields)
     if fields and 'ncaps' in fields:
         ini['ncaps'] = len(db.capability.where({'init_id': ini['_id']}))
+##    if 'name' in old:
+##        ini['brkn_name'] = brk_txt(old['name'])
     if 'function_ids' in ini:
         if ini['function_ids'] == 'ALL':
             ini['function'] = 'ALL'
@@ -190,7 +211,7 @@ def deref_ini(db, old, fields=None):
 def ini_api(_id):
     db = DataBase(mongo.db)
     fields = ['_id','name','state','start','end','type','category',
-              'program_id','function_ids','byprog_txt','removed','ncaps']
+              'program_id','function_ids','removed','ncaps']
     def get(typ,id1,id2):
         inis = [deref_ini(db, db.initiative[ini[id1]], fields)
                 for ini in db.dependency.where({'type': typ, id2: _id})]
@@ -205,13 +226,16 @@ def ini_api(_id):
 def byprog_api():
     db = DataBase(mongo.db)
     fields = ['_id','name','state','start','end','type','category','program_id',
-              'function_ids','byprog_col','byprog_row','byprog_txt']
+              'function_ids','process_id','byprog_col','byprog_row']
     def fltr(ini):
-        return (not ini.get('removed', False)) or (not ini.has_key('byprog_txt'))
+        return (not ini.get('removed', False)) # or (not ini.has_key('byprog_txt'))
     return flask.jsonify(
+        meta  = db._meta,
         inits = [deref_ini(db,ini,fields) for ini in filter(fltr, db.initiative)],
         hards = db.dependency.where({'type': 'hard'}),
-        softs = db.dependency.where({'type': 'soft'}))
+        softs = db.dependency.where({'type': 'soft'}),
+        progs = db.programme,
+        procs = db.process)
 
 @app.route('/data/byprogf')
 def byprogf_api():

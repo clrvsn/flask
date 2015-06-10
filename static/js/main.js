@@ -299,17 +299,39 @@ function init_rect(d) {
                 rx: typ === "project" ? 5 : (typ === "activity" ? (init_grid.rowh-20)/2 : 0),
                 ry: typ === "project" ? 5 : (typ === "activity" ? (init_grid.rowh-20)/2 : 0),
             })
+            .on('mouseenter', function () {
+                d3.select(this)
+                  .classed('hover', true);
+                _.each(d.lines, function (line) {
+                    line.classed('hover', true);
+                });
+            })
+            .on('mouseleave', function () {
+                d3.select(this)
+                  .classed('hover', false);
+                _.each(d.lines, function (line) {
+                    line.classed('hover', false);
+                });
+            })
             .on('click', function () {window.location.href = '/init/'+d._id;});
     }
 }
 
 function init_text(d) {
-    var g = d3.select(this);
+    var text = d3.select(this)
+                 .append("text")
+                 .text(d.name);
 
-    if (d.byprog_txt) {
+    d3plus.textwrap()
+          .container(text)
+          .padding(3)
+          .valign("middle")
+          .draw();
+
+    /*if (d.brkn_name) {
         g.selectAll("text")
             .data(function(d) {
-                var ns = d.byprog_txt.split("|");
+                var ns = d.brkn_name.split("|");
                 return ns.map(function(n) {
                     return {
                         col: d.byprog_col,
@@ -326,7 +348,7 @@ function init_text(d) {
                 x: function(d)    { return d.col * init_grid.colw + init_grid.colw/2; },
                 y: function(d, i) { return d.row * init_grid.rowh + init_grid.rowh/2 + (9 - d.n*6 + i*12) + init_grid.rowh/2; },
             });
-    }
+    }*/
 }
 
 function mk_ini_rag_g(ini, node, x, y) {

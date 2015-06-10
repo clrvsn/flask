@@ -24,6 +24,18 @@ a img {
     margin: 10px;
 }*/
 
+.qtip-default {
+    border: 0px solid rgb(247,150,70);
+    -background-color: rgb(254,231,6);
+    background-color: rgb(252,206,169);
+    color: black;
+}
+.qtip-default .qtip-titlebar {
+    -background-color: rgb(204,97,9);
+    background-color: rgb(247,150,70);
+    color: black;
+}
+
 .hidden {
     display: none;
 }
@@ -74,8 +86,8 @@ line.soft {
     stroke-width: 8;
     opacity: 0.5;
 }
-line.soft:hover {
-    stroke: orange;
+line.soft.hover {
+    stroke: rgb(254,231,6);
     opacity: 1;
 }
 
@@ -84,21 +96,20 @@ line.hard {
     stroke-width: 3;
     -opacity: 0.5;
 }
-line.hard:hover {
-    stroke: orange;
+line.hard.hover {
+    stroke: rgb(254,231,6);
     -opacity: 1;
 }
 
 g.prog rect {
-    stroke: #BBB;
-    stroke-width: 2;
-    stroke-linejoin: round;
+    -stroke: #BBB;
+    -stroke-width: 2;
+    -stroke-linejoin: round;
+    fill: rgb(217,217,217);
 }
 g.prog text {
-    font-family: sans-serif;
     font-weight: bold;
     font-size: 13px;
-    color: gray;
     --text-anchor: middle;
     pointer-events: none;
 }
@@ -108,8 +119,8 @@ g.init rect {
     stroke-linejoin: round;
     cursor: pointer;
 }
-g.init rect:hover {
-    fill: orange;
+g.init rect.hover {
+    fill: rgb(254,231,6);
 }
 g.init text {
     -font-family: sans-serif;
