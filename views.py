@@ -236,7 +236,7 @@ def byprog_api():
         hards = db.dependency.where({'type': 'hard'}),
         softs = db.dependency.where({'type': 'soft'}),
         progs = db.programme,
-        procs = db.process)
+        procs = filter_removed(db.process))
 
 @app.route('/data/byprogf')
 def byprogf_api():
