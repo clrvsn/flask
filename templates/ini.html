@@ -27,16 +27,19 @@
         </tr>
         <tr><th>Finish:</th>
             <td id="end"></td>
-            <td rowspan="9"><div id="diagram"></div>
+            <td rowspan="12"><div id="diagram"></div>
                 <p>Legend:</p>
                 <img src="/static/img/byprog.legend.svg">
             </td>
         </tr>
         <tr><th>Type:</th><td id="type"></td></tr>
         <tr><th>Category:</th><td id="category"></td></tr>
+        <tr><th>Status:</th><td id="state"></td></tr>
+        <tr><th>Business Process:</th><td id="process"></td></tr>
         <tr><th>Business Project Manager:</th><td id="biz_pm_id"></td></tr>
         <tr><th>IT Project Manager:</th><td id="it_pm_id"></td></tr>
-        <tr><th>Capabilities to be Moved Out:</th><td id="ncaps"></td></tr>
+        <tr><th>Capabilities to Move Out:</th><td id="caps_out"></td></tr>
+        <tr><th>Capabilities to Move In:</th><td id="caps_in"></td></tr>
         <tr><th>Objective:</th><td id="objective"></td></tr>
         <tr><th>MHS-TP Objective:</th><td id="tp_objective"></td></tr>
         <tr style="height: 100%;"><th></th><td></td></tr>
@@ -62,11 +65,13 @@
     init_grid.cols = 3;
     init_grid.rows = 1;
     init_grid.colw = 170;
-    init_grid.rowh = 70;
+    init_grid.rowh = 65;
 
     var w = init_grid.cols * init_grid.colw,
         h = init_grid.rows * init_grid.rowh + init_grid.rowh/2,
-        init_indx = {};
+        init_indx = {},
+        meta_indx = {},
+        enum_vals = {};
 
 
     function soft_line(d) {
@@ -106,17 +111,33 @@
     }
 
     d3.json(api, function (data) {
+
+        data.meta.forEach(function(m) {
+            meta_indx[m._id] = m;
+            m.fields.forEach(function(f) {
+                if (f.type === 'enum') {
+                    vals = {};
+                    f.enum_vals.forEach(function(v) {
+                        vals[v.val] = v.txt;
+                    });
+                    enum_vals[m._id.toLowerCase() + '_' + f.name] = vals;
+                }
+            });
+        });
+
         init_grid.rows = Math.max(data.softs.length+1, Math.max(data.froms.length, data.tos.length));
         h = init_grid.rows * init_grid.rowh + init_grid.rowh/2;
 
         d3.select("#objective").text(data.ini.objective || '');
         d3.select("#tp_objective").text(data.ini.tp_objective || '');
-        d3.select("#biz_pm_id").text(data.ini.biz_pm ? (data.ini.biz_pm.name || '') : '');
-        d3.select("#it_pm_id").text(data.ini.it_pm ? (data.ini.it_pm.name || '') : '');
-        d3.select("#ncaps").text(data.ini.ncaps);
+        d3.select("#biz_pm_id").text(data.ini.biz_pm ? (data.ini.biz_pm.name) : (data.ini.state == 'pending' ? 'TBD' : ''));
+        d3.select("#it_pm_id").text(data.ini.it_pm ? (data.ini.it_pm.name) : (data.ini.state == 'pending' ? 'TBD' : ''));
+        //d3.select("#ncaps").text(data.ini.ncaps);
 
-        d3.select("#category").text(data.ini.category || '');
-        d3.select("#category").text(data.ini.category || '');
+        d3.select("#type").text(enum_vals.ini_type[data.ini.type]);
+        d3.select("#category").text(enum_vals.ini_category[data.ini.category]);
+        d3.select("#state").text(enum_vals.ini_state[data.ini.state]);
+        d3.select("#process").text(data.ini.process.title);
         d3.select("#start").text(data.ini.start || '');
         d3.select("#end").text(data.ini.end || '');
 

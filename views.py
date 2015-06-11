@@ -211,12 +211,13 @@ def deref_ini(db, old, fields=None):
 def ini_api(_id):
     db = DataBase(mongo.db)
     fields = ['_id','name','state','start','end','type','category',
-              'program_id','function_ids','removed','ncaps']
+              'program_id','process_id','function_ids','removed']#,'ncaps']
     def get(typ,id1,id2):
         inis = [deref_ini(db, db.initiative[ini[id1]], fields)
                 for ini in db.dependency.where({'type': typ, id2: _id})]
         return filter_removed(inis)
     return flask.jsonify(
+        meta  = db._meta,
         ini   = deref_ini(db, db.initiative[_id]),
         froms = get('hard','from_init_id','to_init_id'),
         tos   = get('hard','to_init_id','from_init_id'),
