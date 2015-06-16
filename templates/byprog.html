@@ -73,8 +73,8 @@
 {% endblock %}
 {% block foot %}
     <script type="text/javascript">
-        init_grid.cols = 5;
-        init_grid.rows = 12;
+        init_grid.cols = 1; //5;
+        init_grid.rows = 1; //12;
         init_grid.colw = 170;
         init_grid.rowh = 65;
 
@@ -335,7 +335,13 @@
                         prog.name
                     )
                 ));
+                var rows = num(prog.byprog_row) + num(prog.byprog_rows),
+                    cols = num(prog.byprog_col) + num(prog.byprog_cols);
+                init_grid.rows = Math.max(init_grid.rows, rows);
+                init_grid.cols = Math.max(init_grid.cols, cols);
             });
+            w = init_grid.cols * init_grid.colw + 20;
+            h = init_grid.rows * init_grid.rowh + init_grid.rowh/2;
 
             data.procs.forEach(function(proc) {
                 var div = $('#proc-filter');

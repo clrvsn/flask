@@ -38,6 +38,10 @@ function fmt() {
     return theString;
 }
 
+function num (x) {
+    return x - 0;
+}
+
 var _NUM = '0123456789';
 var _LWR = 'abcdefghijklmnopqrstuvwxyz';
 var _UPR = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
