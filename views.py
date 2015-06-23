@@ -108,10 +108,10 @@ def edit_any(name):
 def inis_byprog():
     return flask.render_template("byprog.html",
                            title='Initiatives by Programme')
-@app.route('/byprog/force')
-def inis_byprogf():
-    return flask.render_template("byprog_force.html",
-                           title='Initiatives by Programme')
+#@app.route('/byprog/force')
+#def inis_byprogf():
+#    return flask.render_template("byprog_force.html",
+#                           title='Initiatives by Programme')
 @app.route('/bytime')
 def inis_bytime():
     return flask.render_template("bytime.html",
@@ -235,25 +235,25 @@ def byprog_api():
         inits = [deref_ini(db,ini,fields) for ini in filter(fltr, db.initiative)],
         hards = db.dependency.where({'type': 'hard'}),
         softs = db.dependency.where({'type': 'soft'}),
-        progs = db.programme,
-        procs = filter_removed(db.process))
+        programme = filter_removed(db.programme),
+        process = filter_removed(db.process))
 
-@app.route('/data/byprogf')
-def byprogf_api():
-    db = DataBase(mongo.db)
-    fields = ['_id','name','state','start','end','type','category','program_id',
-              'function_ids','byprog_txt']
-    inis = [deref_ini(db,ini,fields) for ini in filter_removed(db.initiative.sort('_id'))]
-    indx = {ini['_id']: i for i,ini in enumerate(inis)}
-    def is_link(d):
-        return d['from_init_id'] in indx.keys() and d['to_init_id'] in indx.keys()
-    def mk_link(d):
-        return {'source': indx[d['from_init_id']], 'target': indx[d['to_init_id']], 'type': d['type']}
-        #return {'source': int(d['from_init_id'][3:])-1, 'target':  int(d['to_init_id'][3:])-1, 'type': d['type']}
-    return flask.jsonify(
-        inits = inis,
-        links = map(mk_link, filter(is_link, db.dependency.where({'type': 'soft'})))
-              + map(mk_link, filter(is_link, db.dependency.where({'type': 'hard'}))))
+##@app.route('/data/byprogf')
+##def byprogf_api():
+##    db = DataBase(mongo.db)
+##    fields = ['_id','name','state','start','end','type','category','program_id',
+##              'function_ids','byprog_txt']
+##    inis = [deref_ini(db,ini,fields) for ini in filter_removed(db.initiative.sort('_id'))]
+##    indx = {ini['_id']: i for i,ini in enumerate(inis)}
+##    def is_link(d):
+##        return d['from_init_id'] in indx.keys() and d['to_init_id'] in indx.keys()
+##    def mk_link(d):
+##        return {'source': indx[d['from_init_id']], 'target': indx[d['to_init_id']], 'type': d['type']}
+##        #return {'source': int(d['from_init_id'][3:])-1, 'target':  int(d['to_init_id'][3:])-1, 'type': d['type']}
+##    return flask.jsonify(
+##        inits = inis,
+##        links = map(mk_link, filter(is_link, db.dependency.where({'type': 'soft'})))
+##              + map(mk_link, filter(is_link, db.dependency.where({'type': 'hard'}))))
 
 
 @app.route('/data/bytime')
@@ -264,22 +264,28 @@ def bytime_api():
         if not dpn['from_init_id'] in hards.keys():
             hards[dpn['from_init_id']] = []
         hards[dpn['from_init_id']].append(dpn['to_init_id'])
-    fields = ['_id','name','state','start','end','type','category','program_id','function_ids']
-    inits = []
-    for init in filter_removed(db.initiative.sort('function_ids')):
-        ini = {name: init.get(name, '') for name in fields}
-        ini['to'] = hards.get(ini['_id'], [])
-        prog = db.programme[ini['program_id']]
-        ini['program'] = prog['name'] if prog else ''
-        del ini['program_id']
-        if ini['function_ids'] == 'ALL':
-            ini['function'] = 'ALL'
-        else:
-            funcs = [db.function[fid] for fid in ini['function_ids']]
-            ini['function'] =  ' / '.join(f.get('abbr', f['name']) if f else '?' for f in funcs)
-        del ini['function_ids']
-        inits.append(ini)
-    return flask.jsonify({'inits': inits})
+    fields = ['_id','name','state','start','end','type','category','program_id',
+              'function_ids','process_id','tracker_freq']
+    inits = [deref_ini(db,ini,fields) for ini in filter_removed(db.initiative.sort('function_ids'))]
+    for init in inits: # filter_removed(db.initiative.sort('function_ids')):
+##        ini = {name: init.get(name, '') for name in fields}
+        init['to'] = hards.get(init['_id'], [])
+##        prog = db.programme[ini['program_id']]
+##        ini['program'] = prog #['name'] if prog else ''
+##        #del ini['program_id']
+##        if ini['function_ids'] == 'ALL':
+##            ini['function'] = 'ALL'
+##        else:
+##            funcs = [db.function[fid] for fid in ini['function_ids']]
+##            ini['function'] =  ' / '.join(f.get('abbr', f['name']) if f else '?' for f in funcs)
+##        del ini['function_ids']
+##        inits.append(ini)
+    return flask.jsonify(
+        meta  = db._meta,
+        inits = inits,
+        programme = filter_removed(db.programme),
+        process = filter_removed(db.process)
+    )
 
 def mk_options(cursor, field='name'):
     opts = []

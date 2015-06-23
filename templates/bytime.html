@@ -43,7 +43,6 @@
 <div class="container-fluid">
 <div class="main">
   <h1 class="page-header">Initiatives Timeline</h1>
-    <p>Initiatives displayed on Gannt-like timeline.</p>
     <div id="tooltip" class="hidden">
         <table>
             <tr><th>Status:</th> <td id="tt_state"></td></tr>
@@ -51,92 +50,70 @@
             <tr><th>End:</th> <td id="tt_end"></td></tr>
         </table>
     </div>
-    <div id="diagram"></div>
+    <table>
+        <tr>
+            <td valign="top">
+                <h3>Initiatives displayed on Gannt-like timeline</h3>
+                <div id="diagram"></div>
+            </td>
+            <td valign="top">
+                <h3>Filters</h3>
+                <h4>Status</h4>
+                <div id="state-filter"></div>
+
+                <h4>Category</h4>
+                <div id="category-filter"></div>
+
+                <h4>Programme</h4>
+                <div id="prog-filter"></div>
+
+                <h4>IWOW Process</h4>
+                <div id="proc-filter"></div>
+                <button type="button" class="btn btn-default btn-xs" onclick="set_all_filters('process_id',true)">All</button>
+                <button type="button" class="btn btn-default btn-xs" onclick="set_all_filters('process_id',false)">None</button>
+
+                <h4>Tracker Frequency</h4>
+                <div id="tracker-filter"></div>
+            </td>
+        </tr>
+    </table>
 </div>
 </div>
 {% endblock %}
 {% block foot %}
-<script type="text/javascript">
-    var svg = d3.select("#diagram")
-                .append("svg");
-
-    var defs = svg.append("defs");
-
-    defs.append("marker")
-        .attr({
-            id: "arrow",
-            viewBox: "-20 -10 20 20",
-            markerWidth: 12,
-            markerHeight: 12,
-            refx: 0,
-            refy: 0,
-            orient: "auto",
-            markerUnits: "userSpaceOnUse"
-        })
-        .append("path")
-        .attr({
-            //d: "M2,2 L2,13 L8,7 L2,2",
-            //d: "M0,0 L-13,7 L-13,-7 L0,0",
-            d: "M -20 -6 0 0 -20 6",
-            fill: "black",
-        });
-    defs.append("marker")
-        .attr({
-            id: "circle",
-            viewBox: "-5 -5 10 10",
-            markerWidth: 10,
-            markerHeight: 10,
-            //refx: 0,
-            //refy: 0,
-            markerUnits: "userSpaceOnUse"
-        })
-        .append("circle")
-        .attr({
-            r: 3, cx: 0, cy: 0,
-            fill: "black",
-        });
-
-    //d3.json("/bytime.json", function(data) {
-    d3.json("/data/bytime", function(data) {
-        var cols = 0,
-            rows = data.inits.length,
-            i = 0,
-            n = data.inits.length,
-            inits_by_id = {},
-            funcs = [], //{name: '', row: 1}],
+    <script type="text/javascript">
+        var init_indx,
+            cluster = {},
+            //cluster.funcs = [], //{name: '', row: 1}],
             deps = [],
-            f = '-',
             fst_yr = 14,
-            lst_yr = 22;
-
-        for (; i < n; i++) {
-            var d = data.inits[i]
-                s = mk_fyt(d.start, false),
-                e = mk_fyt(d.end, true);
-            d.ix = i;
-            inits_by_id[d._id] = d;
-            cols = Math.max(cols, fyt_col(e,fst_yr));
-            if (d['function'] !== f) {
-                f = d['function'];
-                funcs.push({name: f, row: i+1});
-            }
-        }
-        funcs.push({name: '', row: i+1});
-        for (i = 0; i < n; i++) {
-            var d1 = data.inits[i],
-                m = d1.to.length,
-                j = 0;
-            for (; j < m; j++) {
-                var d2 = inits_by_id[d1.to[j]];
-                deps.push({d1: d1, d2: d2});
-            }
-        }
-
-        var off = 350,
-            colw = (1000 - off) / cols,
+            lst_yr = 22,
+            cols, rows,
+            off = 350,
             rowh = 15,
-            w = off + cols * colw,
-            h = (rows+1) * rowh;
+            colw, // = (1000 - off) / cols,
+            w, // = off + cols * colw,
+            h; // = (rows+1) * rowh;
+
+        function ini_visible(ini) {
+            if (ini == null) return false;
+
+            //if (ini.byprog_col == null || ini.byprog_row == null) {
+            //    console.warn('Cannot draw', ini.name)
+            //    return false;
+            //}
+
+            if (!do_filter('INI', 'state', ini)) return false;
+            if (!do_filter('INI', 'category', ini)) return false;
+
+            if (!do_filter('INI', 'program_id', ini)) return false;
+            //if (!do_filter('INI', 'process_id', ini)) return false;
+
+            //if (!do_filter('INI', 'tracker_freq', ini)) return false;
+
+            return true;
+        }
+
 
         function row_rect(d, i) {
             d3.select(this)
@@ -208,23 +185,25 @@
             }
         }
         function dep_line(d) {
-            var s = d.d1 ? mk_fyt(d.d1.end, true) : undefined,
-                e = d.d2 ? mk_fyt(d.d2.start, false) : undefined,
-                sc = s ? fyt_col(s,fst_yr) : undefined,
-                ec = e ? fyt_col(e,fst_yr) : undefined;
+            if (ini_visible(d.d1) && ini_visible(d.d2)) {
+                var s = d.d1 ? mk_fyt(d.d1.end, true) : undefined,
+                    e = d.d2 ? mk_fyt(d.d2.start, false) : undefined,
+                    sc = s ? fyt_col(s,fst_yr) : undefined,
+                    ec = e ? fyt_col(e,fst_yr) : undefined;
 
-            if (sc && ec) {
-                d3.select(this)
-                    .classed("dep", true)
-                    //.classed("backward", sc > ec + .34)
-                    .attr({
-                        x1: off + sc * colw - colw/6,
-                        y1: (d.d1.ix+1) * rowh + rowh/2,
-                        x2: off + ec * colw + colw/6,
-                        y2: (d.d2.ix+1) * rowh + rowh/2,
-                        "marker-start": "url(#circle)",
-                        "marker-end": "url(#arrow)",
-                    });
+                if (sc && ec) {
+                    d3.select(this)
+                        .classed("dep", true)
+                        //.classed("backward", sc > ec + .34)
+                        .attr({
+                            x1: off + sc * colw - colw/6,
+                            y1: (d.d1.ix+1) * rowh + rowh/2,
+                            x2: off + ec * colw + colw/6,
+                            y2: (d.d2.ix+1) * rowh + rowh/2,
+                            "marker-start": "url(#circle)",
+                            "marker-end": "url(#arrow)",
+                        });
+                }
             }
         }
         function init_text(d, i) {
@@ -266,91 +245,185 @@
                 });
         }
 
-        svg.attr("width", w+1)
-           .attr("height", h+1);
+        // This is called by the filter functions to re-draw the diagram
+        function render() {
+            var inits = data.inits.filter(ini_visible),
+                i = 0,
+                f = '-';
 
-        var years = []; // [15,16,17,18,19,20,21,22];
-        i = fst_yr;
-        while (i <= lst_yr)
-            years.push(i++);
+            cols = 0;
+            rows = inits.length;
 
-        var ini_gs = svg.selectAll("g")
-                        .data(data.inits)
-                        .enter()
-                        .append("g");
-
-        ini_gs.append("rect")
-           .each(row_rect);
-
-        svg.selectAll("text.year")
-            .data(years)
-            .enter()
-            .append("text")
-            .each(year_text);
-
-        svg.selectAll("line.year")
-            .data(years)
-            .enter()
-            .append("line")
-            .each(year_line);
-
-        svg.selectAll("line.func")
-            .data(funcs)
-            .enter()
-            .append("line")
-            .each(func_line);
-
-        //svg.selectAll("rect.bar")
-        //   .data(data.inits)
-        //   .enter()
-        //   .append("rect")
-        //   .each(init_bar);
-
-        ini_gs.append("path")
-           .each(init_bar2);
-
-        ini_gs.append("text")
-           .each(init_text);
-
-        //ini_gs.each(function (d,i) {
-        //    mk_ini_rag_g(d, d3.select(this), off-30, (i+1) * rowh + 2);
-        //});
-
-        svg.selectAll("line.dep")
-            .data(deps)
-            .enter()
-            .append("line")
-            .each(dep_line);
-
-        $('.bar').qtip({
-            content: {
-                title: function() {
-                    var d = this.context.__data__;
-                    return d.name;
-                },
-                text: function() {
-                    var d = this.context.__data__,
-                        s = mk_fyt(d.start, false),
-                        e = mk_fyt(d.end, true),
-                        tt = d3.select("#tooltip");
-                    tt.select("#tt_state").text(d.state);
-                    tt.select("#tt_start").text(s ? s.fiscal_str() : '');
-                    tt.select("#tt_end").text(e ? e.fiscal_str() : '');
-                    return tt.html();
-                },
-            },
-            style: {
-                classes: 'qtip-cluetip qtip-shadow'
-            },
-            position: {
-                my: 'bottom center',
-                at: 'top center',
-                viewport: $(window),
-                adjust: {
-                    method: 'shift flip'
-                },
+            cluster.funcs = [];
+            for (; i < rows; i++) {
+                var d = inits[i]
+                    s = mk_fyt(d.start, false),
+                    e = mk_fyt(d.end, true);
+                d.ix = i;
+                //inits_by_id[d._id] = d;
+                cols = Math.max(cols, fyt_col(e,fst_yr));
+                if (d['function'] !== f) {
+                    f = d['function'];
+                    cluster.funcs.push({name: f, row: i+1});
+                }
             }
-        });
+            cluster.funcs.push({name: '', row: i+1});
+
+            for (i = 0; i < rows; i++) {
+                var d1 = inits[i],
+                    m = d1.to.length,
+                    j = 0;
+                for (; j < m; j++) {
+                    var d2 = init_indx[d1.to[j]];
+                    deps.push({d1: d1, d2: d2});
+                }
+            }
+
+            colw = (1000 - off) / cols;
+            w = off + cols * colw;
+            h = (rows+1) * rowh;
+
+            d3.select("#diagram svg").remove();
+
+            var svg = d3.select("#diagram")
+                        .append("svg");
+
+            var defs = svg.append("defs");
+
+            defs.append("marker")
+                .attr({
+                    id: "arrow",
+                    viewBox: "-20 -10 20 20",
+                    markerWidth: 12,
+                    markerHeight: 12,
+                    refx: 0,
+                    refy: 0,
+                    orient: "auto",
+                    markerUnits: "userSpaceOnUse"
+                })
+                .append("path")
+                .attr({
+                    //d: "M2,2 L2,13 L8,7 L2,2",
+                    //d: "M0,0 L-13,7 L-13,-7 L0,0",
+                    d: "M -20 -6 0 0 -20 6",
+                    fill: "black",
+                });
+            defs.append("marker")
+                .attr({
+                    id: "circle",
+                    viewBox: "-5 -5 10 10",
+                    markerWidth: 10,
+                    markerHeight: 10,
+                    //refx: 0,
+                    //refy: 0,
+                    markerUnits: "userSpaceOnUse"
+                })
+                .append("circle")
+                .attr({
+                    r: 3, cx: 0, cy: 0,
+                    fill: "black",
+                });
+
+            svg.attr("width", w+1+40)
+               .attr("height", h+1);
+
+            var years = []; // [15,16,17,18,19,20,21,22];
+            i = fst_yr;
+            while (i <= lst_yr)
+                years.push(i++);
+
+            var ini_gs = svg.selectAll("g")
+                            .data(data.inits.filter(ini_visible))
+                            .enter()
+                            .append("g");
+
+            ini_gs.append("rect")
+               .each(row_rect);
+
+            svg.selectAll("text.year")
+                .data(years)
+                .enter()
+                .append("text")
+                .each(year_text);
+
+            svg.selectAll("line.year")
+                .data(years)
+                .enter()
+                .append("line")
+                .each(year_line);
+
+            svg.selectAll("line.func")
+                .data(cluster.funcs)
+                .enter()
+                .append("line")
+                .each(func_line);
+
+            //svg.selectAll("rect.bar")
+            //   .data(data.inits)
+            //   .enter()
+            //   .append("rect")
+            //   .each(init_bar);
+
+            ini_gs.append("path")
+               .each(init_bar2);
+
+            ini_gs.append("text")
+               .each(init_text);
+
+            //ini_gs.each(function (d,i) {
+            //    mk_ini_rag_g(d, d3.select(this), off-30, (i+1) * rowh + 2);
+            //});
+
+            svg.selectAll("line.dep")
+                .data(deps)
+                .enter()
+                .append("line")
+                .each(dep_line);
+
+            $('.bar').qtip({
+                content: {
+                    title: function() {
+                        var d = this.context.__data__;
+                        return d.name;
+                    },
+                    text: function() {
+                        var d = this.context.__data__,
+                            s = mk_fyt(d.start, false),
+                            e = mk_fyt(d.end, true),
+                            tt = d3.select("#tooltip");
+                        tt.select("#tt_state").text(d.state);
+                        tt.select("#tt_start").text(s ? s.fiscal_str() : '');
+                        tt.select("#tt_end").text(e ? e.fiscal_str() : '');
+                        return tt.html();
+                    },
+                },
+                style: {
+                    classes: 'qtip-cluetip qtip-shadow'
+                },
+                position: {
+                    my: 'bottom center',
+                    at: 'top center',
+                    viewport: $(window),
+                    adjust: {
+                        method: 'shift flip'
+                    },
+                }
+            });
+        }
+
+    //d3.json("/bytime.json", function(data) {
+    d3.json("/data/bytime", function(bytime_data) {
+        set_data(bytime_data);
+
+        mk_filter('INI', 'state', 'state-filter');
+        mk_filter('INI', 'category', 'category-filter');
+        mk_filter('INI', 'program_id', 'prog-filter');
+        mk_filter('INI', 'process_id', 'proc-filter');
+        mk_filter('INI', 'tracker_freq', 'tracker-filter');
+
+        init_indx = {ini._id:ini for ini in data.inits}
+
+        render();
     });
 </script>
 {% endblock %}

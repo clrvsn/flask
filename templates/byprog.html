@@ -22,37 +22,21 @@
             <td valign="top">
                 <h3>Filters</h3>
                 <h4>Status</h4>
-                <div class="checkbox"><label>
-                    <input id="pending_chk" type="checkbox" onclick="draw_diagram()" checked> Not Started
-                </label></div>
-                <div class="checkbox"><label>
-                    <input id="started_chk" type="checkbox" onclick="draw_diagram()" checked> Started
-                </label></div>
-                <div class="checkbox"><label>
-                    <input id="rollout_chk" type="checkbox" onclick="draw_diagram()" checked> Rollout
-                </label></div>
-                <div class="checkbox"><label>
-                    <input id="closed_chk" type="checkbox" onclick="draw_diagram()" checked> Closed
-                </label></div>
+                <div id="state-filter"></div>
 
                 <h4>Category</h4>
-                <div class="checkbox"><label>
-                    <input id="depend_chk" type="checkbox" onclick="draw_diagram()" checked> Dependency
-                </label></div>
-                <div class="checkbox"><label>
-                    <input id="impact_chk" type="checkbox" onclick="draw_diagram()" checked> Impacted
-                </label></div>
-                <div class="checkbox"><label>
-                    <input id="transform_chk" type="checkbox" onclick="draw_diagram()" checked> Transformation
-                </label></div>
+                <div id="category-filter"></div>
 
                 <h4>Programme</h4>
                 <div id="prog-filter"></div>
 
                 <h4>IWOW Process</h4>
                 <div id="proc-filter"></div>
-                <button type="button" class="btn btn-default btn-xs" onclick="procs_all()">All</button>
-                <button type="button" class="btn btn-default btn-xs" onclick="procs_none()">None</button>
+                <button type="button" class="btn btn-default btn-xs" onclick="set_all_filters('process_id',true)">All</button>
+                <button type="button" class="btn btn-default btn-xs" onclick="set_all_filters('process_id',false)">None</button>
+
+                <h4>Tracker Frequency</h4>
+                <div id="tracker-filter"></div>
 
             </td>
         </tr>
@@ -80,58 +64,24 @@
 
         var w = init_grid.cols * init_grid.colw + 20,
             h = init_grid.rows * init_grid.rowh + init_grid.rowh/2,
-            init_indx = {},
-            meta_indx = {},
-            enum_vals = {};
+            init_indx = {};
 
-        /*var prog_data = {
-                //{col: 0, row: 0, cols: 2, rows: 3,  color: "#f7ffd4", name: "Multi-Channel"},
-                //{col: 0, row: 4, cols: 2, rows: 8,  color: "#fff6d4", name: "Planned Business"},
-                //{col: 2, row: 0, cols: 3, rows: 12, color: "#ffffd4", name: "MHS Transformation"},
-                //{col: 5, row: 0, cols: 1, rows: 6,  color: "#fff6d4", name: "Planned Business"},
-                'PGM0001': {col: 0, row: 4, cols: 2, rows: 8},
-                'PGM0002': {col: 0, row: 0, cols: 2, rows: 3},
-                'PGM0003': {col: 2, row: 0, cols: 3, rows: 12},
-            };*/
-
-        function procs_all() {
-            _.each(data.procs, function (proc) {
-                $('#'+proc._id+'_chk').prop('checked',true);
-            });
-            draw_diagram();
-        }
-        function procs_none() {
-            _.each(data.procs, function (proc) {
-                $('#'+proc._id+'_chk').prop('checked',false);
-            });
-            draw_diagram();
-        }
 
         function ini_visible(ini) {
             if (ini == null) return false;
+
             if (ini.byprog_col == null || ini.byprog_row == null) {
                 console.warn('Cannot draw', ini.name)
                 return false;
             }
 
-            if (ini.state === 'pending' && !($('#pending_chk').is(':checked'))) return false;
-            if (ini.state === 'started' && !($('#started_chk').is(':checked'))) return false;
-            if (ini.state === 'rollout' && !($('#rollout_chk').is(':checked'))) return false;
-            if (ini.state === 'closed' && !($('#closed_chk').is(':checked'))) return false;
+            if (!do_filter('INI', 'state', ini)) return false;
+            if (!do_filter('INI', 'category', ini)) return false;
 
-            if (ini.category === 'depend' && !($('#depend_chk').is(':checked'))) return false;
-            if (ini.category === 'impact' && !($('#impact_chk').is(':checked'))) return false;
-            if (ini.category === 'transform' && !($('#transform_chk').is(':checked'))) return false;
+            if (!do_filter('INI', 'program_id', ini)) return false;
+            if (!do_filter('INI', 'process_id', ini)) return false;
 
-            if (_.any(data.progs, function(prog) {
-                if (ini.program == null) return false;
-                return (ini.program._id === prog._id && !($('#'+prog._id+'_chk').is(':checked')));
-            })) return false;
-
-            if (_.any(data.procs, function(proc) {
-                if (ini.process == null) return false;
-                return (ini.process._id === proc._id && !($('#'+proc._id+'_chk').is(':checked')));
-            })) return false;
+            if (!do_filter('INI', 'tracker_freq', ini)) return false;
 
             return true;
         }
@@ -189,9 +139,8 @@
             }
         }
 
-        var data;
-
-        function draw_diagram() {
+        // This is called by the filter functions to re-draw the diagram
+        function render() {
             d3.select("#diagram svg").remove();
 
             var svg = d3.select("#diagram")
@@ -220,7 +169,7 @@
                 });
 
             var progs = svg.selectAll("g.prog")
-                            .data(data.progs)
+                            .data(data.programme)
                             .enter()
                             .append("g")
                             .classed("prog", true);
@@ -300,41 +249,27 @@
             });
         }
 
-        function shorten(txt) {
-            if (txt.length > 30)
-                return mk('span', {title:txt}, txt.substr(0,28) + '...');
-            return txt;
-        }
+        //function shorten(txt) {
+        //    if (txt.length > 30)
+        //        return mk('span', {title:txt}, txt.substr(0,28) + '...');
+        //    return txt;
+        //}
 
         d3.json("/data/byprog", function(byprog_data) {
-            data = byprog_data;
+            set_data(byprog_data);
 
-            data.meta.forEach(function(m) {
-                meta_indx[m._id] = m;
-                m.fields.forEach(function(f) {
-                    if (f.type === 'enum') {
-                        vals = {};
-                        f.enum_vals.forEach(function(v) {
-                            vals[v.val] = v.txt;
-                        });
-                        enum_vals[m._id.toLowerCase() + '_' + f.name] = vals;
-                    }
-                });
-            });
+            mk_filter('INI', 'state', 'state-filter');
+            mk_filter('INI', 'category', 'category-filter');
+            mk_filter('INI', 'program_id', 'prog-filter');
+            mk_filter('INI', 'process_id', 'proc-filter');
+            mk_filter('INI', 'tracker_freq', 'tracker-filter');
 
             data.inits.forEach(function(ini) {
                 ini.lines = [];
                 init_indx[ini._id] = ini;
             });
 
-            data.progs.forEach(function(prog) {
-                var div = $('#prog-filter');
-                div.append(mk('div.checkbox',
-                    mk('label',
-                        mk('input#'+prog._id+'_chk', {type:'checkbox', onclick:'draw_diagram()', checked:'checked'}),
-                        prog.name
-                    )
-                ));
+            data.programme.forEach(function(prog) {
                 var rows = num(prog.byprog_row) + num(prog.byprog_rows),
                     cols = num(prog.byprog_col) + num(prog.byprog_cols);
                 init_grid.rows = Math.max(init_grid.rows, rows);
@@ -343,17 +278,7 @@
             w = init_grid.cols * init_grid.colw + 20;
             h = init_grid.rows * init_grid.rowh + init_grid.rowh/2;
 
-            data.procs.forEach(function(proc) {
-                var div = $('#proc-filter');
-                div.append(mk('div.checkbox',
-                    mk('label',
-                        mk('input#'+proc._id+'_chk', {type:'checkbox', onclick:'draw_diagram()', checked:'checked'}),
-                        shorten(proc.title)
-                    )
-                ));
-            });
-
-            draw_diagram();
+            render();
         });
 
     </script>
