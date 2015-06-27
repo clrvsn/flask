@@ -8,7 +8,7 @@
         stroke-dasharray: 3,3;
     }
     text.group, text.cluster {
-        font-size: 12.5px;
+        font-size: 12px;
         text-anchor: middle;
         pointer-events: none;
     }
@@ -188,7 +188,9 @@
                         });
                         grps[k] = val;
                     });
-                    grp_ord = _.pluck(_.sortBy(data.process, 'roadmap_ord'), 'title');
+                    grp_ord = _.filter(_.pluck(_.sortBy(data.process, 'roadmap_ord'), 'title'), function (x) {
+                        return _.contains(_.keys(grps), x);
+                    });
                     break;
                 /*case 'clus':
                     inis = _.filter(inis, function (ini) {
@@ -225,10 +227,10 @@
                 .classed("rag-amber", d[f] === 'amber')
                 .classed("rag-green", d[f] === 'green')
                 .attr({
-                    x: off + (cols * colw) + (i * ragw) + 2,
-                    y: ini_row[d._id] * rowh + 2,
-                    width: ragw - 4,
-                    height: rowh - 4,
+                    x: off + (cols * colw) + (i * ragw) + 3,
+                    y: ini_row[d._id] * rowh + 3,
+                    width: ragw - 6,
+                    height: rowh - 6,
                 });
         }
 
