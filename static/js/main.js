@@ -181,6 +181,8 @@ function mk() {
         if (arg) {
             if (arg.constructor == Object) {
                 el.attr(arg)
+            } else if (_.isArray(arg)) {
+                _.each(arg, function (a) {el.append(a);});
             } else {
                 el.append(arg);
             }
@@ -219,6 +221,44 @@ function fyt_col(fyt, fst) {
     //return fyt ? Math.max(0, (fyt.fy - fst + fyt.t/3)) : 0;
 }
 
+
+//==============================================================================
+
+//var CalendarDate = function (cd, end) {
+//    var d = cd.split('-');
+//    this.date = new Date(d[0], d[1]-1, d[2], 0, 0);
+//    this.end = end;
+//}
+
+function mk_date(yr, mn, dy) {
+    if (yr == null)
+        return null;
+
+    if (_.isString(yr)) {
+        var d = yr.split('-');
+        yr = d[0] - 0;
+        mn = d[1] - 0;
+        dy = d[2] - 0;
+    }
+    if (yr < 100) yr = yr + 2000;
+    return new Date(yr, mn, dy, 0, 0, 0);
+}
+
+function mk_date_now() {
+    return new Date();
+}
+
+function date_col(date, fst_date, cols_per_year) {
+    var ms = date.getTime() - fst_date.getTime(),
+        ms_per_year = 365 * 24 * 60 * 60 * 1000,
+        col = (ms / ms_per_year) * cols_per_year;
+
+    return col;
+}
+
+function cmp_date(date1, date2) {
+    return date1.getTime() - date2.getTime();
+}
 
 //==============================================================================
 

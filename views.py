@@ -221,7 +221,9 @@ def ini_api(_id):
         ini   = deref_ini(db, db.initiative[_id]),
         froms = get('hard','from_init_id','to_init_id'),
         tos   = get('hard','to_init_id','from_init_id'),
-        softs = get('soft','from_init_id','to_init_id') + get('soft','to_init_id','from_init_id'))
+        softs = get('soft','from_init_id','to_init_id') + get('soft','to_init_id','from_init_id'),
+        caps  = filter_removed(db.capability.where({'init_id': _id}))
+    )
 
 @app.route('/data/byprog')
 def byprog_api():
@@ -259,17 +261,18 @@ def byprog_api():
 @app.route('/data/bytime')
 def bytime_api():
     db = DataBase(mongo.db)
-    hards = {}
-    for dpn in db.dependency.where({'type': 'hard'}):
-        if not dpn['from_init_id'] in hards.keys():
-            hards[dpn['from_init_id']] = []
-        hards[dpn['from_init_id']].append(dpn['to_init_id'])
+##    hards = {}
+##    for dpn in db.dependency.where({'type': 'hard'}):
+##        if not dpn['from_init_id'] in hards.keys():
+##            hards[dpn['from_init_id']] = []
+##        hards[dpn['from_init_id']].append(dpn['to_init_id'])
     fields = ['_id','name','state','start','end','type','category','program_id',
-              'function_ids','process_id','tracker_freq']
-    inits = [deref_ini(db,ini,fields) for ini in filter_removed(db.initiative.sort('function_ids'))]
-    for init in inits: # filter_removed(db.initiative.sort('function_ids')):
+              'function_ids','process_id','cluster_id','tracker_freq','roadmap_ord',
+              'start_date','end_date','tp_rag_t','tp_rag_s','tp_rag_c']
+##    inits = [deref_ini(db,ini,fields) for ini in filter_removed(db.initiative.sort('function_ids'))]
+##    for init in inits: # filter_removed(db.initiative.sort('function_ids')):
 ##        ini = {name: init.get(name, '') for name in fields}
-        init['to'] = hards.get(init['_id'], [])
+##        init['to'] = hards.get(init['_id'], [])
 ##        prog = db.programme[ini['program_id']]
 ##        ini['program'] = prog #['name'] if prog else ''
 ##        #del ini['program_id']
@@ -282,7 +285,9 @@ def bytime_api():
 ##        inits.append(ini)
     return flask.jsonify(
         meta  = db._meta,
-        inits = inits,
+        #inits = inits,
+        initiative = [deref_ini(db,ini,fields) for ini in filter_removed(db.initiative)],
+        dependency = filter_removed(db.dependency),
         programme = filter_removed(db.programme),
         process = filter_removed(db.process)
     )
