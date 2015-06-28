@@ -46,10 +46,10 @@
      inkscape:cx="390.64669"
      inkscape:cy="78.073841"
      inkscape:document-units="px"
-     inkscape:current-layer="g4577-7-2-4"
+     inkscape:current-layer="layer1"
      showgrid="true"
-     inkscape:window-width="1680"
-     inkscape:window-height="988"
+     inkscape:window-width="1280"
+     inkscape:window-height="962"
      inkscape:window-x="-8"
      inkscape:window-y="-8"
      inkscape:window-maximized="1"
@@ -498,5 +498,22 @@
            x="193.6012"
            id="19e40842-a704-11e4-9d54-0026b9c0c021-2-14">To Be Determined</tspan></text>
     </g>
+    <path
+       d="m 360,122.36219 80,0"
+       id="path3058"
+       style="fill:none;stroke:#808080;stroke-width:2;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;marker-end:none"
+       sodipodi:nodetypes="cc"
+       inkscape:connector-curvature="0" />
+    <text
+       id="text3060"
+       style="font-size:10px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;font-family:Verdana;-inkscape-font-specification:Verdana"
+       x="460"
+       y="126.36218"
+       sodipodi:linespacing="125%"
+       xml:space="preserve"><tspan
+         id="tspan3062"
+         x="460"
+         y="126.36218"
+         sodipodi:role="line">Inactive</tspan></text>
   </g>
 </svg>

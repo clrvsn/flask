@@ -63,8 +63,7 @@
         init_grid.rowh = 65;
 
         var w = init_grid.cols * init_grid.colw + 20,
-            h = init_grid.rows * init_grid.rowh + init_grid.rowh/2,
-            init_indx = {};
+            h = init_grid.rows * init_grid.rowh + init_grid.rowh/2;
 
 
         function ini_visible(ini) {
@@ -88,8 +87,8 @@
         function dep_visible(dep) {
             if (dep == null) return false;
 
-            var ini1 = init_indx[dep.from_init_id],
-                ini2 = init_indx[dep.to_init_id];
+            var ini1 = index.ini[dep.from_init_id],
+                ini2 = index.ini[dep.to_init_id];
 
             if (!ini_visible(ini1)) return false;
             if (!ini_visible(ini2)) return false;
@@ -98,8 +97,8 @@
         }
 
         function soft_line(d) {
-            var d1 = init_indx[d.from_init_id],
-                d2 = init_indx[d.to_init_id];
+            var d1 = index.ini[d.from_init_id],
+                d2 = index.ini[d.to_init_id];
 
             if (ini_visible(d1) && ini_visible(d2)) {
                 var line = d3.select(this)
@@ -115,8 +114,8 @@
             }
         }
         function hard_line(d) {
-            var d1 = init_indx[d.from_init_id],
-                d2 = init_indx[d.to_init_id];
+            var d1 = index.ini[d.from_init_id],
+                d2 = index.ini[d.to_init_id];
 
             if (ini_visible(d1) && ini_visible(d2)) {
                 var r1 = mk_init_rect(d1),
@@ -128,14 +127,18 @@
                     xp = r2.r, yp = r2.b,
                     xq = r2.l, yq = r2.b,
                     p = intersect_lineseg_rect(xk,yk, xl,yl, xm,ym, xn,yn, xp,yp, xq,yq),
-                    line = d3.select(this)
-                             .attr({x1: xk, y1: yk,
-                                    x2: p.x, y2: p.y,
-                                    "marker-end": "url(#arrow)",
-                             });
+                    line;
 
-                d1.lines.push(line);
-                d2.lines.push(line);
+                if (p != null) {
+                    line = d3.select(this)
+                                 .attr({x1: xk, y1: yk,
+                                        x2: p.x, y2: p.y,
+                                        "marker-end": "url(#arrow)",
+                                 });
+
+                    d1.lines.push(line);
+                    d2.lines.push(line);
+                }
             }
         }
 
@@ -258,15 +261,16 @@
         d3.json("/data/byprog", function(byprog_data) {
             set_data(byprog_data);
 
-            mk_filter('INI', 'state', 'state-filter');
+            mk_filter('INI', 'state', 'state-filter', ['pending','started','rollout','closed']);
             mk_filter('INI', 'category', 'category-filter');
             mk_filter('INI', 'program_id', 'prog-filter');
             mk_filter('INI', 'process_id', 'proc-filter');
             mk_filter('INI', 'tracker_freq', 'tracker-filter');
 
+            mk_index('ini', data.inits);
+
             data.inits.forEach(function(ini) {
                 ini.lines = [];
-                init_indx[ini._id] = ini;
             });
 
             data.programme.forEach(function(prog) {

@@ -37,7 +37,7 @@
             cols = [
                 //{name: "_id", label: "ID",  editable: false, cell: "string" },
                 {name: "name", label: "Name", cell: "string" },
-                {name: "area", label: "TL2020 Platform Area", cell: "string"},
+                {name: "area_2020", label: "TL2020 Platform Area", cell: "string"},
                 {name: "ref", label: "Reference", cell: "string"},
                 {name: "ibcm", label: "IBCM", cell: "string"},
                 //{name: "notes", label: "Notes", cell: "string"},
@@ -61,9 +61,9 @@
                 }
             );
         }
-        if (id === '' || id.substr(0,3) !== 'INI') {
+        //if (id === '' || id.substr(0,3) !== 'INI') {
             cols.push(
-                {name: "init_id", label: "Reponsible Project",
+                {name: "init_cover_id", label: "Covered By",
                  cell: Backgrid.SelectCell.extend({ optionValues: data.inis }),
                  sortValue:
                     function (model, field) {
@@ -78,7 +78,23 @@
                    }
                 }
             );
-        }
+            cols.push(
+                {name: "init_moveout_id", label: "Move Out By",
+                 cell: Backgrid.SelectCell.extend({ optionValues: data.inis }),
+                 sortValue:
+                    function (model, field) {
+                        var value = model.attributes[field];
+                        if (value) {
+                            return _.find(data.inis, function (ini) {
+                                return ini[1] === value;
+                            })[0];
+                        } else {
+                            return '';
+                        }
+                   }
+                }
+            );
+        //}
 
         var grid = new Backgrid.Grid({
                 columns: cols,

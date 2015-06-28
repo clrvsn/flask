@@ -79,6 +79,9 @@ rect.activity {
 .closed {
     stroke: #008000;
 }
+.inactive {
+    stroke: #808080;
+}
 
 
 line.soft {

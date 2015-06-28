@@ -229,7 +229,7 @@ def ini_api(_id):
 def byprog_api():
     db = DataBase(mongo.db)
     fields = ['_id','name','state','start','end','type','category','program_id',
-              'function_ids','process_id','byprog_col','byprog_row']
+              'function_ids','process_id','byprog_col','byprog_row','tracker_freq']
     def fltr(ini):
         return (not ini.get('removed', False)) # or (not ini.has_key('byprog_txt'))
     return flask.jsonify(
@@ -312,17 +312,25 @@ def caps_api(id=None):
             fun  = db.function[id]
             caps = db.capability.where({'function_id': id})
             inis = db.initiative
-            return flask.jsonify(caps=caps, fun=fun, inis=mk_options(inis))
-        elif id[0:3] == 'INI':
-            ini  = db.initiative[id]
-            caps = db.capability.where({'init_id': id})
-            funs = db.function
-            return flask.jsonify(caps=caps, funs=mk_options(funs), ini=ini)
+            return flask.jsonify(
+                caps = caps,
+                fun = fun,
+                inis = mk_options(inis)
+            )
+##        elif id[0:3] == 'INI':
+##            ini  = db.initiative[id]
+##            caps = db.capability.where({'init_id': id})
+##            funs = db.function
+##            return flask.jsonify(caps=caps, funs=mk_options(funs), ini=ini)
     else:
         caps = db.capability
         funs = db.function
         inis = db.initiative
-        return flask.jsonify(caps=caps, funs=mk_options(funs), inis=mk_options(inis))
+        return flask.jsonify(
+            caps = caps,
+            funs = mk_options(funs),
+            inis = mk_options(inis)
+        )
 
 @app.route('/data/funs')
 def funs_api():
