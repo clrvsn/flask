@@ -196,9 +196,9 @@
             if (!do_filter('INI', 'tracker_freq', ini)) return false;
 
             if (choice.view === 'year') {
-                if (ini.start_date == null) return false;
+                //if (ini.start_date == null) return false;
                 if (ini.end_date == null) return false;
-                if (cmp_date(lst_date, mk_date(ini.start_date)) < 0) return false;
+                if (ini.start_date != null && cmp_date(lst_date, mk_date(ini.start_date)) < 0) return false;
                 if (cmp_date(fst_date, mk_date(ini.end_date)) > 0) return false;
             }
 
@@ -245,7 +245,7 @@
                         return _.contains(_.keys(grps), x);
                     });
                     break;
-                /*case 'clus':
+                case 'clus':
                     inis = _.filter(inis, function (ini) {
                         return ini.cluster != null;
                     });
@@ -253,8 +253,11 @@
                     grps = _.groupBy(inis, function (ini) {
                         return ini.cluster.name;
                     });
-                    grp_ord = _.keys(grps).sort();
-                    break;*/
+                    //grp_ord = _.keys(grps).sort();
+                    grp_ord = _.filter(_.pluck(_.sortBy(data.cluster, 'roadmap_ord'), 'name'), function (x) {
+                        return _.contains(_.keys(grps), x);
+                    });
+                    break;
             }
 
             return _.map(grp_ord, function (key) {
@@ -724,20 +727,20 @@
     mk_choice_inline('group', 'group-choice', [
         {val: 'proc', txt: 'Group by IWOW Process'},
         {val: 'func', txt: 'Group by Functional Area'},
-        //{val: 'clus', txt: 'Group by Cluster'},
+        {val: 'clus', txt: 'Group by Business Change Area'},
     ], 'proc');
 
     mk_choice_inline('view', 'view-choice', [
-        {val: 'full', txt: 'View Full Timeline'},
         {val: 'year', txt: 'View this Year'},
+        {val: 'full', txt: 'View Full Timeline'},
     ], 'year');
 
-    mk_toggle_inline('deps', 'Show Dependencies', true, 'deps-toggle');
+    mk_toggle_inline('deps', 'Show Dependencies', false, 'deps-toggle');
 
     d3.json("/data/bytime", function(bytime_data) {
         set_data(bytime_data);
 
-        mk_filter('INI', 'state', 'state-filter', ['started','rollout','closed']);
+        mk_filter('INI', 'state', 'state-filter', ['pending','started','rollout','closed']);
         mk_filter('INI', 'category', 'category-filter');
         mk_filter('INI', 'program_id', 'prog-filter');
         mk_filter('INI', 'process_id', 'proc-filter');

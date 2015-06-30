@@ -293,7 +293,8 @@ def bytime_api():
         initiative = [deref_ini(db,ini,fields) for ini in filter_removed(db.initiative)],
         dependency = filter_removed(db.dependency),
         programme = filter_removed(db.programme),
-        process = filter_removed(db.process)
+        process = filter_removed(db.process),
+        cluster = filter_removed(db.cluster)
     )
 
 def mk_options(cursor, field='name'):
