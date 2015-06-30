@@ -216,13 +216,17 @@ def ini_api(_id):
         inis = [deref_ini(db, db.initiative[ini[id1]], fields)
                 for ini in db.dependency.where({'type': typ, id2: _id})]
         return filter_removed(inis)
+    ini = deref_ini(db, db.initiative[_id])
+    def fltr(cap):
+        fld = 'init_cover_ids' if ini['type'] == 'prestudy' else 'init_moveout_ids'
+        return _id in cap.get(fld, [])
     return flask.jsonify(
         meta  = db._meta,
-        ini   = deref_ini(db, db.initiative[_id]),
+        ini   = ini,
         froms = get('hard','from_init_id','to_init_id'),
         tos   = get('hard','to_init_id','from_init_id'),
         softs = get('soft','from_init_id','to_init_id') + get('soft','to_init_id','from_init_id'),
-        caps  = filter_removed(db.capability.where({'init_id': _id}))
+        caps  = filter_removed(filter(fltr, db.capability))
     )
 
 @app.route('/data/byprog')

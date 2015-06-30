@@ -87,6 +87,59 @@
                 <div id="deps-toggle"></div>
                 <br/>
                 <div id="diagram"></div>
+                <div id="rag-text">
+                <h3>Programme Status</h3>
+                <p>The programme will determine the <em>RAG</em> (Red-Amber-Green)
+                status for <em>time</em>, <em>scope</em> and <em>cost</em> for
+                MHS TP initiatives. Be aware that
+                there can be differences in the programme's perceived RAG-status
+                compared to the initiative's own status. Comparing with the
+                initiatives MHS TP is phasing out a large legacy system,
+                transferring out all functionality from MHS to target applications.
+                </p>
+                <table>
+                    <tr>
+                        <td valign="top" width="30%">
+                            <h4>Time</h4>
+                            <p>MHS TP has a greater duration than an initiative
+                            which means that there can be leeway between the
+                            project's critical deadline and the critical deadline
+                            for the programme. There can as well be dependencies
+                            to critical milestones during the course of a project
+                            which might be more important to the programme than
+                            others. Managing a programme involves long term
+                            strategic planning which might indicate that there
+                            are time frames more or less flexible for achieving
+                            the overall target.</p>
+                        </td>
+                        <td width="5%"></td>
+                        <td valign="top" width="30%">
+                            <h4>Scope</h4>
+                            <p>The programme's requirements are described in terms
+                            of outcomes and benefits. The scope is not as strongly
+                            defined at the programme level and it can change during
+                            the life cycle of the programme. A project's scope might
+                            differ in the level of detail since there are different
+                            interests from programme and business owner. This can
+                            result in different RAG-statuses between the programme
+                            and the project.</p>
+                        </td>
+                        <td width="5%"></td>
+                        <td valign="top" width="30%">
+                            <h4>Cost</h4>
+                            <p>Projects typically have a straight-forward budget
+                            related to their own deliverables and their own time
+                            frame, while the programme budget consists of the sum
+                            of all programme activities. The RAG status may differ
+                            since a project budget deviation may not impact the
+                            aggregated programme budget. The programme will
+                            balance all deviations in its approved frame, and
+                            only when the total approved frame is exceeded will
+                            the programme status be affected.</p>
+                        </td>
+                    </tr>
+                </table>
+                </div>
             </td>
             <td valign="top">
                 <h3>Filters</h3>
@@ -525,6 +578,7 @@
             rows = inits.length;
             w = off + cols * colw + (3 * ragw) + cluw;
             h = (rows+2) * rowh;
+            $("#rag-text").width(w);
 
             d3.select("#diagram svg").remove();
 
