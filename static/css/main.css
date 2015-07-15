@@ -131,25 +131,28 @@ g.init text {
     text-anchor: middle;
     pointer-events: none;
 }
-g.rag circle {
+circle.rag {
     stroke: #666;
     stroke-width: 1.5;
-}
-g.rag circle.red {
-    fill: #F88;
-}
-g.rag circle.amber {
-    fill: #EE0;
-}
-g.rag circle.green {
-    fill: #6F6;
-}
-g.rag circle.grey {
     fill: #CCC;
 }
 g.rag text {
     font-size: 60%;
     text-anchor: middle;
+}
+
+rect.rag {
+    fill: none;
+    stroke: black;
+}
+rect.rag-red, circle.rag-red {
+    fill: #D50000;
+}
+rect.rag-amber, circle.rag-amber {
+    fill: #D5D500;
+}
+rect.rag-green, circle.rag-green {
+    fill: #00D500;
 }
 
 

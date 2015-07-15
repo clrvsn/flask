@@ -269,7 +269,7 @@ function mk_class(s) {
 //==============================================================================
 // Initiatives
 
-var RAG = {
+/*var RAG = {
     'INI0025': {T: 'G', S: 'G', C: 'G'},
     'INI0026': {T: 'G', S: 'G', C: 'G'},
     'INI0052': {T: 'G', S: 'G', C: 'G'},
@@ -300,7 +300,7 @@ var RAG = {
     'INI0042': {T: 'G', S: 'G', C: 'G'},
     'INI0021': {T: 'G', S: 'G', C: 'A'},
     'INI0022': {T: 'G', S: 'G', C: 'A'},
-};
+};*/
 
 var init_grid = {
     cols: 6,
@@ -400,26 +400,26 @@ function mk_ini_rag_g(ini, node, x, y) {
 
     function mk_one(i, ltr, clr) {
         g.append("circle")
-         .classed(clr, true)
+         .classed('rag', true)
+         .classed('rag-'+clr, clr !== 'grey')
          .attr({
-            r: 5.5,
-            cx: 5 + i * 10,
+            r: 6,
+            cx: 5 + i * 12,
             cy: 5,
          });
         g.append("text")
          .text(ltr)
          .attr({
-            x: 4 + i * 10,
-            y: 8.5,
+            x: 4.5 + i * 12,
+            y: 8.25,
          });
     }
 
-    var rag = RAG[ini._id] || {T: '-', S: '-', C: '-'},
-        clrs = {R: 'red', A: 'amber', G: 'green', '-': 'grey'};
+    var rag = {T: ini.tp_rag_t || 'grey', S: ini.tp_rag_s || 'grey', C: ini.tp_rag_c || 'grey'};
 
-    mk_one(0, 'T', clrs[rag['T']]);
-    mk_one(1, 'S', clrs[rag['S']]);
-    mk_one(2, 'C', clrs[rag['C']]);
+    mk_one(0, 'T', rag['T']);
+    mk_one(1, 'S', rag['S']);
+    mk_one(2, 'C', rag['C']);
 
     g.classed("rag", true)
      .attr("transform", "translate(" + x + " " + y + ")");
@@ -427,11 +427,13 @@ function mk_ini_rag_g(ini, node, x, y) {
     return g;
 }
 
-function init_rag(d) {
-    var r = mk_init_rect(d);
+function init_rag(ini) {
+    if (ini.tp_rag_t || ini.tp_rag_s || ini.tp_rag_c) {
+        var r = mk_init_rect(ini);
 
-    if (r) {
-        mk_ini_rag_g(d, d3.select(this), r.r - 25, r.t - 5);
+        if (r) {
+            mk_ini_rag_g(ini, d3.select(this), r.l + 8, r.t - 8);
+        }
     }
 }
 

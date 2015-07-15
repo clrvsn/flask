@@ -25,10 +25,16 @@
         text-anchor: left;
         pointer-events: none;
     }
-    text.month, text.rag {
+    text.month, text.rag, text.rag-head {
         font-size: 12px;
         text-anchor: middle;
         pointer-events: none;
+    }
+    text.info-icon {
+    	font-family: FontAwesome;
+        font-size: 14px;
+        text-anchor: middle;
+        fill: blue;
     }
     rect.bar, path.bar {
         stroke: black;
@@ -50,19 +56,6 @@
     }
     rect.hilite {
         fill: #FDB;
-    }
-    rect.rag {
-        fill: none;
-        stroke: black;
-    }
-    rect.rag-red {
-        fill: #D50000;
-    }
-    rect.rag-amber {
-        fill: #D5D500;
-    }
-    rect.rag-green {
-        fill: #00D500;
     }
 </style>
 {% endblock %}
@@ -88,8 +81,15 @@
                 <br/>
                 <div id="diagram"></div>
                 <div id="rag-text">
-                <h3>Programme Status</h3>
-                <p>The programme will determine the <em>RAG</em> (Red-Amber-Green)
+<div class="modal fade" id="prog-status-info" tabindex="-1" role="dialog">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4>Programme Status</h4>
+</div>
+      <div class="modal-body">                
+      			<p>The programme will determine the <em>RAG</em> (Red-Amber-Green)
                 status for <em>time</em>, <em>scope</em> and <em>cost</em> for
                 MHS TP initiatives. Be aware that
                 there can be differences in the programme's perceived RAG-status
@@ -139,7 +139,10 @@
                         </td>
                     </tr>
                 </table>
-                </div>
+    </div><!-- /.modal-content -->
+  </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+            </div>
             </td>
             <td valign="top">
                 <h3>Filters</h3>
@@ -174,6 +177,7 @@
             lst_date,
             cols, rows,
             off = 380,
+            yoff = 25,
             grpw = 90,
             cluw = 20,
             ragw = 0,
@@ -271,7 +275,7 @@
                 .classed("odd", (i+1)%2)
                 .attr({
                     x: grpw,
-                    y: (i+1) * rowh,
+                    y: yoff + (i+1) * rowh,
                     width: off + cols * colw + 3 * ragw - grpw,
                     height: rowh,
                     id: 'row' + i,
@@ -284,7 +288,7 @@
                 .classed("rag-green", d[f] === 'green')
                 .attr({
                     x: off + (cols * colw) + (i * ragw) + 3,
-                    y: ini_row[d._id] * rowh + 3,
+                    y: yoff + ini_row[d._id] * rowh + 3,
                     width: ragw - 6,
                     height: rowh - 6,
                 });
@@ -293,7 +297,7 @@
         function init_bar(d, i) {
             var l = off + d.sc * colw,
                 r = off + d.ec * colw,
-                t = (i+1) * rowh + 3,
+                t = yoff + (i+1) * rowh + 3,
                 b = t + rowh - 6,
                 path;
 
@@ -346,9 +350,9 @@
                     //.classed("backward", sc > ec + .34)
                     .attr({
                         x1: off + sc * colw - colw/6,
-                        y1: sr * rowh + rowh/2,
+                        y1: yoff + sr * rowh + rowh/2,
                         x2: off + ec * colw + colw/6,
-                        y2: er * rowh + rowh/2,
+                        y2: yoff + er * rowh + rowh/2,
                         "marker-start": "url(#circle)",
                         "marker-end": "url(#arrow)",
                     });
@@ -376,9 +380,9 @@
                     //.classed("backward", sc > ec + .34)
                     .attr({
                         x1: off + sc * colw - colw/6,
-                        y1: sr * rowh + rowh/2,
+                        y1: yoff + sr * rowh + rowh/2,
                         x2: off + ec * colw + colw/6,
-                        y2: er * rowh + rowh/2,
+                        y2: yoff + er * rowh + rowh/2,
                         "marker-start": "url(#circle)",
                         "marker-end": "url(#arrow)",
                     });
@@ -390,7 +394,7 @@
                 .text(d.ini.name)
                 .attr({
                     x: grpw+3,
-                    y: (i+1) * rowh + txth + (rowh-txth)/2,
+                    y: yoff + (i+1) * rowh + txth + (rowh-txth)/2,
                 });
         }
         function year_text(d) {
@@ -399,7 +403,7 @@
                 .classed("year", true)
                 .attr({
                     x: d.x + 2,
-                    y: 12,
+                    y: yoff + 12,
                 });
         }
         function rag_text(d) {
@@ -408,7 +412,7 @@
                 .classed("rag", true)
                 .attr({
                     x: d.x + (ragw / 2),
-                    y: 12,
+                    y: yoff + 12,
                 });
         }
         function year_line(d) {
@@ -416,9 +420,9 @@
                 .classed("year", true)
                 .attr({
                     x1: d.x,
-                    y1: 0,
+                    y1: yoff + 0,
                     x2: d.x,
-                    y2: (rows+1) * rowh,
+                    y2: yoff + (rows+1) * rowh,
                 });
         }
         function month_text(d) {
@@ -435,9 +439,9 @@
                 .classed("month", true)
                 .attr({
                     x1: d.x,
-                    y1: rowh,
+                    y1: yoff + rowh,
                     x2: d.x,
-                    y2: (rows+1) * rowh,
+                    y2: yoff + (rows+1) * rowh,
                 });
         }
         function group_line(d) {
@@ -445,9 +449,9 @@
                 .classed("group", true)
                 .attr({
                     x1: 0,
-                    y1: (d.row + 0) * rowh,
+                    y1: yoff + (d.row + 0) * rowh,
                     x2: off + cols * colw + 3 * ragw,
-                    y2: (d.row + 0) * rowh,
+                    y2: yoff + (d.row + 0) * rowh,
                 });
         }
         function group_text(grp) {
@@ -456,7 +460,7 @@
                     rect = g.append('rect')
                             .attr({
                                 x: 0,
-                                y: grp.row * rowh,
+                                y: yoff + grp.row * rowh,
                                 width: grpw-3,
                                 height: grp.rows * rowh,
                                 fill: 'none'
@@ -478,9 +482,9 @@
                 .classed("cluster", true)
                 .attr({
                     x1: w - cluw,
-                    y1: clu.row * rowh,
+                    y1: yoff + clu.row * rowh,
                     x2: w,
-                    y2: clu.row * rowh,
+                    y2: yoff + clu.row * rowh,
                 });
         }
         function cluster_text(clu) {
@@ -489,7 +493,7 @@
                     rect = g.append('rect')
                             .attr({
                                 x: w - cluw,
-                                y: clu.row * rowh,
+                                y: yoff + clu.row * rowh,
                                 width: cluw-3,
                                 height: clu.rows * rowh,
                                 fill: 'none'
@@ -582,7 +586,7 @@
 
             rows = inits.length;
             w = off + cols * colw + (3 * ragw) + cluw;
-            h = (rows+2) * rowh;
+            h = yoff + (rows+2) * rowh;
             $("#rag-text").width(w);
 
             d3.select("#diagram svg").remove();
@@ -687,6 +691,35 @@
                 d3_add(svg, "rect.tp_rag_t", inits, "rect", function (d) {rag_rect(d3.select(this),0,d,'tp_rag_t');});
                 d3_add(svg, "rect.tp_rag_s", inits, "rect", function (d) {rag_rect(d3.select(this),1,d,'tp_rag_s');});
                 d3_add(svg, "rect.tp_rag_c", inits, "rect", function (d) {rag_rect(d3.select(this),2,d,'tp_rag_c');});
+
+                svg.append('text')
+	                .text("Programme")
+	                .classed("rag-head", true)
+	                .attr({
+	                    x: off + (cols * colw) + (1.5 * ragw),
+	                    y: yoff - 16,
+	                });
+                svg.append('text')
+	                .text("Status")
+	                .classed("rag-head", true)
+	                .attr({
+	                    x: off + (cols * colw) + (1.1 * ragw),
+	                    y: yoff - 2,
+	                });
+                svg.append('text')
+	                .text("")
+	                .classed("info-icon", true)
+	                .attr({
+	                    x: off + (cols * colw) + (2.7 * ragw),
+	                    y: yoff - 2,
+	                    id: 'prog-status-icon',
+	                    cursor: 'pointer',
+	                    //'data-toggle': 'modal',
+	                    //'data-target': 'prog-status-info',
+	                })
+	                .on('click', function () {
+                		$('#prog-status-info').modal();
+                	});
             }
 
             d3_add(svg, "line.dep", data.dependency.filter(dep_visible), "line", choice.view === 'year' ? dep_line_year : dep_line_full);

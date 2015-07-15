@@ -213,7 +213,7 @@ def ini_api(_id):
     fields = ['_id','name','state','start','end','type','category',
               'program_id','process_id','function_ids','removed']#,'ncaps']
     def get(typ,id1,id2):
-        inis = [deref_ini(db, db.initiative[ini[id1]], fields)
+        inis = [deref_ini(db, db.initiative[ini[id1]]) #, fields)
                 for ini in db.dependency.where({'type': typ, id2: _id})]
         return filter_removed(inis)
     ini = deref_ini(db, db.initiative[_id])
