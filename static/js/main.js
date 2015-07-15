@@ -237,8 +237,8 @@ function mk_date(yr, mn, dy) {
     if (_.isString(yr)) {
         var d = yr.split('-');
         yr = d[0] - 0;
-        mn = d[1] - 0;
-        dy = d[2] - 0;
+        mn = d[1] - 1;
+        dy = d[2] - 1;
     }
     if (yr < 100) yr = yr + 2000;
     return new Date(yr, mn, dy, 0, 0, 0);
