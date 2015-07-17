@@ -134,7 +134,7 @@ g.init text {
 circle.rag {
     stroke: #666;
     stroke-width: 1.5;
-    fill: #CCC;
+    fill: #DDD;
 }
 g.rag text {
     font-size: 60%;

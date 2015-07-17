@@ -415,7 +415,7 @@ function mk_ini_rag_g(ini, node, x, y) {
          });
     }
 
-    var rag = {T: ini.tp_rag_t || 'grey', S: ini.tp_rag_s || 'grey', C: ini.tp_rag_c || 'grey'};
+    var rag = {T: ini.ini_rag_t || 'grey', S: ini.ini_rag_s || 'grey', C: ini.ini_rag_c || 'grey'};
 
     mk_one(0, 'T', rag['T']);
     mk_one(1, 'S', rag['S']);
@@ -428,13 +428,13 @@ function mk_ini_rag_g(ini, node, x, y) {
 }
 
 function init_rag(ini) {
-    if (ini.tp_rag_t || ini.tp_rag_s || ini.tp_rag_c) {
+    //if (ini.tp_rag_t || ini.tp_rag_s || ini.tp_rag_c) {
         var r = mk_init_rect(ini);
 
         if (r) {
-            mk_ini_rag_g(ini, d3.select(this), r.l + 8, r.t - 8);
+            mk_ini_rag_g(ini, d3.select(this), r.r - (8 + 3 * 12), r.t - 8);
         }
-    }
+    //}
 }
 
 

@@ -15,6 +15,10 @@
     .this text {
         font-weight: bold;
     }
+    .info-icon {
+        color: blue;
+        cursor: pointer;
+    }
 </style>
 {% endblock %}
 {% block content %}
@@ -23,13 +27,11 @@
     <table class="ini">
         <tr>
             <th>Start:</th><td id="start"></td>
-            <th>Dependencies:</th>
+            <th>Dependencies: <span id="dep-info-icon" class="fa fa-info-circle info-icon"></span></th>
         </tr>
         <tr><th>Finish:</th>
             <td id="end"></td>
             <td rowspan="12"><div id="diagram"></div>
-                <p>Legend:</p>
-                <img src="/static/img/byprog.legend.svg">
             </td>
         </tr>
         <tr><th>Type:</th><td id="type"></td></tr>
@@ -55,6 +57,27 @@
             <tr><th>End:</th> <td id="tt_end"></td></tr>
         </table>
     </div>
+    <!--div id="dep-info" title="Dependencies">
+        <p>Note that the RAG status show here is the Initiative's own, as reported in the tracker.</p>
+        <p>Legend:</p>
+        <img src="/static/img/byprog.legend.svg">
+    </div-->
+<div class="modal fade" id="dep-info" tabindex="-1" role="dialog">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+          <h4>Dependency Info</h4>
+      </div>
+      <div class="modal-body">                
+        <p>Note that the RAG status show here is the Initiative's own, as reported in the tracker.</p>
+        <p><b>Legend:</b></p>
+        <img src="/static/img/byprog.legend.svg">
+      </div>
+    </div><!-- /.modal-content -->
+  </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+
 </div>
 {% endblock %}
 {% block foot %}
@@ -109,6 +132,19 @@
                 "marker-end": "url(#arrow)",
             });
     }
+
+    $(function () {
+        //$('#dep-info').dialog({
+        //    autoOpen: false,
+        //    resizable: false,
+        //    width: 600,
+        //});
+        $('#dep-info-icon').click(function () {
+            //$('#dep-info').dialog('open');
+            $('#dep-info').modal();
+            event.preventDefault();
+        });        
+    });
 
     d3.json(api, function (data) {
 

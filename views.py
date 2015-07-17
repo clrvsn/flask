@@ -63,7 +63,8 @@ def page(name):
 
 @app.route('/')
 def plan():
-    return page('prog-plan')
+    #return page('prog-plan')
+    return flask.render_template("front.html")
 
 #-------------------------------------------------------------------------------
 # Login
