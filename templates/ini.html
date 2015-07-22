@@ -81,6 +81,7 @@
     </div>
     <div id="rag-info" title="RAG Status" class="jquid">
         <h4 id="rag-ini-name">Initiative</h4>
+        <p>Status last updated on <span id="rag-update"></span>.</p>
         <table class="table">
             <tr>
                 <th></th>
@@ -328,6 +329,7 @@
         gs.each(init_text);
         init_rag.click = function (ini) {
             $('#rag-ini-name').text(ini.name);
+            $('#rag-update').text(ini.ini_rag_date || 'unknown date')
             $('#rag-t').attr('class', 'rag-' + ini.ini_rag_t || 'grey');
             $('#rag-t-desc').text(ini.ini_rag_t_desc || '');
             $('#rag-t-act').text(ini.ini_rag_t_act || '');
