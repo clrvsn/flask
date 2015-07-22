@@ -154,6 +154,15 @@ rect.rag-amber, circle.rag-amber {
 rect.rag-green, circle.rag-green {
     fill: #00D500;
 }
+.rag-green {
+    background-color: #00D500;
+}
+.rag-amber {
+    background-color: #D5D500;
+}
+.rag-red {
+    background-color: #D50000;
+}
 
 
 .navbar-brand {

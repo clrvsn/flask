@@ -432,7 +432,10 @@ function init_rag(ini) {
         var r = mk_init_rect(ini);
 
         if (r) {
-            mk_ini_rag_g(ini, d3.select(this), r.r - (8 + 3 * 12), r.t - 8);
+            var g = mk_ini_rag_g(ini, d3.select(this), r.r - (8 + 3 * 12), r.t - 8);
+            if (init_rag.click) {
+                g.on('click', function () {init_rag.click(ini);})
+            }
         }
     //}
 }

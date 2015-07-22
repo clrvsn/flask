@@ -40,6 +40,9 @@
         stroke: black;
         -pointer-events: none;
     }
+    path.bar {
+    	cursor: pointer;
+    }
     text.bar {
         font-size: 12.5px;
         text-anchor: left;
@@ -56,6 +59,9 @@
     }
     rect.hilite {
         fill: #FDB;
+    }
+    rect.rag-red, rect.rag-amber, rect.rag-green {
+    	cursor: pointer;
     }
 </style>
 {% endblock %}
@@ -81,14 +87,15 @@
                 <br/>
                 <div id="diagram"></div>
                 <div id="rag-text">
-<div class="modal fade" id="prog-status-info" tabindex="-1" role="dialog">
+<!--div class="modal " id="prog-status-info" tabindex="-1" role="dialog">
   <div class="modal-dialog">
     <div class="modal-content">
       <div class="modal-header">
         <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
                 <h4>Programme Status</h4>
 </div>
-      <div class="modal-body">                
+      <div class="modal-body"-->
+      <div id="prog-status-info" title="Programme Status">                
       			<p>The programme will determine the <em>RAG</em> (Red-Amber-Green)
                 status for <em>time</em>, <em>scope</em> and <em>cost</em> for
                 MHS TP initiatives. <b>Be aware that there can be differences in 
@@ -140,20 +147,43 @@
                     </tr>
                 </table>
             </div>
-    </div><!-- /.modal-content -->
-  </div><!-- /.modal-dialog -->
-</div><!-- /.modal -->
+    <!--/div>
+  </div>
+</div--><!-- /.modal -->
+
+<!--div class="modal " id="prog-status" tabindex="-1" role="dialog">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+          <h4 id="ps-ini-name">MHS-TP Status</h4>
+      </div>
+      <div class="modal-body"-->   
+      <div id="prog-status" title="Programme Status">                
+        <p>Coming Soon</p>
+      </div>
+    <!--/div>
+  </div>
+</div--><!-- /.modal -->
+
+
             </td>
             <td valign="top">
                 <h3>Filters</h3>
                 <h4>Status</h4>
                 <div id="state-filter"></div>
+                <button type="button" class="btn btn-default btn-xs" onclick="set_all_filters('state',true)">All</button>
+                <button type="button" class="btn btn-default btn-xs" onclick="set_all_filters('state',false)">None</button>
 
                 <h4>Category</h4>
                 <div id="category-filter"></div>
+                <button type="button" class="btn btn-default btn-xs" onclick="set_all_filters('category',true)">All</button>
+                <button type="button" class="btn btn-default btn-xs" onclick="set_all_filters('category',false)">None</button>
 
                 <h4>Programme</h4>
                 <div id="prog-filter"></div>
+                <button type="button" class="btn btn-default btn-xs" onclick="set_all_filters('program_id',true)">All</button>
+                <button type="button" class="btn btn-default btn-xs" onclick="set_all_filters('program_id',false)">None</button>
 
                 <h4>IWOW Process</h4>
                 <div id="proc-filter"></div>
@@ -162,6 +192,8 @@
 
                 <h4>Tracker Frequency</h4>
                 <div id="tracker-filter"></div>
+                <button type="button" class="btn btn-default btn-xs" onclick="set_all_filters('tracker_freq',true)">All</button>
+                <button type="button" class="btn btn-default btn-xs" onclick="set_all_filters('tracker_freq',false)">None</button>
             </td>
         </tr>
     </table>
@@ -291,6 +323,14 @@
                     y: yoff + ini_row[d._id] * rowh + 3,
                     width: ragw - 6,
                     height: rowh - 6,
+                })
+                .on('click', function () {
+                	if (d[f] === 'red' || d[f] === 'amber' || d[f] === 'green') {
+                		//$('#ps-ini-name').text('Programme Status for ' + d.name);
+                		//$('#prog-status').modal();
+                		$('#prog-status').attr('title', 'Programme Status for ' + d.name);
+                 		$('#prog-status').dialog('open');
+               		}
                 });
         }
 
@@ -718,7 +758,8 @@
 	                    //'data-target': 'prog-status-info',
 	                })
 	                .on('click', function () {
-                		$('#prog-status-info').modal();
+                		//$('#prog-status-info').modal();
+                		$('#prog-status-info').dialog('open');
                 	});
             }
 
@@ -758,6 +799,21 @@
         }
 
     //==========================================================================
+
+  	$(function () {
+        $('#prog-status-info').dialog({
+            autoOpen: false,
+            resizable: false,
+            width: 600,
+            //modal: true,
+        });
+        $('#prog-status').dialog({
+            autoOpen: false,
+            resizable: false,
+            width: 600,
+            //modal: true,
+        });
+   	});
 
     mk_choice_inline('group', 'group-choice', [
         {val: 'proc', txt: 'Group by IWOW Process'},

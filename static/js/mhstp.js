@@ -122,7 +122,7 @@ function mk_filter(mid, fld, eid, state) {
     if (field.type === 'enum') {
         if (state == null) {
             state = _.pluck(field.enum_vals, 'val');
-            state.push('<none>')
+            state.push('_none_')
         }
 
         function mk_one(v) {
@@ -137,7 +137,7 @@ function mk_filter(mid, fld, eid, state) {
             filter[fld][v.val] = set;
         }
         if (!field.required) {
-            mk_one({val:'<none>', txt:'None'});
+            mk_one({val:'_none_', txt:'None'});
         }
         _.each(field.enum_vals, mk_one);
     }
@@ -167,7 +167,7 @@ function do_filter(mid, fld, val) {
         field = meta.field[fld];
 
     if (field.type === 'enum') {
-        if (val[fld] == null && !(filter[fld]['<none>']))
+        if (val[fld] == null && !(filter[fld]['_none_']))
             return false;
         return !_.any(field.enum_vals, function(v) {
             return (val[fld] === v.val && !(filter[fld][v.val]));

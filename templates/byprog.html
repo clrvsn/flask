@@ -23,12 +23,18 @@
                 <h3>Filters</h3>
                 <h4>Status</h4>
                 <div id="state-filter"></div>
+                <button type="button" class="btn btn-default btn-xs" onclick="set_all_filters('state',true)">All</button>
+                <button type="button" class="btn btn-default btn-xs" onclick="set_all_filters('state',false)">None</button>
 
                 <h4>Category</h4>
                 <div id="category-filter"></div>
+                <button type="button" class="btn btn-default btn-xs" onclick="set_all_filters('category',true)">All</button>
+                <button type="button" class="btn btn-default btn-xs" onclick="set_all_filters('category',false)">None</button>
 
                 <h4>Programme</h4>
                 <div id="prog-filter"></div>
+                <button type="button" class="btn btn-default btn-xs" onclick="set_all_filters('program_id',true)">All</button>
+                <button type="button" class="btn btn-default btn-xs" onclick="set_all_filters('program_id',false)">None</button>
 
                 <h4>IWOW Process</h4>
                 <div id="proc-filter"></div>
@@ -37,7 +43,8 @@
 
                 <h4>Tracker Frequency</h4>
                 <div id="tracker-filter"></div>
-
+                <button type="button" class="btn btn-default btn-xs" onclick="set_all_filters('tracker_freq',true)">All</button>
+                <button type="button" class="btn btn-default btn-xs" onclick="set_all_filters('tracker_freq',false)">None</button>
             </td>
         </tr>
     </table>
