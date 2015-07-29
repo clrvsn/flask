@@ -47,7 +47,7 @@ var _LWR = 'abcdefghijklmnopqrstuvwxyz';
 var _UPR = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
 
 function _isValid(parm,val) {
-    if (parm == "") return true;
+    if (parm === "") return true;
     for (i=0; i<parm.length; i++) {
         if (val.indexOf(parm.charAt(i),0) == -1) return false;
     }
@@ -100,7 +100,7 @@ function isAlphanum(parm) {return _isValid(parm,_LWR+_UPR+_NUM);}
         });
 
         return this;
-    }
+    };
 })(jQuery);
 
 
@@ -180,7 +180,7 @@ function mk() {
     _.each(_.tail(arguments), function (arg) {
         if (arg) {
             if (arg.constructor == Object) {
-                el.attr(arg)
+                el.attr(arg);
             } else if (_.isArray(arg)) {
                 _.each(arg, function (a) {el.append(a);});
             } else {
@@ -200,7 +200,7 @@ var FiscalDate = function (fy, t, end) {
     this.fy = fy;
     this.t = t;
     this.end = end;
-}
+};
 
 FiscalDate.prototype.fiscal_str = function () {
     return 'FY' + this.fy + '-T' + (this.t + 1);
@@ -214,7 +214,7 @@ function mk_fyt(s, end) {
     if (m && m[0]) {
         return new FiscalDate(Number(m[1]), Number(m[3] || '1') - 1, end);
     }
-    return null;
+    return undefined;
 }
 function fyt_col(fyt, fst) {
     return fyt ? Math.max(0, (fyt.fy - fst + (fyt.t + (fyt.end ? 1 : 0))/3)) : 0;
@@ -231,8 +231,8 @@ function fyt_col(fyt, fst) {
 //}
 
 function mk_date(yr, mn, dy) {
-    if (yr == null)
-        return null;
+    if (yr === undefined)
+        return undefined;
 
     if (_.isString(yr)) {
         var d = yr.split('-');
@@ -310,8 +310,8 @@ var init_grid = {
 };
 
 function mk_init_rect(d) {
-    if (d.byprog_col == null || d.byprog_row == null) {
-        return null;
+    if (d.byprog_col === undefined || d.byprog_row === undefined) {
+        return undefined;
     }
     var x = d.byprog_col * init_grid.colw + 20,
         y = d.byprog_row * init_grid.rowh + 10 + init_grid.rowh/2,
@@ -417,9 +417,9 @@ function mk_ini_rag_g(ini, node, x, y) {
 
     var rag = {T: ini.ini_rag_t || 'grey', S: ini.ini_rag_s || 'grey', C: ini.ini_rag_c || 'grey'};
 
-    mk_one(0, 'T', rag['T']);
-    mk_one(1, 'S', rag['S']);
-    mk_one(2, 'C', rag['C']);
+    mk_one(0, 'T', rag.T);
+    mk_one(1, 'S', rag.S);
+    mk_one(2, 'C', rag.C);
 
     g.classed("rag", true)
      .attr("transform", "translate(" + x + " " + y + ")");
@@ -434,7 +434,7 @@ function init_rag(ini) {
         if (r) {
             var g = mk_ini_rag_g(ini, d3.select(this), r.r - (8 + 3 * 12), r.t - 8);
             if (init_rag.click) {
-                g.on('click', function () {init_rag.click(ini);})
+                g.on('click', function () {init_rag.click(ini);});
             }
         }
     //}

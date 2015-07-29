@@ -45,8 +45,8 @@
         </tr>
         <tr>
             <th>Finish:</th><td id="end"></td>
-            <td rowspan="12" style="border-top: 0px solid black;"></td>
-            <td rowspan="12" style="border-top: 0px solid black;"><div id="diagram"></div>
+            <td rowspan="15" style="border-top: 0px solid black;"></td>
+            <td rowspan="15" style="border-top: 0px solid black;"><div id="diagram"></div>
             </td>
         </tr>
         <tr><th>Type:</th><td id="type"></td></tr>
@@ -57,330 +57,75 @@
         <tr><th>IT Project Manager:</th><td id="it_pm_id"></td></tr>
         <tr><th id="caps_out_ttl"></th><td id="caps_out"></td></tr>
         <tr><th id="caps_in_ttl"></th><td id="caps_in"></td></tr>
+        <tr><th>MHS TP Representative:</th><td id="sg_tp_rep_id"></td></tr>
+        <tr><th>Chairman:</th><td id="sg_chair_id"></td></tr>
+        <tr><th>Process Representative:</th><td id="orderer_id"></td></tr>
         <tr><th>Initiative Objective:</th><td id="objective"></td></tr>
         <tr><th>MHS-TP Objective:</th><td id="tp_objective"></td></tr>
         <tr style="height: 100%;"><th></th><td></td></tr>
     </table>
-    <div id="tooltip" class="hidden">
-        <table>
-            <tr><th>Status:</th> <td id="tt_stat"></td></tr>
-            <tr><th>Type:</th> <td id="tt_type"></td></tr>
-            <tr><th>Category:</th> <td id="tt_cat"></td></tr>
-            <tr><th>Programme:</th> <td id="tt_prog"></td></tr>
-            <!--tr><th>Function:</th> <td id="tt_func"></td></tr-->
-            <tr><th>Start:</th> <td id="tt_start"></td></tr>
-            <tr><th>End:</th> <td id="tt_end"></td></tr>
-        </table>
-    </div>
-    <div id="dep-info" title="Dependencies and Status" class="jquid">
-        <p>For an explanation of an initiative's status click on it's (T)(S)(C).</p>
-        <p>Note that the RAG status show here is the Initiative's own, as reported in the Biweekly status update meetings
-           or through the monthly Project Performance Indicators (PPI) and/or the monthly Performance Tracking Tool (PTT).</p>
-        <p><b>Legend:</b></p>
-        <img src="/static/img/byprog.legend.svg">
-    </div>
-    <div id="rag-info" title="RAG Status" class="jquid">
-        <h4 id="rag-ini-name">Initiative</h4>
-        <p>Status last updated on <span id="rag-update"></span>.</p>
-        <table class="table">
-            <tr>
-                <th></th>
-                <th>Description &amp; Reason</th>
-                <th>Mitigating Actions</th>
-                <th>Acountable</th>
-                <th>Due Date</th>
-            </tr>
-            <tr>
-                <th id="rag-t">Time</th>
-                <td id="rag-t-desc"></td>
-                <td id="rag-t-act"></td>
-                <td id="rag-t-resp"></td>
-                <td id="rag-t-due"></td>
-            </tr>
-            <tr>
-                <th id="rag-s">Scope</th>
-                <td id="rag-s-desc"></td>
-                <td id="rag-s-act"></td>
-                <td id="rag-s-resp"></td>
-                <td id="rag-s-due"></td>
-            </tr>
-            <tr>
-                <th id="rag-c">Cost</th>
-                <td id="rag-c-desc"></td>
-                <td id="rag-c-act"></td>
-                <td id="rag-c-resp"></td>
-                <td id="rag-c-due"></td>
-            </tr>
-        </table>
-    </div>
-<!--div class="modal " id="dep-info" tabindex="-1" role="dialog">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header">
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-          <h4>Dependencies and Status</h4>
-      </div>
-      <div class="modal-body">                
-        <p>Note that the RAG status show here is the Initiative's own, as reported in the Biweekly status update meetings
-           or through the monthly Project Performance Indicators (PPI) and/or the monthly Performance Tracking Tool (PTT).</p>
-        <p><b>Legend:</b></p>
-        <img src="/static/img/byprog.legend.svg">
-      </div>
-    </div>
-  </div>
-</div--><!-- /.modal -->
-
 </div>
+
+<div id="tooltip" class="hidden">
+    <table>
+        <tr><th>Status:</th> <td id="tt_stat"></td></tr>
+        <tr><th>Type:</th> <td id="tt_type"></td></tr>
+        <tr><th>Category:</th> <td id="tt_cat"></td></tr>
+        <tr><th>Programme:</th> <td id="tt_prog"></td></tr>
+        <!--tr><th>Function:</th> <td id="tt_func"></td></tr-->
+        <tr><th>Start:</th> <td id="tt_start"></td></tr>
+        <tr><th>End:</th> <td id="tt_end"></td></tr>
+    </table>
+</div>
+
+<div id="dep-info" title="Dependencies and Status" class="jquid">
+    <p>For an explanation of an initiative's status click on it's (T)(S)(C).</p>
+    <p>Note that the RAG status show here is the Initiative's own, as reported in the Biweekly status update meetings
+       or through the monthly Project Performance Indicators (PPI) and/or the monthly Performance Tracking Tool (PTT).</p>
+    <p><b>Legend:</b></p>
+    <img src="/static/img/byprog.legend.svg">
+</div>
+
+<div id="rag-info" title="RAG Status" class="jquid">
+    <h4 id="rag-ini-name">Initiative</h4>
+    <p>Status last updated on <span id="rag-update"></span>.</p>
+    <table class="table">
+        <tr>
+            <th></th>
+            <th>Description &amp; Reason</th>
+            <th>Mitigating Actions</th>
+            <th>Accountable</th>
+            <th>Due Date</th>
+        </tr>
+        <tr>
+            <th id="rag-t">Time</th>
+            <td id="rag-t-desc"></td>
+            <td id="rag-t-act"></td>
+            <td id="rag-t-resp"></td>
+            <td id="rag-t-due"></td>
+        </tr>
+        <tr>
+            <th id="rag-s">Scope</th>
+            <td id="rag-s-desc"></td>
+            <td id="rag-s-act"></td>
+            <td id="rag-s-resp"></td>
+            <td id="rag-s-due"></td>
+        </tr>
+        <tr>
+            <th id="rag-c">Cost</th>
+            <td id="rag-c-desc"></td>
+            <td id="rag-c-act"></td>
+            <td id="rag-c-resp"></td>
+            <td id="rag-c-due"></td>
+        </tr>
+    </table>
+</div>
+
 {% endblock %}
 {% block foot %}
-<script type="text/javascript">
-    var _id = '{{ id }}',
-        api = '/data/ini/' + _id;
-
-    init_grid.cols = 3;
-    init_grid.rows = 1;
-    init_grid.colw = 170;
-    init_grid.rowh = 65;
-
-    var w = init_grid.cols * init_grid.colw,
-        h = init_grid.rows * init_grid.rowh + init_grid.rowh/2,
-        init_indx = {},
-        meta_indx = {},
-        enum_vals = {};
-
-
-    function soft_line(d) {
-        var d1 = init_indx[d.from_init_id],
-            d2 = init_indx[d.to_init_id];
-        d3.select(this)
-            .attr({
-                x1: d1.byprog_col * init_grid.colw + init_grid.colw/2,
-                y1: d1.byprog_row * init_grid.rowh + init_grid.rowh,
-                x2: d2.byprog_col * init_grid.colw + init_grid.colw/2,
-                y2: d2.byprog_row * init_grid.rowh + init_grid.rowh,
-            });
-    }
-    function hard_line(d) {
-        var d1 = init_indx[d.from_init_id],
-            d2 = init_indx[d.to_init_id],
-            r1 = mk_init_rect(d1),
-            xk = r1.cx, yk = r1.cy,
-            r2 = mk_init_rect(d2),
-            xl = r2.cx, yl = r2.cy,
-            xm = r2.l, ym = r2.t,
-            xn = r2.r, yn = r2.t,
-            xp = r2.r, yp = r2.b,
-            xq = r2.l, yq = r2.b,
-            p = intersect_lineseg_rect(xk,yk, xl,yl, xm,ym, xn,yn, xp,yp, xq,yq);
-        if (!p) {
-            p = {x: xl, y: yl};
-        }
-        d3.select(this)
-            .attr({
-                x1: xk,
-                y1: yk,
-                x2: p.x,
-                y2: p.y,
-                "marker-end": "url(#arrow)",
-            });
-    }
-
-    $(function () {
-        $('#dep-info').dialog({
-            autoOpen: false,
-            resizable: false,
-            width: 600,
-        });
-        $('#dep-info-icon').click(function () {
-            $('#dep-info').dialog('open');
-            //$('#dep-info').modal();
-            event.preventDefault();
-        });        
-        $('#rag-info').dialog({
-            autoOpen: false,
-            resizable: false,
-            width: 700,
-        });
-    });
-
-    d3.json(api, function (data) {
-
-        data.meta.forEach(function(m) {
-            meta_indx[m._id] = m;
-            m.fields.forEach(function(f) {
-                if (f.type === 'enum') {
-                    vals = {};
-                    f.enum_vals.forEach(function(v) {
-                        vals[v.val] = v.txt;
-                    });
-                    enum_vals[m._id.toLowerCase() + '_' + f.name] = vals;
-                }
-            });
-        });
-
-        init_grid.rows = Math.max(data.softs.length+1, Math.max(data.froms.length, data.tos.length));
-        h = init_grid.rows * init_grid.rowh + init_grid.rowh/2;
-
-        var caps = mk('ul', _.map(data.caps, function (x) {return mk('li',x.name);}));
-
-        if (data.ini.type === 'prestudy') {
-            $("#caps_out_ttl").text("Capabilities Covered:");
-            $("#caps_in_ttl").text("");
-        } else {
-            $("#caps_out_ttl").text("Capabilities to Move Out:");
-            $("#caps_in_ttl").text("Capabilities to Move In:");
-        }
-
-        $("#objective").text(data.ini.objective || '');
-        $("#tp_objective").text(data.ini.tp_objective || '');
-        $("#biz_pm_id").text(data.ini.biz_pm ? (data.ini.biz_pm.name) : (data.ini.state == 'pending' ? 'TBD' : ''));
-        $("#it_pm_id").text(data.ini.it_pm ? (data.ini.it_pm.name) : (data.ini.state == 'pending' ? 'TBD' : ''));
-        $("#caps_out").append(caps);
-
-        $("#type").text(enum_vals.ini_type[data.ini.type]);
-        $("#category").text(enum_vals.ini_category[data.ini.category]);
-        $("#state").text(enum_vals.ini_state[data.ini.state]);
-        $("#process").text(data.ini.process.title);
-        $("#start").text(data.ini.start || '');
-        $("#end").text(data.ini.end || '');
-
-        var inis = [data.ini],
-            irow = (init_grid.rows-1) / 2,
-            top_soft, bot_soft;
-
-        data.ini.byprog_row = irow - 1/2;
-        data.ini.byprog_col = 1;
-        init_indx[data.ini._id] = data.ini;
-        top_soft = data.ini;
-        bot_soft = data.ini;
-
-        _.each(data.froms, function (e, i) {
-            e.byprog_row = irow - (data.froms.length/2) + i;
-            e.byprog_col = 0;
-            inis.push(e);
-            init_indx[e._id] = e;
-        });
-        _.each(data.tos, function (e, i) {
-            e.byprog_row = irow - (data.tos.length/2) + i;
-            e.byprog_col = 2;
-            inis.push(e);
-            init_indx[e._id] = e;
-        });
-        _.each(data.softs, function (e, i) {
-            e.byprog_row = irow - 1/2 + (i%2 ? -1 : 1) *  Math.floor(1 + i/2);
-            e.byprog_col = 1;
-            inis.push(e);
-            init_indx[e._id] = e;
-            top_soft = top_soft ? (top_soft.byprog_row < e.byprog_row ? top_soft : e) : e;
-            bot_soft = bot_soft ? (bot_soft.byprog_row > e.byprog_row ? bot_soft : e) : e;
-        });
-
-        var svg = d3.select("#diagram")
-                    .append("svg")
-                    .attr("width", w)
-                    .attr("height", h);
-
-        svg.append("defs")
-            .append("marker")
-            .attr({
-                id: "arrow",
-                viewBox: "-20 -10 20 20",
-                markerWidth: 12,
-                markerHeight: 12,
-                refx: 0,
-                refy: 0,
-                orient: "auto",
-                markerUnits: "userSpaceOnUse"
-            })
-            .append("path")
-            .attr({
-                d: "M-20,-8L0,0L-20,8",
-                fill: "black",
-            });
-
-        if (data.softs.length > 0) {
-            svg.selectAll("line.soft")
-                .data([{from_init_id:top_soft._id, to_init_id:bot_soft._id}])
-                .enter()
-                .append("line")
-                .classed("soft", true)
-                .each(soft_line);
-        }
-
-        var froms = _.map(data.froms, function (x) {return {from_init_id:x._id, to_init_id:_id};}),
-            tos = _.map(data.tos, function (x) {return {from_init_id:_id, to_init_id:x._id};});
-
-        svg.selectAll("line.hard")
-            .data(froms.concat(tos))
-            .enter()
-            .append("line")
-            .classed("hard", true)
-            .each(hard_line);
-
-
-        var gs = svg.selectAll("g.init")
-                 .data(inis)
-                 .enter()
-                 .append("g")
-                 .classed("init", true)
-                 .classed("this", function(d){return d._id == _id;});
-
-        gs.each(init_rect);
-        gs.each(init_text);
-        init_rag.click = function (ini) {
-            $('#rag-ini-name').text(ini.name);
-            $('#rag-update').text(ini.ini_rag_date || 'unknown date')
-            $('#rag-t').attr('class', 'rag-' + ini.ini_rag_t || 'grey');
-            $('#rag-t-desc').text(ini.ini_rag_t_desc || '');
-            $('#rag-t-act').text(ini.ini_rag_t_act || '');
-            $('#rag-t-resp').text(ini.ini_rag_t_resp || '');
-            $('#rag-t-due').text(ini.ini_rag_t_due || '');
-            $('#rag-s').attr('class', 'rag-' + ini.ini_rag_s || 'grey');
-            $('#rag-s-desc').text(ini.ini_rag_s_desc || '');
-            $('#rag-s-act').text(ini.ini_rag_s_act || '');
-            $('#rag-s-resp').text(ini.ini_rag_s_resp || '');
-            $('#rag-s-due').text(ini.ini_rag_s_due || '');
-            $('#rag-c').attr('class', 'rag-' + ini.ini_rag_c || 'grey');
-            $('#rag-c-desc').text(ini.ini_rag_c_desc || '');
-            $('#rag-c-act').text(ini.ini_rag_c_act || '');
-            $('#rag-c-resp').text(ini.ini_rag_c_resp || '');
-            $('#rag-c-due').text(ini.ini_rag_c_due || '');
-            $('#rag-info').dialog('open');
-        };
-        gs.each(init_rag);
-
-        $('.init').qtip({
-            content: {
-                title: function() {
-                    var d = this.context.__data__;
-                    return d.name;
-                },
-                text: function() {
-                    var d = this.context.__data__,
-                        tt = d3.select("#tooltip");
-                    //tt.select("#tt_name").text(d.name);
-                    tt.select("#tt_stat").text(enum_vals.ini_state[d.state]);
-                    tt.select("#tt_type").text(enum_vals.ini_type[d.type]);
-                    tt.select("#tt_cat").text(enum_vals.ini_category[d.category]);
-                    tt.select("#tt_prog").text(d.program.name);
-                    //tt.select("#tt_func").text(d['function']);
-                    tt.select("#tt_start").text(d.start);
-                    tt.select("#tt_end").text(d.end);
-                    return tt.html();
-                },
-            },
-            //style: {
-            //    classes: 'qtip-cluetip qtip-shadow'
-            //},
-            position: {
-                //my: 'left center',
-                //at: 'center right',
-                viewport: $(window),
-                adjust: {
-                    method: 'shift shift'
-                },
-            },
-        });
-    });
-</script>
+    <script type="text/javascript">
+        var _id = '{{ id }}',
+            api = '/data/ini/' + _id;
+    </script>
+    <script type="text/javascript" src="/static/js/ini_page.js"></script>
 {% endblock %}

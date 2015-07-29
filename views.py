@@ -271,9 +271,9 @@ def bytime_api():
 ##        if not dpn['from_init_id'] in hards.keys():
 ##            hards[dpn['from_init_id']] = []
 ##        hards[dpn['from_init_id']].append(dpn['to_init_id'])
-    fields = ['_id','name','state','start','end','type','category','program_id',
-              'function_ids','process_id','cluster_id','tracker_freq','roadmap_ord',
-              'start_date','end_date','tp_rag_t','tp_rag_s','tp_rag_c']
+##    fields = ['_id','name','state','start','end','type','category','program_id',
+##              'function_ids','process_id','cluster_id','tracker_freq','roadmap_ord',
+##              'start_date','end_date','tp_rag_t','tp_rag_s','tp_rag_c']
 ##    inits = [deref_ini(db,ini,fields) for ini in filter_removed(db.initiative.sort('function_ids'))]
 ##    for init in inits: # filter_removed(db.initiative.sort('function_ids')):
 ##        ini = {name: init.get(name, '') for name in fields}
@@ -291,7 +291,7 @@ def bytime_api():
     return flask.jsonify(
         meta  = db._meta,
         #inits = inits,
-        initiative = [deref_ini(db,ini,fields) for ini in filter_removed(db.initiative)],
+        initiative = [deref_ini(db,ini) for ini in filter_removed(db.initiative)],
         dependency = filter_removed(db.dependency),
         programme = filter_removed(db.programme),
         process = filter_removed(db.process),
