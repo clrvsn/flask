@@ -142,7 +142,7 @@ g.rag text {
 }
 
 rect.rag {
-    fill: none;
+    fill: #DDD;
     stroke: black;
 }
 rect.rag-red, circle.rag-red {

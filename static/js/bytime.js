@@ -101,12 +101,16 @@ function row_rect(d, i) {
     d3.select(this)
         .classed("row", true)
         .classed("odd", (i+1)%2)
+        .classed("tipped", true)
         .attr({
             x: grpw,
             y: yoff + (i+1) * rowh,
             width: off + cols * colw + 3 * ragw - grpw,
             height: rowh,
             id: 'row' + i,
+        })
+        .on('click', function () {
+            window.location.href = '/init/' + d.ini._id;
         });
 }
 function rag_rect(rect, i, d, f) {
@@ -130,7 +134,7 @@ function rag_rect(rect, i, d, f) {
             $('#biz_pm_id').text(d.biz_pm ? d.biz_pm.name : '');
 
             if (d.tp_rag_t === 'green' && d.tp_rag_s === 'green' && d.tp_rag_c === 'green') {
-                $('#tp_rag_desc').text('n/a');
+                $('#tp_rag_desc').text('Progressing according to plan');
                 $('#tp_rag_t_impact').text('n/a');
                 $('#tp_rag_s_impact').text('n/a');
                 $('#tp_rag_c_impact').text('n/a');
@@ -144,7 +148,7 @@ function rag_rect(rect, i, d, f) {
                 $('#tp_rag_c_impact').text(d.tp_rag_c_impact || '');
                 $('#tp_rag_act').text(d.tp_rag_act || '');
                 $('#tp_rag_due').text(d.tp_rag_due || '');
-                $('#tp_rag_resp').text(d.tp_rag_resp || '');
+                $('#tp_rag_resp').text(d.tp_rag_resp ? d.tp_rag_resp.name : '');
             }
             $('#prog-status').dialog('open');
           }
@@ -167,15 +171,16 @@ function init_bar(d, i) {
         d3.select(this)
             .append("path")
             .classed("bar", true)
+            .classed("tipped", true)
             .classed(mk_class(d.ini.category), true)
             .attr('d', path)
-            .on("mouseover", function() {
-                d3.select('#row'+i).classed('hilite', true);
-            })
-            .on("mouseout", function() {
-                d3.select('#row'+i).classed('hilite', false);
-            })
-            .on('click', function () {window.location.href = '/init/'+d.ini._id;});
+            ;//.on("mouseover", function() {
+            //    d3.select('#row'+i).classed('hilite', true);
+            //})
+            //.on("mouseout", function() {
+            //    d3.select('#row'+i).classed('hilite', false);
+            //})
+            //.on('click', function () {window.location.href = '/init/'+d.ini._id;});
     } else if (d.sc) {
         r = off + cols * colw;
         path = fmt("M {0} {2} {1} {2} {1} {3} {0} {3}", r, l, t, b);
@@ -183,14 +188,15 @@ function init_bar(d, i) {
         d3.select(this)
             .append("path")
             .classed("bar", true)
+            .classed("tipped", true)
             .classed(mk_class(d.ini.category), true)
             .attr('d', path)
-            .on("mouseover", function() {
-                d3.select('#row'+i).classed('hilite', true);
-            })
-            .on("mouseout", function() {
-                d3.select('#row'+i).classed('hilite', false);
-            });
+            ;//.on("mouseover", function() {
+            //    d3.select('#row'+i).classed('hilite', true);
+            //})
+            //.on("mouseout", function() {
+            //    d3.select('#row'+i).classed('hilite', false);
+            //});
     }
 }
 function dep_line_full(d) {
@@ -304,18 +310,16 @@ function group_line(d) {
             y2: yoff + (d.row + 0) * rowh,
         });
 }
+function trunc_ini_name(name) {
+    if (name.substr(0,7) === 'MHS TP ')
+        name = name.substr(7);
+    return name;
+}
 function init_text(d, i) {
-    /*d3.select(this)
-        .append("text")
-        .classed("bar", true)
-        .text(d.ini.name)
-        .attr({
-            x: grpw+3,
-            y: yoff + (i+1) * rowh + txth + (rowh-txth)/2,
-        });*/
-
     var g = d3.select(this).append('g'),
         rect = g.append('rect')
+                .classed('init', true)
+                .classed('tipped', true)
                 .attr({
                     x: grpw,
                     y: yoff + (i+1) * rowh,
@@ -324,7 +328,7 @@ function init_text(d, i) {
                     fill: 'none'
                 }),
         text = g.append('text')
-                .text(d.ini.name)
+                .text(trunc_ini_name(d.ini.name))
                 .classed("bar", true);
 
     d3plus.textwrap()
@@ -333,6 +337,10 @@ function init_text(d, i) {
           .valign("middle")
           //.rotate(-90)
           .draw();
+
+    //rect.on('click', function () {
+    //    window.location.href = '/init/' + d.ini._id;
+    //});
 }
 function group_text(grp) {
     if (grp.rows > 0) {
@@ -605,23 +613,34 @@ function render() {
 
     d3_add(svg, "line.dep", data.dependency.filter(dep_visible), "line", choice.view === 'year' ? dep_line_year : dep_line_full);
 
-    $('.bar').qtip({
+    function bar_tip(ini) {
+        var c = ini.cluster,
+            s = mk_fyt(ini.start, false),
+            e = mk_fyt(ini.end, true),
+            t = '<table class="tip">\n' +
+                '  <tr><th>Status:</th><td>{0}</td></tr>\n' +
+                '  <tr><th>Business Change Area:</th><td>{1}</td></tr>\n' +
+                '  <tr><th>Start:</th><td>{2}</td></tr>\n' +
+                '  <tr><th>End:</th><td>{3}</td></tr>\n' +
+                '</table>\n';
+
+        return fmt(t,
+            enum_vals.ini_state[ini.state],
+            c ? c.name : '',
+            s ? s.fiscal_str() : '',
+            e ? e.fiscal_str() : ''
+        );
+    }
+
+    $('.tipped').qtip({
         content: {
             title: function() {
                 var d = this.context.__data__.ini;
                 return d.name;
             },
             text: function() {
-                var d = this.context.__data__.ini,
-                    c = d.cluster,
-                    s = mk_fyt(d.start, false),
-                    e = mk_fyt(d.end, true),
-                    tt = d3.select("#tooltip");
-                tt.select("#tt_state").text(enum_vals.ini_state[d.state]);
-                tt.select("#tt_cluster").text(c ? c.name : '');
-                tt.select("#tt_start").text(s ? s.fiscal_str() : '');
-                tt.select("#tt_end").text(e ? e.fiscal_str() : '');
-                return tt.html();
+                var d = this.context.__data__.ini;
+                return bar_tip(d);
             },
         },
         style: {
@@ -629,11 +648,19 @@ function render() {
         },
         position: {
             my: 'bottom center',
-            at: 'top center',
+            //at: 'top center',
             viewport: $(window),
-            adjust: {
-                method: 'shift flip'
-            },
+            //adjust: {
+            //    method: 'shift flip'
+            //},
+            target: 'mouse',
+            adjust: {y:-5},
+        },
+        show: {
+            delay: 300,
+        },
+        hide: {
+            inactive: 2000,
         }
     });
 }

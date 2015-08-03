@@ -1,9 +1,8 @@
 {% extends "base.html" %}
 {% block head %}
 <style>
-    table.tooltip th, table.tooltip td {
-        vertical-align: top;
-        padding: 3px;
+    .tip th, .tip td {
+        padding: 2px;
     }
 </style>
 {% endblock %}
@@ -48,18 +47,6 @@
             </td>
         </tr>
     </table>
-
-    <div id="tooltip" class="hidden">
-        <table class="tooltip">
-            <tr><th>Status:</th> <td id="tt_stat"></td></tr>
-            <tr><th>Type:</th> <td id="tt_type"></td></tr>
-            <tr><th>Category:</th> <td id="tt_cat"></td></tr>
-            <tr><th>Programme:</th> <td id="tt_prog"></td></tr>
-            <tr><th>Function:</th> <td id="tt_func"></td></tr>
-            <tr><th>Start:</th> <td id="tt_start"></td></tr>
-            <tr><th>End:</th> <td id="tt_end"></td></tr>
-        </table>
-    </div>
 </div>
 {% endblock %}
 {% block foot %}

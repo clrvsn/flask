@@ -162,41 +162,65 @@ function render() {
     gs.each(init_text);
     //gs.each(init_rag);
 
+    function ini_tip(ini) {
+        var s = mk_fyt(ini.start, false),
+            e = mk_fyt(ini.end, true),
+            t = '<table class="tip">\n' +
+                '  <tr><th>Status:</th><td>{0}</td></tr>\n' +
+                '  <tr><th>Type:</th><td>{1}</td></tr>\n' +
+                '  <tr><th>Category:</th><td>{2}</td></tr>\n' +
+                '  <tr><th>Programme:</th><td>{3}</td></tr>\n' +
+                '  <tr><th>Function:</th><td>{4}</td></tr>\n' +
+                '  <tr><th>Start:</th><td>{5}</td></tr>\n' +
+                '  <tr><th>End:</th><td>{6}</td></tr>\n' +
+                '</table>';
+
+        return fmt(t,
+            enum_vals.ini_state[ini.state],
+            enum_vals.ini_type[ini.type],
+            enum_vals.ini_category[ini.category],
+            ini.program.name,
+            ini['function'],
+            s ? s.fiscal_str() : '',
+            e ? e.fiscal_str() : ''
+        );
+    }
+
     $('.init').qtip({
         content: {
             title: function() {
-                var d = this.context.__data__;
-                return d.name;
+                var ini = this.context.__data__;
+                return ini.name;
             },
             text: function() {
-                var d = this.context.__data__;
-                $("#tt_stat").text(enum_vals.ini_state[d.state]);
-                $("#tt_type").text(enum_vals.ini_type[d.type]);
-                $("#tt_cat").text(enum_vals.ini_category[d.category]);
-                $("#tt_prog").text(d.program.name);
-                $("#tt_func").text(d['function']);
-                $("#tt_start").text(d.start);
-                $("#tt_end").text(d.end);
-                var rslt = $("table.tooltip").html();
-                return rslt;
+                var ini = this.context.__data__;
+                return ini_tip(ini);
             },
         },
         style: {
             classes: 'qtip-shadow'
         },
         position: {
-            //my: 'left center',
-            //at: 'center right',
+            my: 'bottom center', // 'bottom center',
+            at: 'center center',
             viewport: $(window),
-            adjust: {
-                method: 'shift shift'
-            },
+            //adjust: {
+            //    method: 'shift flip'
+            //},
+            //target: 'mouse', // $('#diagram svg'), //
+            //adjust: {
+                //x:-15,
+                //method: 'shift shift'
+            //},
         },
+        show: {
+            delay: 500,
+        },
+        hide: {
+            //fixed: true,
+            inactive: 2000,
+            //event: 'click',
+            //distance: 100
+        }
     });
 }
-
-//function shorten(txt) {
-//    if (txt.length > 30)
-//        return mk('span', {title:txt}, txt.substr(0,28) + '...');
-//    return txt;
-//}

@@ -38,10 +38,14 @@
     }
     rect.bar, path.bar {
         stroke: black;
-        -pointer-events: none;
+        pointer-events: none;
     }
-    path.bar {
-    	cursor: pointer;
+    path.bar, rect.init {
+        cursor: pointer;
+    }
+    rect.init {
+        -fill: black;
+        -opacity: 0.01;
     }
     text.bar {
         font-size: 12.5px;
@@ -50,18 +54,23 @@
     }
     rect.row {
         fill: white;
+        cursor: pointer;
     }
     rect.odd {
         fill: #EEE;
     }
     rect.row:hover {
         fill: #FDB;
+        opacity: 1;
     }
     rect.hilite {
         fill: #FDB;
     }
     rect.rag-red, rect.rag-amber, rect.rag-green {
     	cursor: pointer;
+    }
+    .tip th, .tip td {
+        padding: 2px;
     }
 </style>
 {% endblock %}
@@ -121,15 +130,6 @@
         </tr>
     </table>
 </div>
-</div>
-
-<div id="tooltip" class="hidden">
-    <table>
-        <tr><th>Status:</th>                <td id="tt_state"></td></tr>
-        <tr><th>Business Change Area:</th>  <td id="tt_cluster"></td></tr>
-        <tr><th>Start:</th>                 <td id="tt_start"></td></tr>
-        <tr><th>End:</th>                   <td id="tt_end"></td></tr>
-    </table>
 </div>
 
 <div id="prog-status-info" title="Programme Status">
@@ -199,7 +199,6 @@
         <tr><th>Responsible:</th>       <td id="tp_rag_resp"></td></tr>
     </table>
 </div>
-
 {% endblock %}
 {% block foot %}
     <script type="text/javascript" src="/static/js/bytime.js"></script>
