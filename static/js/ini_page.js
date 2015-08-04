@@ -22,9 +22,9 @@ function soft_line(d) {
         });
 }
 
-function hard_line(d) {
-    var d1 = init_indx[d.from_init_id],
-        d2 = init_indx[d.to_init_id],
+function hard_line_sense(dep) {
+    var d1 = init_indx[dep.from_init._id],
+        d2 = init_indx[dep.to_init._id],
         r1 = mk_init_rect(d1),
         xk = r1.cx, yk = r1.cy,
         r2 = mk_init_rect(d2),
@@ -34,10 +34,45 @@ function hard_line(d) {
         xp = r2.r, yp = r2.b,
         xq = r2.l, yq = r2.b,
         p = intersect_lineseg_rect(xk,yk, xl,yl, xm,ym, xn,yn, xp,yp, xq,yq);
+    
     if (!p) {
         p = {x: xl, y: yl};
     }
-    d3.select(this)
+    
+    d3.select(this) //.append('line')
+        .classed('sense', true)
+        .attr({
+            x1: xk,
+            y1: yk,
+            x2: p.x,
+            y2: p.y,
+        })
+        .on('mouseenter', function (dep) {
+            dep.line.classed('hover', true);
+        })
+        .on('mouseleave', function (dep) {
+            dep.line.classed('hover', false);
+        });
+}
+function hard_line(dep) {
+    var d1 = init_indx[dep.from_init._id],
+        d2 = init_indx[dep.to_init._id],
+        r1 = mk_init_rect(d1),
+        xk = r1.cx, yk = r1.cy,
+        r2 = mk_init_rect(d2),
+        xl = r2.cx, yl = r2.cy,
+        xm = r2.l, ym = r2.t,
+        xn = r2.r, yn = r2.t,
+        xp = r2.r, yp = r2.b,
+        xq = r2.l, yq = r2.b,
+        p = intersect_lineseg_rect(xk,yk, xl,yl, xm,ym, xn,yn, xp,yp, xq,yq);
+    
+    if (!p) {
+        p = {x: xl, y: yl};
+    }
+    
+    dep.line = d3.select(this) //.append('line')
+        .classed('draw', true)
         .attr({
             x1: xk,
             y1: yk,
@@ -61,7 +96,7 @@ $(function () {
     $('#rag-info').dialog({
         autoOpen: false,
         resizable: false,
-        width: 700,
+        width: 900,
     });
 });
 
@@ -173,14 +208,22 @@ d3.json(api, function (data) {
             .each(soft_line);
     }
 
-    var froms = _.map(data.froms, function (x) {return {from_init_id:x._id, to_init_id:_id};}),
-        tos = _.map(data.tos, function (x) {return {from_init_id:_id, to_init_id:x._id};});
+    //var froms = _.map(data.froms, function (x) {return {from_init_id:x._id, to_init_id:_id};}),
+    //    tos = _.map(data.tos, function (x) {return {from_init_id:_id, to_init_id:x._id};});
 
-    svg.selectAll("line.hard")
+    var froms = _.where(data.deps_from, {type: 'hard'}),
+        tos = _.where(data.deps_to, {type: 'hard'});
+
+    svg.selectAll("line.sense")
         .data(froms.concat(tos))
         .enter()
         .append("line")
-        .classed("hard", true)
+        .each(hard_line_sense);
+
+    svg.selectAll("line.draw")
+        .data(froms.concat(tos))
+        .enter()
+        .append("line")
         .each(hard_line);
 
 
@@ -191,25 +234,26 @@ d3.json(api, function (data) {
              .classed("init", true)
              .classed("this", function(d){return d._id == _id;});
 
+
     gs.each(init_rect);
     gs.each(init_text);
     init_rag.click = function (ini) {
         $('#rag-ini-name').text(ini.name);
         $('#rag-update').text(ini.ini_rag_date || 'unknown date');
         $('#rag-t').attr('class', 'rag-' + ini.ini_rag_t || 'grey');
-        $('#rag-t-desc').text(ini.ini_rag_t_desc || '');
-        $('#rag-t-act').text(ini.ini_rag_t_act || '');
-        $('#rag-t-resp').text(ini.ini_rag_t_resp || '');
+        $('#rag-t-desc').html(rag_desc(ini.ini_rag_t, ini.ini_rag_t_desc));
+        $('#rag-t-act').html(rag_act(ini.ini_rag_t, ini.ini_rag_t_act));
+        $('#rag-t-resp').text(ini.ini_rag_t_resp ? ini.ini_rag_t_resp.name : '');
         $('#rag-t-due').text(ini.ini_rag_t_due || '');
         $('#rag-s').attr('class', 'rag-' + ini.ini_rag_s || 'grey');
-        $('#rag-s-desc').text(ini.ini_rag_s_desc || '');
-        $('#rag-s-act').text(ini.ini_rag_s_act || '');
-        $('#rag-s-resp').text(ini.ini_rag_s_resp || '');
+        $('#rag-s-desc').html(rag_desc(ini.ini_rag_s, ini.ini_rag_s_desc));
+        $('#rag-s-act').html(rag_act(ini.ini_rag_s, ini.ini_rag_s_act));
+        $('#rag-s-resp').text(ini.ini_rag_s_resp ? ini.ini_rag_s_resp.name : '');
         $('#rag-s-due').text(ini.ini_rag_s_due || '');
         $('#rag-c').attr('class', 'rag-' + ini.ini_rag_c || 'grey');
-        $('#rag-c-desc').text(ini.ini_rag_c_desc || '');
-        $('#rag-c-act').text(ini.ini_rag_c_act || '');
-        $('#rag-c-resp').text(ini.ini_rag_c_resp || '');
+        $('#rag-c-desc').html(rag_desc(ini.ini_rag_c, ini.ini_rag_c_desc));
+        $('#rag-c-act').html(rag_act(ini.ini_rag_c, ini.ini_rag_c_act));
+        $('#rag-c-resp').text(ini.ini_rag_c_resp ? ini.ini_rag_c_resp.name : '');
         $('#rag-c-due').text(ini.ini_rag_c_due || '');
         $('#rag-info').dialog('open');
     };
@@ -218,33 +262,60 @@ d3.json(api, function (data) {
     $('.init').qtip({
         content: {
             title: function() {
-                var d = this.context.__data__;
-                return d.name;
+                var ini = this.context.__data__;
+                return ini.name;
             },
             text: function() {
-                var d = this.context.__data__,
-                    tt = d3.select("#tooltip");
-                //tt.select("#tt_name").text(d.name);
-                tt.select("#tt_stat").text(enum_vals.ini_state[d.state]);
-                tt.select("#tt_type").text(enum_vals.ini_type[d.type]);
-                tt.select("#tt_cat").text(enum_vals.ini_category[d.category]);
-                tt.select("#tt_prog").text(d.program.name);
-                //tt.select("#tt_func").text(d['function']);
-                tt.select("#tt_start").text(d.start);
-                tt.select("#tt_end").text(d.end);
-                return tt.html();
+                var ini = this.context.__data__;
+                return ini_tip(enum_vals, ini);
             },
         },
-        //style: {
-        //    classes: 'qtip-cluetip qtip-shadow'
-        //},
+        style: {
+            classes: 'qtip-shadow'
+        },
         position: {
-            //my: 'left center',
-            //at: 'center right',
+            my: 'bottom center',
+            at: 'top center',
             viewport: $(window),
             adjust: {
                 method: 'shift shift'
             },
+        },
+        show: {
+            delay: 500,
+        },
+        hide: {
+            inactive: 2000,
+        },
+    });
+
+
+    $('.sense').qtip({
+        content: {
+            title: "Hard Dependency",
+            text: function() {
+                var dep = this.context.__data__;
+                return dep_tip(enum_vals, dep);
+            },
+        },
+        style: {
+            classes: 'qtip-shadow'
+        },
+        position: {
+            my: 'bottom center',
+            at: 'top center',
+            viewport: $(window),
+            adjust: {
+                y: -5,
+                method: 'shift shift'
+            },
+            target: 'mouse',
+        },
+        show: {
+            delay: 500,
+        },
+        hide: {
+            inactive: 2000,
         },
     });
 });

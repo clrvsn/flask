@@ -234,3 +234,68 @@ function d3_def_circle(defs, fill) {
             fill: fill,
         });
 }
+
+//==============================================================================
+// RAG Helpers
+
+function rag_desc(rag, desc) {
+    if (desc)
+        return marked(desc);
+    if (rag === 'green')
+        return 'Progressing according to plan.';
+    if (!rag)
+        return 'n/a';
+    return 'TBD';
+}
+
+function rag_act(rag, act) {
+    if (act)
+        return marked(act);
+    if (rag === 'green')
+        return 'No action needed.';
+    if (!rag)
+        return 'n/a';
+    return 'TBD';
+}
+
+//==============================================================================
+// ToolTip Helpers
+
+function ini_tip(enum_vals, ini) {
+    var s = mk_fyt(ini.start, false),
+        e = mk_fyt(ini.end, true),
+        t = '<table class="tip">\n' +
+            '  <tr><th>Status:</th><td>{0}</td></tr>\n' +
+            '  <tr><th>Type:</th><td>{1}</td></tr>\n' +
+            '  <tr><th>Category:</th><td>{2}</td></tr>\n' +
+            '  <tr><th>Programme:</th><td>{3}</td></tr>\n' +
+            '  <tr><th>Function:</th><td>{4}</td></tr>\n' +
+            '  <tr><th>Start:</th><td>{5}</td></tr>\n' +
+            '  <tr><th>End:</th><td>{6}</td></tr>\n' +
+            '</table>';
+
+    return fmt(t,
+        enum_vals.ini_state[ini.state],
+        enum_vals.ini_type[ini.type],
+        enum_vals.ini_category[ini.category],
+        ini.program.name,
+        ini['function'],
+        s ? s.fiscal_str() : '',
+        e ? e.fiscal_str() : ''
+    );
+}
+
+function dep_tip(enum_vals, dep) {
+    var t = '<p>{0}</p>\n' +
+            '<table class="tip">\n' +
+            '  <tr><th>From:</th><td>{1}</td></tr>\n' +
+            '  <tr><th>To:</th><td>{2}</td></tr>\n' +
+            '</table>';
+
+    return fmt(t,
+        dep.desc || 'Awaiting description.',
+        dep.from_init.name,
+        dep.to_init.name
+    );
+}
+

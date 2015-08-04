@@ -227,7 +227,9 @@ def ini_api(_id):
         froms = get('hard','from_init_id','to_init_id'),
         tos   = get('hard','to_init_id','from_init_id'),
         softs = get('soft','from_init_id','to_init_id') + get('soft','to_init_id','from_init_id'),
-        caps  = filter_removed(filter(fltr, db.capability))
+        caps  = filter_removed(filter(fltr, db.capability)),
+        deps_from = [deref(db, dep) for dep in db.dependency.where({'to_init_id': _id})],
+        deps_to = [deref(db, dep) for dep in db.dependency.where({'from_init_id': _id})]
     )
 
 @app.route('/data/byprog')

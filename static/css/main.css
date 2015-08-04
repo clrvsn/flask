@@ -104,6 +104,21 @@ line.hard.hover {
     -opacity: 1;
 }
 
+line.sense {
+    stroke: white;
+    stroke-width: 8;
+}
+line.draw {
+    stroke: black;
+    stroke-width: 3;
+    -opacity: 0.5;
+    pointer-events: none;
+}
+line.draw.hover {
+    stroke: rgb(254,231,6);
+    -opacity: 1;
+}
+
 g.prog rect {
     -stroke: #BBB;
     -stroke-width: 2;
@@ -164,6 +179,9 @@ rect.rag-green, circle.rag-green {
     background-color: #D50000;
 }
 
+.tip th, .tip td {
+    padding: 2px;
+}
 
 .navbar-brand {
     padding: 5px 15px;
