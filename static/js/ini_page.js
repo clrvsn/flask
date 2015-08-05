@@ -80,6 +80,9 @@ function hard_line(dep) {
             y2: p.y,
             "marker-end": "url(#arrow)",
         });
+
+    d1.lines.push(dep.line);
+    d2.lines.push(dep.line);
 }
 
 $(function () {
@@ -158,23 +161,27 @@ d3.json(api, function (data) {
     _.each(data.froms, function (e, i) {
         e.byprog_row = irow - (data.froms.length/2) + i;
         e.byprog_col = 0;
+        e.lines = [];
         inis.push(e);
         init_indx[e._id] = e;
     });
     _.each(data.tos, function (e, i) {
         e.byprog_row = irow - (data.tos.length/2) + i;
         e.byprog_col = 2;
+        e.lines = [];
         inis.push(e);
         init_indx[e._id] = e;
     });
     _.each(data.softs, function (e, i) {
         e.byprog_row = irow - 1/2 + (i%2 ? -1 : 1) *  Math.floor(1 + i/2);
         e.byprog_col = 1;
+        e.lines = [];
         inis.push(e);
         init_indx[e._id] = e;
         top_soft = top_soft ? (top_soft.byprog_row < e.byprog_row ? top_soft : e) : e;
         bot_soft = bot_soft ? (bot_soft.byprog_row > e.byprog_row ? bot_soft : e) : e;
     });
+    data.ini.lines = [];
 
     var svg = d3.select("#diagram")
                 .append("svg")
@@ -213,6 +220,11 @@ d3.json(api, function (data) {
 
     var froms = _.where(data.deps_from, {type: 'hard'}),
         tos = _.where(data.deps_to, {type: 'hard'});
+        //inits = _.pluck(data.deps_from, 'to_init').concat(_.pluck(data.deps_to, 'from_init'));
+
+    //inits.forEach(function(ini) {
+    //    ini.lines = [];
+    //});
 
     svg.selectAll("line.sense")
         .data(froms.concat(tos))

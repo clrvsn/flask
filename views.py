@@ -242,8 +242,9 @@ def byprog_api():
     return flask.jsonify(
         meta  = db._meta,
         inits = [deref_ini(db,ini,fields) for ini in filter(fltr, db.initiative)],
-        hards = db.dependency.where({'type': 'hard'}),
-        softs = db.dependency.where({'type': 'soft'}),
+        #hards = db.dependency.where({'type': 'hard'}),
+        #softs = db.dependency.where({'type': 'soft'}),
+        dependency = filter_removed(db.dependency),
         programme = filter_removed(db.programme),
         process = filter_removed(db.process))
 

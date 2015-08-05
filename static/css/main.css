@@ -146,6 +146,10 @@ g.init text {
     text-anchor: middle;
     pointer-events: none;
 }
+g.init.faded {
+    opacity: 0.5;
+}
+
 circle.rag {
     stroke: #666;
     stroke-width: 1.5;

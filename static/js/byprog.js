@@ -139,14 +139,15 @@ function render() {
         });
 
     svg.selectAll("line.soft")
-        .data(data.softs.filter(dep_visible))
+        //.data(data.softs.filter(dep_visible))
+        .data(_.where(data.dependency, {type: 'soft'}).filter(dep_visible))
         .enter()
         .append("line")
         .classed("soft", true)
         .each(soft_line);
 
     svg.selectAll("line.hard")
-        .data(data.hards.filter(dep_visible))
+        .data(_.where(data.dependency, {type: 'hard'}).filter(dep_visible))
         .enter()
         .append("line")
         .classed("hard", true)
@@ -158,33 +159,25 @@ function render() {
              .append("g")
              .classed("init", true);
 
+
+    init_rect.hover = function (on, rect) {
+        if (rect) {
+            var _id = rect.__data__._id,
+                deps_from = _.pluck(_.where(data.dependency, {to_init_id: _id}), 'from_init_id'),
+                deps_to = _.pluck(_.where(data.dependency, {from_init_id: _id}), 'to_init_id'),
+                non_faded = [_id].concat(deps_from.concat(deps_to));
+
+            gs.classed('faded', function (d) {
+                return on && !_.contains(non_faded, d._id);
+            });
+        } else {
+            gs.classed('faded', on);
+        }
+    };
+
     gs.each(init_rect);
     gs.each(init_text);
     //gs.each(init_rag);
-
-    function ini_tip(ini) {
-        var s = mk_fyt(ini.start, false),
-            e = mk_fyt(ini.end, true),
-            t = '<table class="tip">\n' +
-                '  <tr><th>Status:</th><td>{0}</td></tr>\n' +
-                '  <tr><th>Type:</th><td>{1}</td></tr>\n' +
-                '  <tr><th>Category:</th><td>{2}</td></tr>\n' +
-                '  <tr><th>Programme:</th><td>{3}</td></tr>\n' +
-                '  <tr><th>Function:</th><td>{4}</td></tr>\n' +
-                '  <tr><th>Start:</th><td>{5}</td></tr>\n' +
-                '  <tr><th>End:</th><td>{6}</td></tr>\n' +
-                '</table>';
-
-        return fmt(t,
-            enum_vals.ini_state[ini.state],
-            enum_vals.ini_type[ini.type],
-            enum_vals.ini_category[ini.category],
-            ini.program.name,
-            ini['function'],
-            s ? s.fiscal_str() : '',
-            e ? e.fiscal_str() : ''
-        );
-    }
 
     $('.init').qtip({
         content: {
@@ -194,7 +187,7 @@ function render() {
             },
             text: function() {
                 var ini = this.context.__data__;
-                return ini_tip(ini);
+                return ini_tip(enum_vals, ini);
             },
         },
         style: {

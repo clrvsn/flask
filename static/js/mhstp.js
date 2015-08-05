@@ -1,3 +1,203 @@
+/* global: mk */
+
+//==============================================================================
+// Fiscal Dates
+
+var FiscalDate = function (fy, t, end) {
+    this.fy = fy;
+    this.t = t;
+    this.end = end;
+};
+
+FiscalDate.prototype.fiscal_str = function () {
+    return 'FY' + this.fy + '-T' + (this.t + 1);
+};
+
+
+function mk_fyt(s, end) {
+    var re = /FY(\d+)[ -]*(T(\d))?/i,
+        m = re.exec(s);
+
+    if (m && m[0]) {
+        return new FiscalDate(Number(m[1]), Number(m[3] || '1') - 1, end);
+    }
+    return undefined;
+}
+function fyt_col(fyt, fst) {
+    return fyt ? Math.max(0, (fyt.fy - fst + (fyt.t + (fyt.end ? 1 : 0))/3)) : 0;
+    //return fyt ? Math.max(0, (fyt.fy - fst + fyt.t/3)) : 0;
+}
+
+
+//==============================================================================
+
+//var CalendarDate = function (cd, end) {
+//    var d = cd.split('-');
+//    this.date = new Date(d[0], d[1]-1, d[2], 0, 0);
+//    this.end = end;
+//}
+
+function mk_date(yr, mn, dy) {
+    if (yr === undefined)
+        return undefined;
+
+    if (_.isString(yr)) {
+        var d = yr.split('-');
+        yr = d[0] - 0;
+        mn = d[1] - 1;
+        dy = d[2] - 1;
+    }
+    if (yr < 100) yr = yr + 2000;
+    return new Date(yr, mn, dy, 0, 0, 0);
+}
+
+function mk_date_now() {
+    return new Date();
+}
+
+function date_col(date, fst_date, cols_per_year) {
+    var ms = date.getTime() - fst_date.getTime(),
+        ms_per_year = 365 * 24 * 60 * 60 * 1000,
+        col = (ms / ms_per_year) * cols_per_year;
+
+    return col;
+}
+
+function cmp_date(date1, date2) {
+    return date1.getTime() - date2.getTime();
+}
+
+//==============================================================================
+
+function mk_class(s) {
+    return s.toLowerCase().replace(/ /g, "").replace(/-/g, "");
+}
+
+//==============================================================================
+// Initiatives
+
+var init_grid = {
+    cols: 6,
+    rows: 12,
+    colw: 170,
+    rowh: 65,
+};
+
+function mk_init_rect(d) {
+    if (d.byprog_col === undefined || d.byprog_row === undefined) {
+        return undefined;
+    }
+    var x = d.byprog_col * init_grid.colw + 20,
+        y = d.byprog_row * init_grid.rowh + 10 + init_grid.rowh/2,
+        w = init_grid.colw - 40,
+        h = init_grid.rowh - 20;
+    return {
+        l: x,
+        t: y,
+        r: x + w,
+        b: y + h,
+        w: w,
+        h: h,
+        cx: x + w/2,
+        cy: y + h/2,
+    };
+}
+
+function init_rect(d) {
+    var r = mk_init_rect(d),
+        typ = d.type ? mk_class(d.type) : "project";
+    if (r) {
+        d3.select(this)
+            .append("rect")
+            .classed(typ, true)
+            .classed(mk_class(d.category), true)
+            .classed(mk_class(d.state), true)
+            .attr({
+                x: r.l,  y: r.t,  width: r.w,  height: r.h,
+                rx: typ === "project" ? 5 : (typ === "activity" ? (init_grid.rowh-20)/2 : 0),
+                ry: typ === "project" ? 5 : (typ === "activity" ? (init_grid.rowh-20)/2 : 0),
+            })
+            .on('mouseenter', function () {
+                var rect = d3.select(this)
+                  .classed('hover', true);
+                _.each(d.lines, function (line) {
+                    line.classed('hover', true);
+                });
+                if (init_rect.hover) {
+                    init_rect.hover(true, rect[0][0]);
+                }
+            })
+            .on('mouseleave', function () {
+                var rect = d3.select(this)
+                  .classed('hover', false);
+                _.each(d.lines, function (line) {
+                    line.classed('hover', false);
+                });
+                if (init_rect.hover) {
+                    init_rect.hover(false);
+                }
+            })
+            .on('click', function () {window.location.href = '/init/'+d._id;});
+    }
+}
+
+function init_text(d) {
+    var text = d3.select(this)
+                 .append("text")
+                 .text(d.name);
+
+    d3plus.textwrap()
+          .container(text)
+          .padding(3)
+          .valign("middle")
+          .draw();
+}
+
+function mk_ini_rag_g(ini, node, x, y) {
+    var g = node.append("g");
+
+    function mk_one(i, ltr, clr) {
+        g.append("circle")
+         .classed('rag', true)
+         .classed('rag-'+clr, clr !== 'grey')
+         .attr({
+            r: 6,
+            cx: 5 + i * 12,
+            cy: 5,
+         });
+        g.append("text")
+         .text(ltr)
+         .attr({
+            x: 4.5 + i * 12,
+            y: 8.25,
+         });
+    }
+
+    var rag = {T: ini.ini_rag_t || 'grey', S: ini.ini_rag_s || 'grey', C: ini.ini_rag_c || 'grey'};
+
+    mk_one(0, 'T', rag.T);
+    mk_one(1, 'S', rag.S);
+    mk_one(2, 'C', rag.C);
+
+    g.classed("rag", true)
+     .attr("transform", "translate(" + x + " " + y + ")");
+
+    return g;
+}
+
+function init_rag(ini) {
+    //if (ini.tp_rag_t || ini.tp_rag_s || ini.tp_rag_c) {
+        var r = mk_init_rect(ini);
+
+        if (r) {
+            var g = mk_ini_rag_g(ini, d3.select(this), r.r - (8 + 3 * 12), r.t - 8);
+            if (init_rag.click) {
+                g.on('click', function () {init_rag.click(ini);});
+            }
+        }
+    //}
+}
+
 //==============================================================================
 // Data & Meta Data
 
@@ -10,7 +210,7 @@ function set_data(d) {
 
     data.meta.forEach(function(m) {
         meta_indx[m._id] = m;
-        m.field = {}
+        m.field = {};
         m.fields.forEach(function(f) {
             m.field[f.name] = f;
             if (f.type === 'enum') {
@@ -120,22 +320,22 @@ function mk_filter(mid, fld, eid, state) {
     filter[fld] = {};
 
     if (field.type === 'enum') {
-        if (state == null) {
+        if (state === undefined) {
             state = _.pluck(field.enum_vals, 'val');
-            state.push('_none_')
+            state.push('_none_');
         }
 
-        function mk_one(v) {
+        var mk_one = function (v) {
             var set = _.contains(state, v.val),
                 chk = set ? {checked:'checked'} : {},
                 inp = mk('input#'+v.val+'_chk', {type:'checkbox'}, chk),
                 wrp = mk('div.checkbox', mk('label', inp, v.txt ));
             inp.click(function () {
-                toggle_filter(fld, v.val)
+                toggle_filter(fld, v.val);
             });
             el.append(wrp);
             filter[fld][v.val] = set;
-        }
+        };
         if (!field.required) {
             mk_one({val:'_none_', txt:'None'});
         }
@@ -144,7 +344,7 @@ function mk_filter(mid, fld, eid, state) {
     if (field.type === 'ref') {
         var coll = meta_indx[field.ref_id].name;
 
-        if (state == null) {
+        if (state === undefined) {
             state = _.pluck(data[coll], '_id');
         }
 
@@ -154,7 +354,7 @@ function mk_filter(mid, fld, eid, state) {
                 inp = mk('input#'+obj._id+'_chk', {type:'checkbox'}, chk),
                 wrp = mk('div.checkbox', mk('label', inp, obj[field.ref_field] ));
             inp.click(function () {
-                toggle_filter(fld, obj._id)
+                toggle_filter(fld, obj._id);
             });
             el.append(wrp);
             filter[fld][obj._id] = set;
@@ -167,19 +367,19 @@ function do_filter(mid, fld, val) {
         field = meta.field[fld];
 
     if (field.type === 'enum') {
-        if (val[fld] == null && !(filter[fld]['_none_']))
+        if (val[fld] === undefined && !(filter[fld]['_none_']))
             return false;
         return !_.any(field.enum_vals, function(v) {
             return (val[fld] === v.val && !(filter[fld][v.val]));
-        })
+        });
     }
     if (field.type === 'ref') {
         var fld_name = field.name.substr(0,field.name.length-3),
             f = val[fld_name];
-        if (f == null) return false;
+        if (f === undefined) return false;
         return !_.any(data[meta_indx[field.ref_id].name], function(obj) {
             return (f._id === obj._id && !(filter[fld][obj._id]));
-        })
+        });
     }
 }
 
@@ -192,7 +392,7 @@ function d3_add(svg, slctr, data, elnm, fn) {
                .enter()
                .append(elnm);
 
-    if (fn != null)
+    if (fn !== undefined)
         r.each(fn);
 
     return r;
