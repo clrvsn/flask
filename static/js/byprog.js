@@ -114,13 +114,13 @@ function render() {
             fill: "black",
         });
 
-    var progs = svg.selectAll("g.prog")
+    var prog_gs = svg.selectAll("g.prog")
                     .data(data.programme)
                     .enter()
                     .append("g")
                     .classed("prog", true);
 
-    progs.append("rect")
+    prog_gs.append("rect")
         .attr({
             x: function(d) { return d.byprog_col * init_grid.colw + 10; },
             y: function(d) { return d.byprog_row * init_grid.rowh + 0; },
@@ -131,53 +131,61 @@ function render() {
             ry: 10,
         });
 
-    progs.append("text")
+    prog_gs.append("text")
         .text(function(d) { return d.name; })
         .attr({
             x: function(d) { return d.byprog_col * init_grid.colw + 20; },
             y: function(d) { return d.byprog_row * init_grid.rowh + 10 + 12; },
         });
 
-    svg.selectAll("line.soft")
-        //.data(data.softs.filter(dep_visible))
+    var soft_lines = svg.selectAll("line.soft")
         .data(_.where(data.dependency, {type: 'soft'}).filter(dep_visible))
         .enter()
         .append("line")
-        .classed("soft", true)
-        .each(soft_line);
+        .classed("soft", true);
 
-    svg.selectAll("line.hard")
+    var hard_lines = svg.selectAll("line.hard")
         .data(_.where(data.dependency, {type: 'hard'}).filter(dep_visible))
         .enter()
         .append("line")
-        .classed("hard", true)
-        .each(hard_line);
+        .classed("hard", true);
 
-    var gs = svg.selectAll("g.init")
+    var init_gs = svg.selectAll("g.init")
              .data(data.inits.filter(ini_visible))
              .enter()
              .append("g")
              .classed("init", true);
 
-
+    soft_lines.each(soft_line);
+    hard_lines.each(hard_line);
     init_rect.hover = function (on, rect) {
         if (rect) {
             var _id = rect.__data__._id,
-                deps_from = _.pluck(_.where(data.dependency, {to_init_id: _id}), 'from_init_id'),
-                deps_to = _.pluck(_.where(data.dependency, {from_init_id: _id}), 'to_init_id'),
-                non_faded = [_id].concat(deps_from.concat(deps_to));
+                deps_to = _.where(data.dependency, {to_init_id: _id}),
+                deps_from = _.where(data.dependency, {from_init_id: _id}),
+                dep_ids = _.pluck(deps_to.concat(deps_from), '_id'),
+                from_init_ids = _.pluck(deps_to, 'from_init_id'),
+                to_init_ids = _.pluck(deps_from, 'to_init_id'),
+                neighbor_ids = [_id].concat(from_init_ids.concat(to_init_ids));
 
-            gs.classed('faded', function (d) {
-                return on && !_.contains(non_faded, d._id);
+            init_gs.classed('faded', function (ini) {
+                return on && !_.contains(neighbor_ids, ini._id);
+            });
+            hard_lines.classed('faded', function (dep) {
+                return on && !_.contains(dep_ids, dep._id);
+            });
+            soft_lines.classed('faded', function (dep) {
+                return on && !_.contains(dep_ids, dep._id);
             });
         } else {
-            gs.classed('faded', on);
+            init_gs.classed('faded', on);
+            hard_lines.classed('faded', on);
+            soft_lines.classed('faded', on);
         }
     };
-
-    gs.each(init_rect);
-    gs.each(init_text);
-    //gs.each(init_rag);
+    init_gs.each(init_rect);
+    init_gs.each(init_text);
+    //init_gs.each(init_rag);
 
     $('.init').qtip({
         content: {
@@ -201,10 +209,10 @@ function render() {
             //    method: 'shift flip'
             //},
             //target: 'mouse', // $('#diagram svg'), //
-            //adjust: {
-                //x:-15,
+            adjust: {
+                y:-25,
                 //method: 'shift shift'
-            //},
+            },
         },
         show: {
             delay: 500,

@@ -61,7 +61,7 @@
                     </div>
                   </p>
                   <div class="table-responsive">
-                    <table id="data-grid" class="table table-condensed table-striped"></table>
+                    <table id="data-grid" class="table table-condensed table-striped sortable"></table>
                  </div>
               </div>
               <div role="tabpanel" class="tab-pane" id="design-pane">
@@ -118,7 +118,7 @@
                             </div>
                           </p>
                           <div class="table-responsive">
-                            <table id="meta-field-grid" class="table table-condensed table-striped">
+                            <table id="meta-field-grid" class="table table-condensed table-striped sortable">
                             </table>
                           </div>
                       </div>
@@ -603,7 +603,7 @@
         }
 
         function mk_tbl_hdr() {
-            var cells = [mk('th', 'Actions')],
+            var cells = [mk('th.sorttable_nosort', 'Actions')],
                 fields = design.get('fields').toJSON();
 
             if (show_ids) {
@@ -728,7 +728,7 @@
         }
 
         function mk_field_tbl_hdr() {
-            var cells = [mk('th', 'Actions')];
+            var cells = [mk('th.sorttable_nosort', 'Actions')];
 
             var hdrs = _.map(METAFIELDS, function (f) {
                     return mk('th', f.label);
@@ -891,6 +891,7 @@
                                 self.$el.append(row_view.$el);
                                 row_view.render();
                             });
+                            sorttable.makeSortable(this.el);
                             return this;
                         },
                     });
@@ -1000,6 +1001,7 @@
                                     row_view.render();
                                 }
                             });
+                            sorttable.makeSortable(this.el);
 
                             return this;
                         },

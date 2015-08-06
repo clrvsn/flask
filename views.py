@@ -219,7 +219,7 @@ def ini_api(_id):
         return filter_removed(inis)
     ini = deref_ini(db, db.initiative[_id])
     def fltr(cap):
-        fld = 'init_cover_ids' if ini['type'] == 'prestudy' else 'init_moveout_ids'
+        fld = 'init_cover_ids' if ini.get('type', '') == 'prestudy' else 'init_moveout_ids'
         return _id in cap.get(fld, [])
     return flask.jsonify(
         meta  = db._meta,
@@ -311,6 +311,16 @@ def mk_options(cursor, field='name'):
             pass
     return opts
 
+def mk_options2(cursor, field='name'):
+    opts = []
+    for row in cursor:
+        try:
+            opt = {'txt': row[field], 'val': row['_id']}
+            opts.append(opt)
+        except:
+            pass
+    return opts
+
 @app.route('/data/caps')
 @app.route('/data/caps/<id>')
 def caps_api(id=None):
@@ -320,11 +330,13 @@ def caps_api(id=None):
         if id[0:3] == 'FUN':
             fun  = db.function[id]
             caps = db.capability.where({'function_id': id})
-            inis = db.initiative
+            inis = mk_options(db.initiative)
             return flask.jsonify(
                 caps = caps,
                 fun = fun,
-                inis = mk_options(inis)
+                inis = inis,
+                cap_meta = db._meta['CAP'],
+                options = [{'_id': 'INI', 'opts': mk_options2(db.initiative)}]
             )
 ##        elif id[0:3] == 'INI':
 ##            ini  = db.initiative[id]
@@ -332,13 +344,16 @@ def caps_api(id=None):
 ##            funs = db.function
 ##            return flask.jsonify(caps=caps, funs=mk_options(funs), ini=ini)
     else:
-        caps = db.capability
-        funs = db.function
-        inis = db.initiative
+        caps = filter_removed(db.capability)
+        funs = mk_options(db.function)
+        inis = mk_options(db.initiative)
         return flask.jsonify(
             caps = caps,
-            funs = mk_options(funs),
-            inis = mk_options(inis)
+            funs = funs,
+            inis = inis,
+            cap_meta = db._meta['CAP'],
+            options = [{'_id': 'FUN', 'opts': mk_options2(db.function)},
+                       {'_id': 'INI', 'opts': mk_options2(db.initiative)}]
         )
 
 @app.route('/data/funs')

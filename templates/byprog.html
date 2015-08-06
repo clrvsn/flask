@@ -1,9 +1,16 @@
 {% extends "base.html" %}
 {% block head %}
 <style>
-    .tip th, .tip td {
-        padding: 2px;
-    }
+line.hard.hover {
+    stroke: black;
+}
+line.soft.hover {
+    stroke: grey;
+    opacity: 0.5;
+}
+line.faded, g.faded {
+    opacity: 0.0;
+}
 </style>
 {% endblock %}
 {% block content %}

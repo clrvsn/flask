@@ -1,15 +1,67 @@
 {% extends "base.html" %}
 {% block head %}
-    <title>Welcome to MHS-TP</title>
+    <title>MHS-TP Portal</title>
+    <style>
+    h1 {
+    	color: #595959;
+    	padding-bottom: 1em;
+    	font-weight: bold;
+    }
+    h2 {
+    	color: #595959;
+    	font-size: 1em;
+    	font-weight: bold;
+    }
+    #heart {
+    	float: right;
+    	padding-left: 20px;
+    }
+    #hej {
+    	padding-bottom: 1em;
+    }
+    #how {
+    	border-width: 2px;
+    	border-radius: 4px;
+    	border-style: solid;
+    	border-color: #595959;
+		padding: 0.5em;
+		margin-right: 525px;
+    	margin-top: 30px;
+    }
+    #how h2 {
+    	color: #595959;
+    	font-size: 1em;
+    	font-weight: bold;
+    	margin-top: 10px;
+    }
+    </style>
 {% endblock %}
 {% block content %}
-<div class="col-md-8 col-md-offset-2">
-  <h1 class="page-header">Welcome to MHS-TP</h1>
+<div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+	<h1>Welcome to the MHS Transformation Programme Portal!</h1>
+	<img id="hej" src="/static/img/Hej.png"/>
+	<img id="heart" src="/static/img/half-heart.png"/>
+	<p>This portal has been created to control, manage and share the latest 
+		programme information, for example: programme plan, 
+		initiatives in the 
+		programme, timeline, current status and dependencies to other programmes, 
+		as well as other initiatives.</p>
+	<h2>Destinations:</h2>
     <ul>
         <li><a href="http://ikea.com/">IKEA intranet - MHS Transformation Programme</a></li>
         <li><a href="/page/model">The Knowledge Model</a></li>
         <li><a href="/page/prog-plan">The Programme Plan</a></li>
     </ul>
+	<div id="how">
+		<h2>How to navigate:</h2>
+		<p>Use the top menu to navigate. A drop-down menu is available for the 
+			’Knowledge Model’. The introduction page is a good start! There are filters 
+			and different views that can be used to tailor what you want to see.</p>
+		<p>Click on the MHS Transformation Programme’s name in the top left corner 
+			 if you want to return to this page. </p>
+	</div>
+
+
 </div>
 {% endblock %}
 

@@ -147,7 +147,7 @@ g.init text {
     pointer-events: none;
 }
 g.init.faded {
-    opacity: 0.5;
+    opacity: 0.2;
 }
 
 circle.rag {
@@ -183,8 +183,29 @@ rect.rag-green, circle.rag-green {
     background-color: #D50000;
 }
 
+span.rag {
+    background-color: #DDD;
+    padding: 0 6px;
+    border: 1px solid;
+}
+span.rag-green {
+    background-color: #00D500;
+}
+span.rag-amber {
+    background-color: #D5D500;
+}
+span.rag-red {
+    background-color: #D50000;
+}
+
 .tip th, .tip td {
     padding: 2px;
+}
+table.sortable thead {
+    cursor: default;
+}
+table.sortable th:not(.sorttable_sorted):not(.sorttable_sorted_reverse):not(.sorttable_nosort):after { 
+    content: " \25B4\25BE" 
 }
 
 .navbar-brand {

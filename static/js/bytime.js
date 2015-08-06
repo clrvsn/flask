@@ -135,17 +135,23 @@ function rag_rect(rect, i, d, f) {
 
             if (d.tp_rag_t === 'green' && d.tp_rag_s === 'green' && d.tp_rag_c === 'green') {
                 $('#tp_rag_desc').text('Progressing according to plan');
-                $('#tp_rag_t_impact').text('n/a');
-                $('#tp_rag_s_impact').text('n/a');
-                $('#tp_rag_c_impact').text('n/a');
+                $('#tp_rag_t_impact').html(mk('span.rag.rag-green', '&nbsp;'));
+                $('#tp_rag_t_impact').append(' n/a');
+                $('#tp_rag_s_impact').html(mk('span.rag.rag-green', '&nbsp;'));
+                $('#tp_rag_s_impact').append(' n/a');
+                $('#tp_rag_c_impact').html(mk('span.rag.rag-green', '&nbsp;'));
+                $('#tp_rag_c_impact').append(' n/a');
                 $('#tp_rag_act').text('No actions needed');
                 $('#tp_rag_due').text('n/a');
                 $('#tp_rag_resp').text('n/a');
             } else {
                 $('#tp_rag_desc').text(d.tp_rag_desc || '');
-                $('#tp_rag_t_impact').text(d.tp_rag_t_impact || '');
-                $('#tp_rag_s_impact').text(d.tp_rag_s_impact || '');
-                $('#tp_rag_c_impact').text(d.tp_rag_c_impact || '');
+                $('#tp_rag_t_impact').html(mk('span.rag.rag-' + d.tp_rag_t, '&nbsp;'));
+                $('#tp_rag_t_impact').append(' ' + (d.tp_rag_t_impact || ''));
+                $('#tp_rag_s_impact').html(mk('span.rag.rag-' + d.tp_rag_s, '&nbsp;'));
+                $('#tp_rag_s_impact').append(' ' + (d.tp_rag_s_impact || ''));
+                $('#tp_rag_c_impact').html(mk('span.rag.rag-' + d.tp_rag_c, '&nbsp;'));
+                $('#tp_rag_c_impact').append(' ' + (d.tp_rag_c_impact || ''));
                 $('#tp_rag_act').text(d.tp_rag_act || '');
                 $('#tp_rag_due').text(d.tp_rag_due || '');
                 $('#tp_rag_resp').text(d.tp_rag_resp ? d.tp_rag_resp.name : '');

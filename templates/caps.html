@@ -11,15 +11,102 @@
     .backgrid .select-cell {
         text-align: left;
     }
+table .header-fixed {
+  position: fixed;
+  top: 40px;
+  z-index: 1020;
+  /* 10 less than .navbar-fixed to prevent any overlap */
+  border-bottom: 1px solid #d5d5d5;
+  -webkit-border-radius: 0;
+  -moz-border-radius: 0;
+  border-radius: 0;
+  -webkit-box-shadow: inset 0 1px 0 #fff, 0 1px 5px rgba(0, 0, 0, 0.1);
+  -moz-box-shadow: inset 0 1px 0 #fff, 0 1px 5px rgba(0, 0, 0, 0.1);
+  box-shadow: inset 0 1px 0 #fff, 0 1px 5px rgba(0, 0, 0, 0.1);
+  filter: progid:DXImageTransform.Microsoft.gradient(enabled=false);
+  /* IE6-9 */
+}
 </style>
 {% endblock %}
 {% block content %}
 <div class="main">
   <h1 class="page-header">Capabilities</h1>
+  <table id="data-grid" class="table table-condensed table-striped table-fixed-header sortable"></table>
   <div id="grid" class="backgrid-container" style="height: 100%"></div>
 </div>
 {% endblock %}
 {% block foot %}
+<script src="/static/lib/js/jquery.mousewheel.js"></script>
+<script  type="text/javascript">
+(function () {
+    (function ($) {
+        return $.fn.fixedHeader = function (options) {
+            var config;
+            config = {
+                topOffset: 40,
+                bgColor: '#EEEEEE'
+            };
+            if (options) {
+                $.extend(config, options);
+            }
+            return this.each(function () {
+                var $head, $win, headTop, isFixed, o, processScroll, ww;
+                processScroll = function () {
+                    var headTop, i, isFixed, scrollTop, t;
+                    if (!o.is(':visible')) {
+                        return;
+                    }
+                    i = void 0;
+                    scrollTop = $win.scrollTop();
+                    t = $head.length && $head.offset().top - config.topOffset;
+                    if (!isFixed && headTop !== t) {
+                        headTop = t;
+                    }
+                    if (scrollTop >= headTop && !isFixed) {
+                        isFixed = 1;
+                    } else {
+                        if (scrollTop <= headTop && isFixed) {
+                            isFixed = 0;
+                        }
+                    }
+                    if (isFixed) {
+                        return $('thead.header-copy', o).removeClass('hide');
+                    } else {
+                        return $('thead.header-copy', o).addClass('hide');
+                    }
+                };
+                o = $(this);
+                $win = $(window);
+                $head = $('thead.header', o);
+                isFixed = 0;
+                headTop = $head.length && $head.offset().top - config.topOffset;
+                $win.on('scroll', processScroll);
+                $head.on('click', function () {
+                    if (!isFixed) {
+                        return setTimeout(function () {
+                            return $win.scrollTop($win.scrollTop() - 47);
+                        }, 10);
+                    }
+                });
+                $head.clone().removeClass('header').addClass('header-copy header-fixed').appendTo(o);
+                ww = [];
+                o.find('thead.header > tr:first > th').each(function (i, h) {
+                    return ww.push($(h).width());
+                });
+                $.each(ww, function (i, w) {
+                    return o.find('thead.header > tr > th:eq(' + i + '), thead.header-copy > tr > th:eq(' + i + ')').css({ width: w });
+                });
+                o.find('thead.header-copy').css({
+                    margin: '0 auto',
+                    width: o.width(),
+                    'background-color': config.bgColor
+                });
+                return processScroll();
+            });
+        };
+    }(jQuery));
+}.call(this));    
+</script>
 <script type="text/javascript">
     var Capability = Backbone.Model.extend({}),
         Capabilities = Backbone.Collection.extend({
@@ -32,7 +119,128 @@
         api = api + '/' + id;
     }
 
+
+    var ModelRowView = Backbone.View.extend({
+            tagName: "tr",
+            className: function () {
+                //if (this.model.removed()) return 'removed';
+                return '';
+            },
+            model: Capability,
+            render: function () {
+                this.$el.html(mk_tbl_row(this.model));
+                return this;
+            }
+        }),
+        CollectionTableView = Backbone.View.extend({
+            model: Capabilities,
+
+            initialize: function() {
+                this.listenTo(this.model, "sync", this.modelUpdated);
+                this.listenTo(this.model, "add", this.modelUpdated);
+            },
+
+            modelUpdated: function() {
+                this.render();
+            },
+
+            render: function() {
+                var self = this,
+                    tbody = mk('tbody');
+
+                this.$el.html(mk_tbl_hdr()); // lets render this view
+                this.model.each(function (item) {
+                    //if (show_removed || !item.removed()) {
+                        var row_view = new ModelRowView({model: item});
+                        tbody.append(row_view.$el);
+                        row_view.render();
+                    //}
+                });
+                this.$el.append(tbody);
+                //this.$el.fixedHeader();
+                //this.$el.fixedHeaderTable({ footer: false, cloneHeadToFoot: false, fixedColumn: false });
+                sorttable.makeSortable(this.el);
+
+                return this;
+            },
+        });
+    
+    var table_view,
+        options = {},
+        cap_meta = {},
+        fields = [],
+        index = {};
+
+    function lookup(id) {
+        var val = index[id];
+
+        if (val) return val.txt;
+        return id || '';
+    }
+
+    function mk_tbl_cell(field, model) {
+        var cell = model.get(field.name) || '',
+            type = field.type;
+
+        if (!_.isString(cell) && _.isArray(cell)) {
+            //if (field.opts && cell.length >= field.opts.length) {
+            if (type === 'ref' && cell.length >= options[field.ref_id].length) {
+                cell = 'ALL';
+            } else {
+                if (cell.length > 2) {
+                    cell = _.map(_.first(cell, 2), lookup);
+                    cell.push('. . .');
+                } else {
+                    cell = _.map(cell, lookup);
+                }
+                cell = cell.join('<hr class="in-table"/>');
+            }
+        } else {
+            if (type === 'enum') {
+                var val = _.findWhere(field.enum_vals, {val:cell});
+                if (val)
+                    cell = val.txt;
+            } else {
+                if (field.name !== '_id')
+                    cell = lookup(cell);
+            }
+        }
+
+        return mk('td', cell);
+    }
+
+    function mk_tbl_hdr() {
+        var cells = _.map(fields, function (f) {
+                return mk('th', f.label);
+            });
+        return mk('thead.header', mk('tr', cells));
+    }
+
+    function mk_tbl_row(model) {
+        return _.map(fields, function (field) {
+            return mk_tbl_cell(field, model);
+        });
+    }
+
+
     d3.json(api, function (data) {
+        cap_meta = data.cap_meta;
+        fields = data.cap_meta.fields;
+
+        _.each(data.options, function (o) {
+            options[o._id] = o.opts;
+            _.each(o.opts, function (opt) {
+                index[opt.val] = {txt: opt.txt};
+            });
+        });
+
+        if (id !== '' && id.substr(0,3) === 'FUN') {
+            fields = _.filter(fields, function (field) {
+                return field.name !== 'function_id';
+            });
+        }
+
+
         var caps = new Capabilities(),
             cols = [
                 //{name: "_id", label: "ID",  editable: false, cell: "string" },
@@ -96,13 +304,16 @@
             );
         //}
 
-        var grid = new Backgrid.Grid({
-                columns: cols,
-                collection: caps
-            });
+        //var grid = new Backgrid.Grid({
+        //        columns: cols,
+        //        collection: caps
+        //    });
 
-        $("#grid").append(grid.render().el);
+        //$("#grid").append(grid.render().el);
+
+        table_view = new CollectionTableView({ el: $("#data-grid"), model: caps });
         caps.reset(data.caps);
+        table_view.render();
     });
 </script>
 {% endblock %}

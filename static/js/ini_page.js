@@ -139,7 +139,8 @@ d3.json(api, function (data) {
 
     $("#sg_tp_rep_id").text(data.ini.sg_tp_rep ? (data.ini.sg_tp_rep.name) : (data.ini.state == 'pending' ? 'TBD' : ''));
     $("#sg_chair_id").text(data.ini.sg_chair ? (data.ini.sg_chair.name) : (data.ini.state == 'pending' ? 'TBD' : ''));
-    $("#orderer_id").text(data.ini.orderer ? (data.ini.orderer.name) : (data.ini.state == 'pending' ? 'TBD' : ''));
+    $("#sg_supp_id").text(data.ini.sg_supp ? (data.ini.sg_supp.name) : (data.ini.state == 'pending' ? 'TBD' : ''));
+    $("#orderer_id").text(data.ini.proc_rep ? (data.ini.proc_rep.name) : 'TBD');
 
     $("#type").text(enum_vals.ini_type[data.ini.type]);
     $("#category").text(enum_vals.ini_category[data.ini.category]);
