@@ -485,7 +485,7 @@ function ini_tip(enum_vals, ini) {
     );
 }
 
-function dep_tip(enum_vals, dep) {
+function dep_tip(init_indx, dep) {
     var t = '<p>{0}</p>\n' +
             '<table class="tip">\n' +
             '  <tr><th>From:</th><td>{1}</td></tr>\n' +
@@ -494,8 +494,8 @@ function dep_tip(enum_vals, dep) {
 
     return fmt(t,
         dep.desc || 'Awaiting description.',
-        dep.from_init.name,
-        dep.to_init.name
+        init_indx[dep.from_init_id].name,
+        init_indx[dep.to_init_id].name
     );
 }
 

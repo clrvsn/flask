@@ -22,6 +22,9 @@ if (!Array.isArray) {
   };
 }
 
+//==============================================================================
+// String Format
+
 function fmt() {
     // The string containing the format items (e.g. "{0}")
     // will and always has to be the first argument.
@@ -37,6 +40,23 @@ function fmt() {
 
     return theString;
 }
+
+//==============================================================================
+
+var create = (function() {
+    function F() {}
+    return function (proto, props) {
+        F.prototype = proto;
+        obj = new F();
+        for (var prop in props) {
+            if (props.hasOwnProperty(prop))
+                obj.prototype[prop] = props[prop];
+        }
+        return obj;
+    };
+})();
+
+//==============================================================================
 
 function num (x) {
     return x - 0;
@@ -66,6 +86,7 @@ function isAlphanum(parm) {return _isValid(parm,_LWR+_UPR+_NUM);}
 //};
 //Backform.bootstrap2();
 
+//==============================================================================
 // from http://stackoverflow.com/questions/2419749/get-selected-elements-outer-html
 (function($) {
     $.fn.outerHTML = function (arg) {

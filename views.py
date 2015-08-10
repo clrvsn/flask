@@ -211,25 +211,26 @@ def deref_ini(db, old, fields=None):
 @app.route('/data/ini/<_id>')
 def ini_api(_id):
     db = DataBase(mongo.db)
-    fields = ['_id','name','state','start','end','type','category',
-              'program_id','process_id','function_ids','removed']#,'ncaps']
-    def get(typ,id1,id2):
-        inis = [deref_ini(db, db.initiative[ini[id1]]) #, fields)
-                for ini in filter_removed(db.dependency.where({'type': typ, id2: _id}))]
-        return filter_removed(inis)
+##    fields = ['_id','name','state','start','end','type','category',
+##              'program_id','process_id','function_ids','removed']#,'ncaps']
     ini = deref_ini(db, db.initiative[_id])
-    def fltr(cap):
+    def cap_fltr(cap):
         fld = 'init_cover_ids' if ini.get('type', '') == 'prestudy' else 'init_moveout_ids'
         return _id in cap.get(fld, [])
+    def dep_fltr(dep):
+        return dep['from_init_id'] == _id or dep['to_init_id'] == _id
+    deps = filter(dep_fltr, filter_removed(db.dependency))
+    ini_ids = set()
+    ini_ids.update([dep['from_init_id'] for dep in deps if 'from_init_id' in dep])
+    ini_ids.update([dep['to_init_id'] for dep in deps if 'to_init_id' in dep])
+    def ini_fltr(ini):
+        return ini['_id'] in ini_ids
     return flask.jsonify(
         meta  = db._meta,
         ini   = ini,
-        froms = get('hard','from_init_id','to_init_id'),
-        tos   = get('hard','to_init_id','from_init_id'),
-        softs = get('soft','from_init_id','to_init_id') + get('soft','to_init_id','from_init_id'),
-        caps  = filter_removed(filter(fltr, db.capability)),
-        deps_from = [deref(db, dep) for dep in filter_removed(db.dependency.where({'to_init_id': _id}))],
-        deps_to = [deref(db, dep) for dep in filter_removed(db.dependency.where({'from_init_id': _id}))]
+        caps  = filter(cap_fltr, filter_removed(db.capability)),
+        deps  = deps,
+        inis  = [deref_ini(db,ini) for ini in filter(ini_fltr, db.initiative)]
     )
 
 @app.route('/data/byprog')

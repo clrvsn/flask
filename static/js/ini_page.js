@@ -10,21 +10,31 @@ var w = init_grid.cols * init_grid.colw,
     enum_vals = {};
 
 
-function soft_line(d) {
-    var d1 = init_indx[d.from_init_id],
-        d2 = init_indx[d.to_init_id];
-    d3.select(this)
+function soft_line(dep) {
+    var d1 = init_indx[dep.from_init_id],
+        d2 = init_indx[dep.to_init_id];
+
+    dep.line = d3.select(this)
         .attr({
             x1: d1.byprog_col * init_grid.colw + init_grid.colw/2,
             y1: d1.byprog_row * init_grid.rowh + init_grid.rowh,
             x2: d2.byprog_col * init_grid.colw + init_grid.colw/2,
             y2: d2.byprog_row * init_grid.rowh + init_grid.rowh,
+        })
+        .on('mouseenter', function (dep) {
+            dep.line.classed('hover', true);
+        })
+        .on('mouseleave', function (dep) {
+            dep.line.classed('hover', false);
         });
+
+    d1.lines.push(dep.line);
+    d2.lines.push(dep.line);
 }
 
 function hard_line_sense(dep) {
-    var d1 = init_indx[dep.from_init._id],
-        d2 = init_indx[dep.to_init._id],
+    var d1 = init_indx[dep.from_init_id],
+        d2 = init_indx[dep.to_init_id],
         r1 = mk_init_rect(d1),
         xk = r1.cx, yk = r1.cy,
         r2 = mk_init_rect(d2),
@@ -55,8 +65,8 @@ function hard_line_sense(dep) {
         });
 }
 function hard_line(dep) {
-    var d1 = init_indx[dep.from_init._id],
-        d2 = init_indx[dep.to_init._id],
+    var d1 = init_indx[dep.from_init_id],
+        d2 = init_indx[dep.to_init_id],
         r1 = mk_init_rect(d1),
         xk = r1.cx, yk = r1.cy,
         r2 = mk_init_rect(d2),
@@ -105,20 +115,31 @@ $(function () {
 
 d3.json(api, function (data) {
 
-    data.meta.forEach(function(m) {
+    data.meta.forEach(function (m) {
         meta_indx[m._id] = m;
-        m.fields.forEach(function(f) {
+        m.fields.forEach(function (f) {
             if (f.type === 'enum') {
                 vals = {};
-                f.enum_vals.forEach(function(v) {
+                f.enum_vals.forEach(function (v) {
                     vals[v.val] = v.txt;
                 });
                 enum_vals[m._id.toLowerCase() + '_' + f.name] = vals;
             }
         });
     });
+    data.inis.forEach(function (ini) {
+        ini.lines = [];
+        init_indx[ini._id] = ini;
+    });
+    data.ini.lines = [];
+    init_indx[data.ini._id] = data.ini;
 
-    init_grid.rows = Math.max(data.softs.length+1, Math.max(data.froms.length, data.tos.length));
+    var deps_to   = _.where(data.deps, {type: 'hard', to_init_id: _id}),
+        deps_from = _.where(data.deps, {type: 'hard', from_init_id: _id}),
+        hard_deps = _.where(data.deps, {type: 'hard'}),
+        soft_deps = _.where(data.deps, {type: 'soft'});
+
+    init_grid.rows = Math.max(soft_deps.length+1, Math.max(deps_from.length, deps_to.length));
     h = init_grid.rows * init_grid.rowh + init_grid.rowh/2;
 
     var caps = mk('ul', _.map(data.caps, function (x) {return mk('li',x.name);}));
@@ -149,40 +170,38 @@ d3.json(api, function (data) {
     $("#start").text(data.ini.start || '');
     $("#end").text(data.ini.end || '');
 
-    var inis = [data.ini],
+    var inis = [data.ini].concat(data.inis),
         irow = (init_grid.rows-1) / 2,
         top_soft, bot_soft;
 
     data.ini.byprog_row = irow - 1/2;
     data.ini.byprog_col = 1;
-    init_indx[data.ini._id] = data.ini;
     top_soft = data.ini;
     bot_soft = data.ini;
 
-    _.each(data.froms, function (e, i) {
-        e.byprog_row = irow - (data.froms.length/2) + i;
-        e.byprog_col = 0;
-        e.lines = [];
-        inis.push(e);
-        init_indx[e._id] = e;
+    _.each(deps_from, function (dep, i) {
+        var ini = init_indx[dep.to_init_id];
+        ini.byprog_row = irow - (deps_from.length/2) + i;
+        ini.byprog_col = 2;
     });
-    _.each(data.tos, function (e, i) {
-        e.byprog_row = irow - (data.tos.length/2) + i;
-        e.byprog_col = 2;
-        e.lines = [];
-        inis.push(e);
-        init_indx[e._id] = e;
+    _.each(deps_to, function (dep, i) {
+        var ini = init_indx[dep.from_init_id];
+        ini.byprog_row = irow - (deps_to.length/2) + i;
+        ini.byprog_col = 0;
     });
-    _.each(data.softs, function (e, i) {
-        e.byprog_row = irow - 1/2 + (i%2 ? -1 : 1) *  Math.floor(1 + i/2);
-        e.byprog_col = 1;
-        e.lines = [];
-        inis.push(e);
-        init_indx[e._id] = e;
-        top_soft = top_soft ? (top_soft.byprog_row < e.byprog_row ? top_soft : e) : e;
-        bot_soft = bot_soft ? (bot_soft.byprog_row > e.byprog_row ? bot_soft : e) : e;
+    _.each(soft_deps, function (dep, i) {
+        var ini = init_indx[dep.from_init_id === _id ? dep.to_init_id : dep.from_init_id];
+        ini.byprog_row = irow - 1/2 + (i%2 ? -1 : 1) *  Math.floor(1 + i/2);
+        ini.byprog_col = 1;
+        top_soft = top_soft.byprog_row < ini.byprog_row ? top_soft : ini;
+        bot_soft = bot_soft.byprog_row > ini.byprog_row ? bot_soft : ini;
     });
-    data.ini.lines = [];
+
+    soft_deps = _.sortBy(soft_deps, function (dep) {
+        var ini = init_indx[dep.from_init_id === _id ? dep.to_init_id : dep.from_init_id];
+            d = Math.abs(ini.byprog_row - data.ini.byprog_row);
+        return -d;
+    });
 
     var svg = d3.select("#diagram")
                 .append("svg")
@@ -207,9 +226,10 @@ d3.json(api, function (data) {
             fill: "black",
         });
 
-    if (data.softs.length > 0) {
+    if (soft_deps.length > 0) {
         svg.selectAll("line.soft")
-            .data([{from_init_id:top_soft._id, to_init_id:bot_soft._id}])
+            //.data([{from_init_id:top_soft._id, to_init_id:bot_soft._id}])
+            .data(soft_deps)
             .enter()
             .append("line")
             .classed("soft", true)
@@ -219,8 +239,8 @@ d3.json(api, function (data) {
     //var froms = _.map(data.froms, function (x) {return {from_init_id:x._id, to_init_id:_id};}),
     //    tos = _.map(data.tos, function (x) {return {from_init_id:_id, to_init_id:x._id};});
 
-    var froms = _.where(data.deps_from, {type: 'hard'}),
-        tos = _.where(data.deps_to, {type: 'hard'});
+    //var froms = _.where(data.deps_from, {type: 'hard'}),
+    //    tos = _.where(data.deps_to, {type: 'hard'});
         //inits = _.pluck(data.deps_from, 'to_init').concat(_.pluck(data.deps_to, 'from_init'));
 
     //inits.forEach(function(ini) {
@@ -228,13 +248,13 @@ d3.json(api, function (data) {
     //});
 
     svg.selectAll("line.sense")
-        .data(froms.concat(tos))
+        .data(hard_deps)
         .enter()
         .append("line")
         .each(hard_line_sense);
 
     svg.selectAll("line.draw")
-        .data(froms.concat(tos))
+        .data(hard_deps)
         .enter()
         .append("line")
         .each(hard_line);
@@ -308,7 +328,36 @@ d3.json(api, function (data) {
             title: "Hard Dependency",
             text: function() {
                 var dep = this.context.__data__;
-                return dep_tip(enum_vals, dep);
+                return dep_tip(init_indx, dep);
+            },
+        },
+        style: {
+            classes: 'qtip-shadow'
+        },
+        position: {
+            my: 'bottom center',
+            at: 'top center',
+            viewport: $(window),
+            adjust: {
+                y: -5,
+                method: 'shift shift'
+            },
+            target: 'mouse',
+        },
+        show: {
+            delay: 300,
+        },
+        //hide: {
+        //    inactive: 5000,
+        //},
+    });
+
+    $('.soft').qtip({
+        content: {
+            title: "Soft Dependency",
+            text: function() {
+                var dep = this.context.__data__;
+                return dep_tip(init_indx, dep);
             },
         },
         style: {
