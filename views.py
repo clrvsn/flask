@@ -215,7 +215,7 @@ def ini_api(_id):
               'program_id','process_id','function_ids','removed']#,'ncaps']
     def get(typ,id1,id2):
         inis = [deref_ini(db, db.initiative[ini[id1]]) #, fields)
-                for ini in db.dependency.where({'type': typ, id2: _id})]
+                for ini in filter_removed(db.dependency.where({'type': typ, id2: _id}))]
         return filter_removed(inis)
     ini = deref_ini(db, db.initiative[_id])
     def fltr(cap):
@@ -228,8 +228,8 @@ def ini_api(_id):
         tos   = get('hard','to_init_id','from_init_id'),
         softs = get('soft','from_init_id','to_init_id') + get('soft','to_init_id','from_init_id'),
         caps  = filter_removed(filter(fltr, db.capability)),
-        deps_from = [deref(db, dep) for dep in db.dependency.where({'to_init_id': _id})],
-        deps_to = [deref(db, dep) for dep in db.dependency.where({'from_init_id': _id})]
+        deps_from = [deref(db, dep) for dep in filter_removed(db.dependency.where({'to_init_id': _id}))],
+        deps_to = [deref(db, dep) for dep in filter_removed(db.dependency.where({'from_init_id': _id}))]
     )
 
 @app.route('/data/byprog')

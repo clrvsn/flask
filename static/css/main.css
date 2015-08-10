@@ -200,12 +200,13 @@ span.rag-red {
 
 .tip th, .tip td {
     padding: 2px;
+    vertical-align: top;
 }
 table.sortable thead {
     cursor: default;
 }
-table.sortable th:not(.sorttable_sorted):not(.sorttable_sorted_reverse):not(.sorttable_nosort):after { 
-    content: " \25B4\25BE" 
+table.sortable th:not(.sorttable_sorted):not(.sorttable_sorted_reverse):not(.sorttable_nosort):after {
+    content: " \25B4\25BE"
 }
 
 .navbar-brand {

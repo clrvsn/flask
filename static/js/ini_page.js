@@ -34,11 +34,11 @@ function hard_line_sense(dep) {
         xp = r2.r, yp = r2.b,
         xq = r2.l, yq = r2.b,
         p = intersect_lineseg_rect(xk,yk, xl,yl, xm,ym, xn,yn, xp,yp, xq,yq);
-    
+
     if (!p) {
         p = {x: xl, y: yl};
     }
-    
+
     d3.select(this) //.append('line')
         .classed('sense', true)
         .attr({
@@ -66,11 +66,11 @@ function hard_line(dep) {
         xp = r2.r, yp = r2.b,
         xq = r2.l, yq = r2.b,
         p = intersect_lineseg_rect(xk,yk, xl,yl, xm,ym, xn,yn, xp,yp, xq,yq);
-    
+
     if (!p) {
         p = {x: xl, y: yl};
     }
-    
+
     dep.line = d3.select(this) //.append('line')
         .classed('draw', true)
         .attr({
@@ -325,10 +325,10 @@ d3.json(api, function (data) {
             target: 'mouse',
         },
         show: {
-            delay: 500,
+            delay: 300,
         },
-        hide: {
-            inactive: 2000,
-        },
+        //hide: {
+        //    inactive: 5000,
+        //},
     });
 });
