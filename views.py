@@ -224,10 +224,10 @@ def ini_api(_id):
     ini_ids.update([dep['from_init_id'] for dep in deps if 'from_init_id' in dep])
     ini_ids.update([dep['to_init_id'] for dep in deps if 'to_init_id' in dep])
     def ini_fltr(ini):
-        return ini['_id'] in ini_ids
+        return ini['_id'] in ini_ids or ini['_id'] == _id
     return flask.jsonify(
         meta  = db._meta,
-        ini   = ini,
+        #ini   = ini,
         caps  = filter(cap_fltr, filter_removed(db.capability)),
         deps  = deps,
         inis  = [deref_ini(db,ini) for ini in filter(ini_fltr, db.initiative)]

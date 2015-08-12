@@ -130,6 +130,7 @@ function rag_rect(rect, i, d, f) {
             //$('#prog-status').modal();
             //$('#prog-status').attr('title', 'Programme Status for ' + d.name);
             $('#rag-ini-name').text("Initiative: " + d.name);
+            $('#rag-update').text(d.ini_rag_date || 'unknown date');
             $('#sg_supp_id').text(d.sg_supp ? d.sg_supp.name : '');
             $('#biz_pm_id').text(d.biz_pm ? d.biz_pm.name : '');
 

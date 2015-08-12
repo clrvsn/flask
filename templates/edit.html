@@ -244,7 +244,9 @@
             {name:'ref_id', label:'Ref To', type:'ref', ref_id:'META'},
             {name:'ref_field', label:'Ref Field', type:'string'},
             {name:'enum_vals', label:'Enum Vals', type:'assoc', struct:'list'},
-        ];
+            {name:'initial', label:'Initial Value', type:'string'},
+            //{name:'default', label:'Default Value', type:'string'},
+       ];
 
         function mk_string_ed(field,vals,lbl) {
             var ed = mk('input.form-control', {id: field.name+'_ed', type:'text'});
@@ -316,8 +318,10 @@
         }
         function mk_ref_ed(field,vals,lbl) {
             var ed = mk('select.form-control', {id: field.name+'_ed'});
-            if (!field.required)
+            var val = lookup(vals[field.name]);
+            if (!field.required) {
                 ed.append(mk('option'));
+            }
             lbl.attr('for', field.name+'_ed');
             ed.append(_.map(options[field.ref_id], function (opt) {
                 var el = mk('option',opt.txt);
@@ -327,7 +331,6 @@
                 }
                 return el;
             }));
-            var val = lookup(vals[field.name]);
             if (val) {
                 ed.attr('value', val);
             }
@@ -1047,6 +1050,45 @@
                     var ttl = "Adding a new '" + design.get('label') + "'",
                         bdy = mk('form.form-horizontal container-fluid'),
                         vals = {};
+
+                    _.each(design.get('fields').toJSON(), function (field) {
+                        var type = field.type;
+
+                        if (field.struct)
+                            type += '-' + field.struct;
+
+                        if (field.required) {
+                            if (field.initial !== undefined) {
+                                vals[field.name] = field.initial;
+                            } else {
+                                switch (type) {
+                                    case 'bool':
+                                        vals[field.name] = false;
+                                        break;
+                                    case 'date':
+                                        vals[field.name] = new Date();
+                                        break;
+                                    case 'enum':
+                                        vals[field.name] = field.enum_vals[0].val;
+                                        break;
+                                    case 'ref':
+                                        vals[field.name] = options[field.ref_id][0].val;
+                                        break;
+                                    case 'ref-set':
+                                        //vals[field.name] = '';
+                                        break;
+                                    case 'ref-list':
+                                        //vals[field.name] = '';
+                                        break;
+                                    case 'assoc-list':
+                                        //vals[field.name] = '';
+                                        break;
+                                    default:
+                                        vals[field.name] = '';
+                                }
+                            }
+                        }
+                    });
 
                     function save() {
                         var model = collection.add(vals);

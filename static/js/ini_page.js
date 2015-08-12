@@ -131,10 +131,11 @@ d3.json(api, function (data) {
         ini.lines = [];
         init_indx[ini._id] = ini;
     });
-    data.ini.lines = [];
-    init_indx[data.ini._id] = data.ini;
+    //this_ini.lines = [];
+    //init_indx[this_ini._id] = this_ini;
 
-    var deps_to   = _.where(data.deps, {type: 'hard', to_init_id: _id}),
+    var this_ini  = _.where(data.inis, {_id: _id})[0],
+        deps_to   = _.where(data.deps, {type: 'hard', to_init_id: _id}),
         deps_from = _.where(data.deps, {type: 'hard', from_init_id: _id}),
         hard_deps = _.where(data.deps, {type: 'hard'}),
         soft_deps = _.where(data.deps, {type: 'soft'});
@@ -144,7 +145,7 @@ d3.json(api, function (data) {
 
     var caps = mk('ul', _.map(data.caps, function (x) {return mk('li',x.name);}));
 
-    if (data.ini.type === 'prestudy') {
+    if (this_ini.type === 'prestudy') {
         $("#caps_out_ttl").text("Capabilities Covered:");
         $("#caps_in_ttl").text("");
     } else {
@@ -152,32 +153,32 @@ d3.json(api, function (data) {
         $("#caps_in_ttl").text("Capabilities to Move In:");
     }
 
-    $("#objective").text(data.ini.objective || '');
-    $("#tp_objective").text(data.ini.tp_objective || '');
-    $("#biz_pm_id").text(data.ini.biz_pm ? (data.ini.biz_pm.name) : (data.ini.state == 'pending' ? 'TBD' : ''));
-    $("#it_pm_id").text(data.ini.it_pm ? (data.ini.it_pm.name) : (data.ini.state == 'pending' ? 'TBD' : ''));
+    $("#objective").text(this_ini.objective || '');
+    $("#tp_objective").text(this_ini.tp_objective || '');
+    $("#biz_pm_id").text(this_ini.biz_pm ? (this_ini.biz_pm.name) : (this_ini.state == 'pending' ? 'TBD' : ''));
+    $("#it_pm_id").text(this_ini.it_pm ? (this_ini.it_pm.name) : (this_ini.state == 'pending' ? 'TBD' : ''));
     $("#caps_out").append(caps);
 
-    $("#sg_tp_rep_id").text(data.ini.sg_tp_rep ? (data.ini.sg_tp_rep.name) : (data.ini.state == 'pending' ? 'TBD' : ''));
-    $("#sg_chair_id").text(data.ini.sg_chair ? (data.ini.sg_chair.name) : (data.ini.state == 'pending' ? 'TBD' : ''));
-    $("#sg_supp_id").text(data.ini.sg_supp ? (data.ini.sg_supp.name) : (data.ini.state == 'pending' ? 'TBD' : ''));
-    $("#proc_rep_id").text(data.ini.proc_rep ? (data.ini.proc_rep.name) : 'TBD');
+    $("#sg_tp_rep_id").text(this_ini.sg_tp_rep ? (this_ini.sg_tp_rep.name) : (this_ini.state == 'pending' ? 'TBD' : ''));
+    $("#sg_chair_id").text(this_ini.sg_chair ? (this_ini.sg_chair.name) : (this_ini.state == 'pending' ? 'TBD' : ''));
+    $("#sg_supp_id").text(this_ini.sg_supp ? (this_ini.sg_supp.name) : (this_ini.state == 'pending' ? 'TBD' : ''));
+    $("#proc_rep_id").text(this_ini.proc_rep ? (this_ini.proc_rep.name) : 'TBD');
 
-    $("#type").text(enum_vals.ini_type[data.ini.type]);
-    $("#category").text(enum_vals.ini_category[data.ini.category]);
-    $("#state").text(enum_vals.ini_state[data.ini.state]);
-    $("#process").text(data.ini.process.title);
-    $("#start").text(data.ini.start || '');
-    $("#end").text(data.ini.end || '');
+    $("#type").text(enum_vals.ini_type[this_ini.type]);
+    $("#category").text(enum_vals.ini_category[this_ini.category]);
+    $("#state").text(enum_vals.ini_state[this_ini.state]);
+    $("#process").text(this_ini.process.title);
+    $("#start").text(this_ini.start || '');
+    $("#end").text(this_ini.end || '');
 
-    var inis = [data.ini].concat(data.inis),
+    var inis = data.inis,
         irow = (init_grid.rows-1) / 2,
         top_soft, bot_soft;
 
-    data.ini.byprog_row = irow - 1/2;
-    data.ini.byprog_col = 1;
-    top_soft = data.ini;
-    bot_soft = data.ini;
+    this_ini.byprog_row = irow - 1/2;
+    this_ini.byprog_col = 1;
+    top_soft = this_ini;
+    bot_soft = this_ini;
 
     _.each(deps_from, function (dep, i) {
         var ini = init_indx[dep.to_init_id];
@@ -199,7 +200,7 @@ d3.json(api, function (data) {
 
     soft_deps = _.sortBy(soft_deps, function (dep) {
         var ini = init_indx[dep.from_init_id === _id ? dep.to_init_id : dep.from_init_id];
-            d = Math.abs(ini.byprog_row - data.ini.byprog_row);
+            d = Math.abs(ini.byprog_row - this_ini.byprog_row);
         return -d;
     });
 

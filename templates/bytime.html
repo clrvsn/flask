@@ -184,6 +184,7 @@
 
 <div id="prog-status" title="Programme RAG Status">
     <h4 id="rag-ini-name">Initiative</h4>
+    <p>Status last updated on <span id="rag-update"></span>.</p>
     <table class="table">
         <tr><th>MHS TP SG Sponsor:</th> <td id="sg_supp_id"></td></tr>
         <tr><th>Project Manager:</th>   <td id="biz_pm_id"></td></tr>
@@ -222,7 +223,7 @@
         ], 'proc');
 
         mk_choice_inline('view', 'view-choice', [
-            {val: 'year', txt: 'View this Year'},
+            {val: 'year', txt: 'View Next 12 Months'},
             {val: 'full', txt: 'View Full Timeline'},
         ], 'year');
 
