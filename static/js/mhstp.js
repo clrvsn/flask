@@ -327,14 +327,15 @@ function mk_filter(mid, fld, eid, state) {
 
         var mk_one = function (v) {
             var set = _.contains(state, v.val),
-                chk = {checked:set},
-                inp = mk('input#'+v.val+'_chk', {type:'checkbox'}, chk),
+                //chk = {checked:set},
+                inp = mk('input#'+v.val+'_chk', {type:'checkbox'}), //, chk),
                 wrp = mk('div.checkbox', mk('label', inp, v.txt ));
+            inp.prop('checked', set);
             inp.click(function () {
                 toggle_filter(fld, v.val);
             });
             el.append(wrp);
-            filter[fld][v.val] = set;
+            filter[fld][v.val] = inp.prop('checked'); // set;
         };
         if (!field.required) {
             mk_one({val:'_none_', txt:'None'});
@@ -350,14 +351,15 @@ function mk_filter(mid, fld, eid, state) {
 
         data[coll].forEach(function(obj) {
             var set = _.contains(state, obj._id),
-                chk = {checked:set},
-                inp = mk('input#'+obj._id+'_chk', {type:'checkbox'}, chk),
+                //chk = {checked:set},
+                inp = mk('input#'+obj._id+'_chk', {type:'checkbox'}), //, chk),
                 wrp = mk('div.checkbox', mk('label', inp, obj[field.ref_field] ));
+            inp.prop('checked', set);
             inp.click(function () {
                 toggle_filter(fld, obj._id);
             });
             el.append(wrp);
-            filter[fld][obj._id] = set;
+            filter[fld][obj._id] = inp.prop('checked'); //set;
         });
     }
 }
