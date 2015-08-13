@@ -327,7 +327,7 @@ function mk_filter(mid, fld, eid, state) {
 
         var mk_one = function (v) {
             var set = _.contains(state, v.val),
-                chk = set ? {checked:'checked'} : {},
+                chk = {checked:set},
                 inp = mk('input#'+v.val+'_chk', {type:'checkbox'}, chk),
                 wrp = mk('div.checkbox', mk('label', inp, v.txt ));
             inp.click(function () {
@@ -350,7 +350,7 @@ function mk_filter(mid, fld, eid, state) {
 
         data[coll].forEach(function(obj) {
             var set = _.contains(state, obj._id),
-                chk = set ? {checked:'checked'} : {},
+                chk = {checked:set},
                 inp = mk('input#'+obj._id+'_chk', {type:'checkbox'}, chk),
                 wrp = mk('div.checkbox', mk('label', inp, obj[field.ref_field] ));
             inp.click(function () {
