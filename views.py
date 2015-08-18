@@ -13,7 +13,7 @@
 #from flask.ext.pymongo import ASCENDING
 from app import app, mongo
 from data import *
-import flask, json
+import flask, json, csv
 
 @app.route('/model')
 def front_page():
@@ -49,6 +49,15 @@ def page(name):
                             req={
                                 'args': flask.request.args,
                                 'form': flask.request.form})
+##                elif v['proc'] == 'csv' and v.has_key('source'):
+##                    fieldnames = v['fieldnames']
+##                    src = v['source'].split('\n')
+##                    obj = []
+##                    for row in csv.reader(src):
+##                        ob = {}
+##                        for i,name in enumerate(fieldnames):
+##                            ob[name] = row[i]
+##                        obj.append(ob)
                 return obj
             elif v.has_key('source'):
                 return v['source']

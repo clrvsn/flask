@@ -85,7 +85,7 @@ rect.activity {
 
 
 line.soft {
-    stroke: grey;
+    stroke: gray;
     stroke-width: 8;
     opacity: 0.5;
 }
