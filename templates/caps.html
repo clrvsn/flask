@@ -30,7 +30,7 @@ table .header-fixed {
 {% endblock %}
 {% block content %}
 <div class="main">
-  <h1 class="page-header">Capabilities</h1>
+  <h1 id="cap-ttl" class="page-header">Capabilities</h1>
   <table id="data-grid" class="table table-condensed table-striped table-fixed-header sortable"></table>
   <div id="grid" class="backgrid-container" style="height: 100%"></div>
 </div>
@@ -105,7 +105,7 @@ table .header-fixed {
             });
         };
     }(jQuery));
-}.call(this));    
+}.call(this));
 </script>
 <script type="text/javascript">
     var Capability = Backbone.Model.extend({}),
@@ -164,7 +164,7 @@ table .header-fixed {
                 return this;
             },
         });
-    
+
     var table_view,
         options = {},
         cap_meta = {},
@@ -227,6 +227,8 @@ table .header-fixed {
         cap_meta = data.cap_meta;
         fields = data.cap_meta.fields;
 
+        $('#cap-ttl').text('Capabilities: ' + data.fun.name);
+
         _.each(data.options, function (o) {
             options[o._id] = o.opts;
             _.each(o.opts, function (opt) {
@@ -235,8 +237,9 @@ table .header-fixed {
         });
 
         if (id !== '' && id.substr(0,3) === 'FUN') {
+            var hidden = ['function_id','ref','init_cover_ids','sol_asis','sol_tobe'];
             fields = _.filter(fields, function (field) {
-                return field.name !== 'function_id';
+                return !_.contains(hidden, field.name);
             });
         }
 
